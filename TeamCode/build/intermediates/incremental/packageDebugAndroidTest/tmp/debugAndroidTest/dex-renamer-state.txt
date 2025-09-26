@@ -1,0 +1,4 @@
+#Thu Sep 25 17:14:32 PDT 2025
+base.0=/Users/kaedendoshier/FTC_DECODE_21231_TEAMCODE/TeamCode/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
+path.0=0/classes.dex
+renamed.0=classes.dex
