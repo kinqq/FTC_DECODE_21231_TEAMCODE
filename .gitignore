@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Gradle & build outputs
+.gradle/
+**/build/
+**/intermediates/
+**/outputs/
+.externalNativeBuild/
+.cxx/
+.kotlinc/
+
+# Android local config
+local.properties
+
+# Logs & artifacts
+*.log
+*.apk
+*.aab
+
+# Signing keys
+*.jks
+*.keystore
+signing.properties
