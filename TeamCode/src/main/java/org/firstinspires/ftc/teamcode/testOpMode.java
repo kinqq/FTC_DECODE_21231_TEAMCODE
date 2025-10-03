@@ -1,27 +1,36 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name="Test OpMode", group="Linear OpMode")
+
+@TeleOp(name="TeleOp", group="Linear OpMode")
 public class testOpMode extends LinearOpMode{
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    private DcMotor frontLeftDrive = null;
-    private DcMotor backLeftDrive = null;
-    private DcMotor frontRightDrive = null;
-    private DcMotor backRightDrive = null;
+    private IMU imu;
 
-    private Servo turnTable = null;
+    private DcMotor FLDrive, BLDrive, FRDrive, BRDrive = null;
+    private DcMotor LAL, LAR = null;
+    private DcMotor INL, INR = null;
+    
+    private Servo MG = null;
+
+    private RevColorSensorV3 bob = null;
 
     @Override
     public void runOpMode()
     {
+        sub magazine = new sub(this);
+
         initialize();
 
         waitForStart();
@@ -31,26 +40,53 @@ public class testOpMode extends LinearOpMode{
         while (opModeIsActive())
         {
             drive();
-            turnTableControl();
+            gameLoop();
         }
     }
 
     private void initialize()
     {
+        imu = hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        imu.initialize(parameters);
+
         //DT Init
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "driveFrontLeft");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "driveBackLeft");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "driveFrontRight");
-        backRightDrive = hardwareMap.get(DcMotor.class, "driveBackRight");
+        FLDrive = hardwareMap.get(DcMotor.class, "FLD");
+        FRDrive = hardwareMap.get(DcMotor.class, "FRD");
+        BLDrive = hardwareMap.get(DcMotor.class, "BLD");
+        BRDrive = hardwareMap.get(DcMotor.class, "BRD");
+       
+        //Launcher Init
+        LAL = hardwareMap.get(DcMotor.class, "LAL");
+        LAR = hardwareMap.get(DcMotor.class, "LAR");
+
+        //Intake Init
+        INR = hardwareMap.get(DcMotor.class, "INR");
+        INL = hardwareMap.get(DcMotor.class, "INL");
 
         //Turntable Init
-        turnTable = hardwareMap.get(Servo.class, "turnTable");
+        MG = hardwareMap.get(Servo.class, "MG");
+
+        //Color Sensor Init
+        bob = hardwareMap.get(RevColorSensorV3.class, "bob");
 
         //DT Directions
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        FLDrive.setDirection(DcMotor.Direction.REVERSE);
+        BLDrive.setDirection(DcMotor.Direction.REVERSE);
+        FRDrive.setDirection(DcMotor.Direction.FORWARD);
+        BRDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        //LA Directions
+        LAR.setDirection(DcMotor.Direction.FORWARD);
+        LAL.setDirection(DcMotor.Direction.FORWARD);
+
+        //IN Directions
+        INR.setDirection(DcMotor.Direction.FORWARD);
+        INL.setDirection(DcMotor.Direction.FORWARD);
 
         //Send Init Signal to DH
         telemetry.addData("Status", "Initialized");
@@ -59,65 +95,49 @@ public class testOpMode extends LinearOpMode{
 
     private void drive()
     {
-        double max;
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x;
+        double rx = gamepad1.right_stick_x;
 
-        // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-        double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        double lateral = gamepad1.left_stick_x;
-        double yaw = gamepad1.right_stick_x;
-
-        // Combine the joystick requests for each axis-motion to determine each wheel's power.
-        // Set up a variable for each drive wheel to save the power level for telemetry.
-        double frontLeftPower = axial + lateral + yaw;
-        double frontRightPower = axial - lateral - yaw;
-        double backLeftPower = axial - lateral + yaw;
-        double backRightPower = axial + lateral - yaw;
-
-        // Normalize the values so no wheel power exceeds 100%
-        // This ensures that the robot maintains the desired motion.
-        max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-        max = Math.max(max, Math.abs(backLeftPower));
-        max = Math.max(max, Math.abs(backRightPower));
-
-        if (max > 1.0) {
-            frontLeftPower /= max;
-            frontRightPower /= max;
-            backLeftPower /= max;
-            backRightPower /= max;
+        // This button choice was made so that it is hard to hit on accident,
+        // it can be freely changed based on preference.
+        // The equivalent button is start on Xbox-style controllers.
+        if (gamepad1.options) {
+            imu.resetYaw();
         }
 
-        // This is test code:
-        //
-        // Uncomment the following code to test your motor directions.
-        // Each button should make the corresponding motor run FORWARD.
-        //   1) First get all the motors to take to correct positions on the robot
-        //      by adjusting your Robot Configuration if necessary.
-        //   2) Then make sure they run in the correct direction by modifying the
-        //      the setDirection() calls above.
-        // Once the correct motors move in the correct direction re-comment this code.
+        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            /*
-            frontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            backLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-        // Send calculated power to wheels
-        frontLeftDrive.setPower(frontLeftPower);
-        frontRightDrive.setPower(frontRightPower);
-        backLeftDrive.setPower(backLeftPower);
-        backRightDrive.setPower(backRightPower);
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
 
-        // Show the elapsed game time and wheel power.
-        telemetry.addData("Status", "Run Time: " + runtime.toString());
-        telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-        telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-        telemetry.update();
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+
+        FLDrive.setPower(frontLeftPower);
+        BLDrive.setPower(backLeftPower);
+        FRDrive.setPower(frontRightPower);
+        BRDrive.setPower(backRightPower);
     }
 
-    private void turnTableControl()
+    private void gameLoop()
     {
+        boolean[] magazine = new boolean[3];
+        boolean mgFull = false;
+        int mgActive = 0;
 
+
+        //IF COLOR SENSOR SEES GREEN
+            //magazine[mgActive] = true;
+           //mgActive = mgActive + 1 % 3;
     }
 }
