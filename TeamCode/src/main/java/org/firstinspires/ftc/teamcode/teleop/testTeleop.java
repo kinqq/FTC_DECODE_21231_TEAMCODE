@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import org.firstinspires.ftc.teamcode.Subsystems.*;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -19,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 
 @TeleOp(name = "VERYBasicDrive")
-//@Configurable
 public class testTeleop extends OpMode {
 
     public static ElapsedTime runtime = new ElapsedTime();
@@ -28,7 +26,7 @@ public class testTeleop extends OpMode {
     @Override
     public void init()
     {
-        drive.init(hardwareMap); //Initialize the drive subsystem
+        driveMotors.init(hardwareMap); //Initialize the drive subsystem
         magazine.init(hardwareMap); //Initialize magazine subsystem
 
         runtime.reset();
@@ -38,18 +36,18 @@ public class testTeleop extends OpMode {
     public void loop()
     {
         //Send stick values to drive for odo drive
-        drive.odoDrive(
+        driveMotors.odoDrive(
                 gamepad1.left_stick_x,
                 -gamepad1.left_stick_y,
                 gamepad1.right_stick_x
         );
 
         //Control intake manually
-        if (gamepad1.a) drive.intakeOff(false);
-        if (gamepad1.b) drive.intakeOff(true);
+        if (gamepad1.a) driveMotors.intakeOff(false);
+        if (gamepad1.b) driveMotors.intakeOff(true);
 
         //Wait to check till 0.5 seconds pass
-        if (runtime.now(TimeUnit.SECONDS) - timer >= 0.5)
+        if (runtime.now(TimeUnit.SECONDS) - timer >= 2)
         {
             magazine.checkColors(); //Check and update all magazine slots
             timer = runtime.now(TimeUnit.SECONDS); //Reset timer to now to reflect new countdown

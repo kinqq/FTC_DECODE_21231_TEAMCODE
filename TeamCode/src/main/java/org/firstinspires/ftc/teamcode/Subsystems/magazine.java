@@ -39,20 +39,20 @@ public class magazine
     public static void find(int Purple_Green_Empty)
     {
         if (Purple_Green_Empty == 0 && MGAr[activeMG] != 2) {
-            drive.intakeOff(true);
+            driveMotors.intakeOff(true);
 
             if (MGAr[0] == 2) servoPosition = 0.1;
             else if (MGAr[1] == 2) servoPosition = 0.5;
             else if (MGAr[2] == 2) servoPosition = 0.9;
         } else if (Purple_Green_Empty == 1 && MGAr[activeMG] != 1) {
-            drive.intakeOff(true);
+            driveMotors.intakeOff(true);
 
             if (MGAr[0] == 1) servoPosition = 0.1;
             else if (MGAr[1] == 1) servoPosition = 0.5;
             else if (MGAr[2] == 1) servoPosition = 0.9;
 
         } else if (Purple_Green_Empty == 2 && MGAr[activeMG] != 0) {
-            drive.intakeOff(false);
+            driveMotors.intakeOff(false);
 
             if (MGAr[0] == 0) servoPosition = 0.1;
             else if (MGAr[1] == 0) servoPosition = 0.5;
@@ -62,20 +62,47 @@ public class magazine
 
     public static void checkColors()
     {
-        if (bob.green() > 130 && bob.blue() < 130 && bob.red() < 130) MGAr[activeMG] = 1;
-        else if (bob.green() > 100 && bob.blue() > 130 && bob.red() > 100) MGAr[activeMG] = 2;
+        if (bob.green() > 90) MGAr[activeMG] = 1;
+        if (
+                bob.green() > 80 && bob.green() < 90 &&
+                bob.blue() > 80 && bob.blue() < 90 &&
+                bob.red() > 50 && bob.red() < 60
+        ) MGAr[activeMG] = 2;
+        if (
+                bob.green() > 75 && bob.green() < 80 &&
+                bob.blue() > 65 && bob.blue() < 70 &&
+                bob.red() > 45 && bob.red() < 50
+        ) MGAr[activeMG] = 0;
 
-        if (gary.green() > 130 && gary.blue() < 130 && gary.red() < 130) MGAr[(activeMG + 2) % 3] = 1;
-        else if (gary.green() > 100 && gary.blue() > 130 && gary.red() > 100) MGAr[(activeMG + 2) % 3] = 2;
+        /*if (gary.green() > 100) MGAr[(activeMG + 2) % 3] = 1;
+        else if (
+                gary.green() > 80 && gary.green() < 90 &&
+                gary.blue() > 80 && gary.blue() < 90 &&
+                gary.red() > 50 && gary.red() < 60
+        ) MGAr[(activeMG + 2) % 3] = 2;
+        else if (
+                gary.green() > 75 && gary.green() < 85 &&
+                gary.blue() > 65 && gary.blue() < 70 &&
+                gary.red() > 45 && gary.red() < 50
+        ) MGAr[(activeMG + 2) % 3] = 0;
 
-        if (joe.green() > 130 && joe.blue() < 130 && joe.red() < 130) MGAr[(activeMG + 1) % 3] = 1;
-        else if (joe.green() > 100 && joe.blue() > 130 && joe.red() > 100) MGAr[(activeMG + 1) % 3] = 2;
+        if (joe.green() > 88 && joe.blue() < 78 && joe.red() < 45) MGAr[(activeMG + 1) % 3] = 1;
+        else if (
+                joe.green() > 80 && joe.green() < 90 &&
+                joe.blue() > 80 && joe.blue() < 90 &&
+                joe.red() > 50 && joe.red() < 60
+        ) MGAr[(activeMG + 1) % 3] = 2;
+        else if (
+                joe.green() > 75 && joe.green() < 85 &&
+                joe.blue() > 65 && joe.blue() < 70 &&
+                joe.red() > 45 && joe.red() < 50
+        ) MGAr[(activeMG + 1) % 3] = 0;
+        */
     }
 
     public static void updatePosition()
     {
-        if (drive.intakeRunning) find(2);
-        else find(0);
+        if (driveMotors.intakeRunning) find(2);
 
         if (servoPosition > 0.91) servoPosition = 0.1;
         if (servoPosition < 0.09) servoPosition = 0.9;

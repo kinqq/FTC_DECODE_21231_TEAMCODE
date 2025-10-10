@@ -2,12 +2,13 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class drive
+public class driveMotors
 {
     public static GoBildaPinpointDriver odo;
 
@@ -30,6 +31,7 @@ public class drive
 
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
 
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
 
