@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -12,28 +12,28 @@ public class driveMotors
 {
     public static GoBildaPinpointDriver odo;
 
-    public static DcMotorEx frontLeftDrive;
-    public static DcMotorEx backLeftDrive;
-    public static DcMotorEx frontRightDrive;
-    public static DcMotorEx backRightDrive;
+    public static DcMotor frontLeftDrive;
+    public static DcMotor backLeftDrive;
+    public static DcMotor frontRightDrive;
+    public static DcMotor backRightDrive;
 
-    public static DcMotorEx intake;
+    public static DcMotor intake;
 
     public static boolean intakeRunning;
 
     public static void init(HardwareMap hwMap)
     {
-        frontLeftDrive = hwMap.get(DcMotorEx.class, "FLD");
-        frontRightDrive = hwMap.get(DcMotorEx.class, "FRD");
-        backLeftDrive = hwMap.get(DcMotorEx.class, "BLD");
-        backRightDrive = hwMap.get(DcMotorEx.class, "BRD");
-        intake = hwMap.get(DcMotorEx.class, "IN");
+        frontLeftDrive = hwMap.get(DcMotor.class, "FLD");
+        frontRightDrive = hwMap.get(DcMotor.class, "FRD");
+        backLeftDrive = hwMap.get(DcMotor.class, "BLD");
+        backRightDrive = hwMap.get(DcMotor.class, "BRD");
+        intake = hwMap.get(DcMotor.class, "IN");
 
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
-        backLeftDrive.setDirection(DcMotorEx.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
 
         odo.setOffsets(2.3622047244, -6.6141732283, DistanceUnit.INCH);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);

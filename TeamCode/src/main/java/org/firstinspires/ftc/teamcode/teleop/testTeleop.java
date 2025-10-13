@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -23,6 +24,9 @@ public class testTeleop extends OpMode {
     public static ElapsedTime runtime = new ElapsedTime();
     public float timer = 2;
 
+    public boolean pressed1 = false;
+    public boolean pressed2 = false;
+
     @Override
     public void init()
     {
@@ -33,8 +37,7 @@ public class testTeleop extends OpMode {
     }
 
     @Override
-    public void loop()
-    {
+    public void loop() {
         //Send stick values to drive for odo drive
         driveMotors.odoDrive(
                 gamepad1.left_stick_x,
@@ -43,25 +46,38 @@ public class testTeleop extends OpMode {
         );
 
         //Control intake manually
-        if (gamepad1.a) driveMotors.intakeOff(false);
-        if (gamepad1.b) driveMotors.intakeOff(true);
+        if (gamepad2.a) driveMotors.intakeOff(false);
+        if (gamepad2.b) driveMotors.intakeOff(true);
 
         //Wait to check till 0.5 seconds pass
-        if (runtime.now(TimeUnit.SECONDS) - timer >= 2)
-        {
+        if (runtime.now(TimeUnit.SECONDS) - timer >= 2) {
             magazine.checkColors(); //Check and update all magazine slots
             timer = runtime.now(TimeUnit.SECONDS); //Reset timer to now to reflect new countdown
         }
 
-        if (gamepad2.leftBumperWasPressed()) magazine.find(0); //Find a purple and put in launch position
-        if (gamepad2.rightBumperWasPressed()) magazine.find(1); //Find a green and put in launch position
+        if (gamepad2.left_bumper && !pressed1) {
+            magazine.find(0);
+            pressed1 = true;
+        }
+        if (!gamepad2.left_bumper) {
+            pressed1 = false;
+        }
+        //Find a purple and put in launch position
+        if (gamepad2.right_bumper && pressed2) {
+            magazine.find(1); //Find a green and put in launch position
+            pressed2 = true;
+        }
+
+        if(!gamepad2.right_bumper) {
+            pressed2 = false;
+        }
 
         magazine.updatePosition(); //Set servo to the servo position variable
 
         telemetry.addLine("Current Magazine Contents:");
         telemetry.addData(" Active Slot: ", magazine.MGAr[magazine.activeMG]);
-        telemetry.addData(" Top Right: ", magazine.MGAr[(magazine.activeMG + 2) % 3]);
-        telemetry.addData(" Top Left: ", magazine.MGAr[(magazine.activeMG + 1) % 3]);
+        telemetry.addData(" Top Left: ", magazine.MGAr[(magazine.activeMG + 2) % 3]);
+        telemetry.addData(" Top Right: ", magazine.MGAr[(magazine.activeMG + 1) % 3]);
         telemetry.addLine();
 
         telemetry.addData("Servo Position (Reported): ", magazine.servoPosition);
