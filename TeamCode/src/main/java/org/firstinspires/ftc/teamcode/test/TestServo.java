@@ -8,8 +8,11 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
+import dev.frozenmilk.sinister.loading.Pinned;
+
 @TeleOp(name = "TestServo", group = "Test")
 @Configurable
+@Pinned
 public class TestServo extends OpMode {
     ServoImplEx servo1, servo2;
     DcMotor motor1, motor2;
@@ -17,7 +20,7 @@ public class TestServo extends OpMode {
 //    public static String servoName2 = "pivot";
 //    public static String motorName1 = "leftRot";
 //    public static String motorName2 = "leftEle";
-    public static int lowPwm = 600, highPwm = 2400;
+    public static int lowPwm = 500, highPwm = 2500;
     public static double servoPos1 = 0, servoPos2 = 0, motorPow1 = 1, motorPow2 = 1;
     public static int motorPos1 = 0, motorPos2;
 

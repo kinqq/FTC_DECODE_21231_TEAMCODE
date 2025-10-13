@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.test;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class sub
+public class testyTest
 {
 
     private final LinearOpMode op;
@@ -14,7 +14,7 @@ public class sub
     private boolean aHeld = false;
     private boolean bHeld = false;
 
-    public sub(LinearOpMode op) {
+    public testyTest(LinearOpMode op) {
         this.op = op;
         this.magazing = op.hardwareMap.get(Servo.class, "MG");
         this.magazing.setPosition(servp);

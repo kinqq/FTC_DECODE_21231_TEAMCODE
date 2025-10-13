@@ -7,24 +7,22 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.subsystem.TurnTable;
+import static org.firstinspires.ftc.teamcode.subsystem.TurnTable.*;
+import org.firstinspires.ftc.teamcode.util.Constants;
 
 @TeleOp(name = "Drive")
 @Configurable
 public class Drive extends OpMode {
     private GoBildaPinpointDriver odo;
-    public static int num = 0;
-    private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
-    private DcMotorEx intake;
-    private Servo turntable;
-    public static double power = 0, turntablePosition = .17;
+    private DcMotorEx frontLeft, backLeft, frontRight, backRight, intake, launcher;
+    private TurnTable turn;
+    public static double power = 0;
 
     @Override
     public void init() {
@@ -40,16 +38,17 @@ public class Drive extends OpMode {
         odo.resetPosAndIMU();
 
         // Declare motors
-        frontLeftMotor = hardwareMap.dcMotor.get("leftFront");
-        backLeftMotor = hardwareMap.dcMotor.get("leftBack");
-        frontRightMotor = hardwareMap.dcMotor.get("rightFront");
-        backRightMotor = hardwareMap.dcMotor.get("rightBack");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "leftFront");
+        backLeft = hardwareMap.get(DcMotorEx.class, "leftBack");
+        frontRight = hardwareMap.get(DcMotorEx.class, "rightFront");
+        backRight = hardwareMap.get(DcMotorEx.class, "rightBack");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
 
-        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        turntable = hardwareMap.get(Servo.class, "turntable");
+        turn = new TurnTable(hardwareMap);
 
         PanelsConfigurables.INSTANCE.refreshClass(Drive.class);
 
@@ -77,28 +76,33 @@ public class Drive extends OpMode {
         double frontRightPower = (ySpeed - xSpeed - rx) / denominator;
         double backRightPower = (ySpeed + xSpeed - rx) / denominator;
 
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        frontLeft.setPower(frontLeftPower);
+        backLeft.setPower(backLeftPower);
+        frontRight.setPower(frontRightPower);
+        backRight.setPower(backRightPower);
 
-        if (gamepad1.aWasPressed()) power += 0.1;
-        if (gamepad1.bWasPressed()) power -= 0.1;
-        power = Range.clip(power, -1, 1);
-
-        if (gamepad1.leftBumperWasPressed()) {
-            if (turntablePosition == 0.17) turntablePosition = .56;
-            else if (turntablePosition == .56) turntablePosition = .94;
-            else if (turntablePosition == .94) turntablePosition = .17;
-        }
-        turntable.setPosition(turntablePosition);
-
+        if (gamepad1.dpadUpWasPressed()) power = Constants.INTAKE_ACTIVE_POWER;
+        if (gamepad1.dpadDownWasPressed()) power = -Constants.INTAKE_ACTIVE_POWER;
+        if (gamepad1.dpadLeftWasPressed()) power = 0;
         intake.setPower(power);
+
+        if (gamepad1.leftBumperWasPressed()) turn.nextSlot();
+        if (gamepad1.rightBumperWasPressed()) turn.prevSlot();
+        if (gamepad1.aWasPressed()) turn.startLaunch(DetectedColor.GREEN);
+        if (gamepad1.bWasPressed()) turn.startLaunch(DetectedColor.PURPLE);
+        if (gamepad1.yWasPressed()) turn.startLaunchCurrent();
+
+        if (gamepad1.leftStickButtonWasPressed()) launcher.setPower(1);
+        if (gamepad1.rightStickButtonWasPressed()) launcher.setPower(0);
+
+        turn.update();
 
         telemetry.addData("x", odo.getPosX(DistanceUnit.MM));
         telemetry.addData("y", odo.getPosY(DistanceUnit.MM));
         telemetry.addData("h", odo.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("int", num);
+        telemetry.addData("slot1", turn.getLastColor(Slot.FIRST));
+        telemetry.addData("slot2", turn.getLastColor(Slot.SECOND));
+        telemetry.addData("slot3", turn.getLastColor(Slot.THIRD));
         telemetry.addData("velocity", intake.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("intake power", power);
         telemetry.update();

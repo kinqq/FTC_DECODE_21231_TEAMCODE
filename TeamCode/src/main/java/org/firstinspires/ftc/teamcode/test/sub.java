@@ -1,11 +1,9 @@
-package org.firstinspires.ftc.teamcode;
-
-import android.sax.StartElementListener;
+package org.firstinspires.ftc.teamcode.test;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class testyTest
+public class sub
 {
 
     private final LinearOpMode op;
@@ -16,7 +14,7 @@ public class testyTest
     private boolean aHeld = false;
     private boolean bHeld = false;
 
-    public testyTest(LinearOpMode op) {
+    public sub(LinearOpMode op) {
         this.op = op;
         this.magazing = op.hardwareMap.get(Servo.class, "MG");
         this.magazing.setPosition(servp);
