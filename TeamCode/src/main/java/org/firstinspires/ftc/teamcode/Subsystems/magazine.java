@@ -43,22 +43,22 @@ public class magazine
         if (Purple_Green_Empty == 0 && MGAr[activeMG] != 2) {
             driveMotors.intakeOff(true);
 
-            if (MGAr[0] == 2) servoPosition = 0.1;
-            else if (MGAr[1] == 2) servoPosition = 0.5;
-            else if (MGAr[2] == 2) servoPosition = 0.9;
+            if (MGAr[0] == 2) servoPosition = 0.8;
+            else if (MGAr[1] == 2) servoPosition = 0.4;
+            else if (MGAr[2] == 2) servoPosition = 1;
         } else if (Purple_Green_Empty == 1 && MGAr[activeMG] != 1) {
             driveMotors.intakeOff(true);
 
-            if (MGAr[0] == 1) servoPosition = 0.1;
-            else if (MGAr[1] == 1) servoPosition = 0.5;
-            else if (MGAr[2] == 1) servoPosition = 0.9;
+            if (MGAr[0] == 1) servoPosition = 0.8;
+            else if (MGAr[1] == 1) servoPosition = 0.4;
+            else if (MGAr[2] == 1) servoPosition = 1;
 
         } else if (Purple_Green_Empty == 2 && MGAr[activeMG] != 0) {
             driveMotors.intakeOff(false);
 
-            if (MGAr[0] == 0) servoPosition = 0.1;
-            else if (MGAr[1] == 0) servoPosition = 0.5;
-            else if (MGAr[2] == 0) servoPosition = 0.9;
+            if (MGAr[0] == 0) servoPosition = 0;
+            else if (MGAr[1] == 0) servoPosition = 0.4;
+            else if (MGAr[2] == 0) servoPosition = 0.8;
         }
     }
 
@@ -76,31 +76,31 @@ public class magazine
                 bob.red() > 40 && bob.red() < 45
         ) MGAr[activeMG] = 0;
 
-
+/*
         if (gary.green() > 75 && gary.green() > gary.red() && gary.green() > gary.blue()) MGAr[(activeMG + 2) % 3] = 1;
         else if (
-                gary.green() > 80 && gary.green() < 90 &&
-                gary.blue() > 80 && gary.blue() < 90 &&
-                gary.red() > 50 && gary.red() < 60
-        ) MGAr[(activeMG + 2) % 3] = 2;
+                gary.green() > 75 && gary.green() < 90 &&
+                gary.blue() > 88 && gary.blue() < 100 &&
+                gary.red() > 46 && gary.red() < 55
+        ) MGAr[(activeMG + 1) % 3] = 2;
         else if (
                 gary.green() > 75 && gary.green() < 85 &&
                 gary.blue() > 65 && gary.blue() < 70 &&
                 gary.red() > 45 && gary.red() < 50
-        ) MGAr[(activeMG + 2) % 3] = 0;
+        ) MGAr[(activeMG + 1) % 3] = 0;
 
         if (joe.green() > 88 && joe.blue() < 78 && joe.red() < 45) MGAr[(activeMG + 1) % 3] = 1;
         else if (
                 joe.green() > 80 && joe.green() < 90 &&
                 joe.blue() > 80 && joe.blue() < 90 &&
                 joe.red() > 50 && joe.red() < 60
-        ) MGAr[(activeMG + 1) % 3] = 2;
+        ) MGAr[(activeMG + 2) % 3] = 2;
         else if (
                 joe.green() > 75 && joe.green() < 85 &&
                 joe.blue() > 65 && joe.blue() < 70 &&
                 joe.red() > 45 && joe.red() < 50
-        ) MGAr[(activeMG + 1) % 3] = 0;
-
+        ) MGAr[(activeMG + 2) % 3] = 0;
+*/
     }
 
     public static void updatePosition()

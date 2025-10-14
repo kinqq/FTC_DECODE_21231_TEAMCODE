@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Subsystems.*;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -30,14 +31,15 @@ public class testTeleop extends OpMode {
     @Override
     public void init()
     {
-        driveMotors.init(hardwareMap); //Initialize the drive subsystem
-        magazine.init(hardwareMap); //Initialize magazine subsystem
-
+        //driveMotors.init(hardwareMap); //Initialize the drive subsystem
+        //magazine.init(hardwareMap); //Initialize magazine subsystem
+        colorSensor.init(hardwareMap);
         runtime.reset();
     }
 
     @Override
     public void loop() {
+        /*
         //Send stick values to drive for odo drive
         driveMotors.odoDrive(
                 gamepad1.left_stick_x,
@@ -55,22 +57,8 @@ public class testTeleop extends OpMode {
             timer = runtime.now(TimeUnit.SECONDS); //Reset timer to now to reflect new countdown
         }
 
-        if (gamepad2.left_bumper && !pressed1) {
-            magazine.find(0);
-            pressed1 = true;
-        }
-        if (!gamepad2.left_bumper) {
-            pressed1 = false;
-        }
-        //Find a purple and put in launch position
-        if (gamepad2.right_bumper && pressed2) {
-            magazine.find(1); //Find a green and put in launch position
-            pressed2 = true;
-        }
-
-        if(!gamepad2.right_bumper) {
-            pressed2 = false;
-        }
+        if (gamepad2.leftBumperWasPressed()) magazine.find(0);//Find a purple and put in launch position
+        if (gamepad2.rightBumperWasPressed()) magazine.find(1); //Find a green and put in launch position
 
         magazine.updatePosition(); //Set servo to the servo position variable
 
@@ -99,6 +87,12 @@ public class testTeleop extends OpMode {
         telemetry.addData(" Green: ", magazine.joe.green());
         telemetry.addData(" Blue: ", magazine.joe.blue());
 
+        telemetry.update();
+
+         */
+
+        colorSensor.bobDetect(telemetry);
+        telemetry.addData("Detected", colorSensor.bobDetect(telemetry));
         telemetry.update();
     }
 }
