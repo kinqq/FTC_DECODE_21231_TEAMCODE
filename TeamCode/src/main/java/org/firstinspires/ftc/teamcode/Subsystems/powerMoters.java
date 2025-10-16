@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class driveMotors
+public class powerMoters
 {
     public static GoBildaPinpointDriver odo;
 
@@ -45,6 +45,7 @@ public class driveMotors
         odo.resetPosAndIMU();
 
         intakeRunning = false;
+        intakeOff(false);
     }
 
 
@@ -89,6 +90,11 @@ public class driveMotors
             backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+        frontLeftPower = frontLeftPower * 0.5;
+        frontRightPower = frontRightPower * 0.5;
+        backLeftPower = backLeftPower * 0.5;
+        backRightPower = backRightPower * 0.5;
+
         // Send calculated power to wheels
         frontLeftDrive.setPower(frontLeftPower);
         frontRightDrive.setPower(frontRightPower);
@@ -126,9 +132,11 @@ public class driveMotors
         }
         else
         {
-            intake.setPower(0.5);
+            intake.setPower(1);
             intakeRunning = true;
         }
     }
+
+
 
 }

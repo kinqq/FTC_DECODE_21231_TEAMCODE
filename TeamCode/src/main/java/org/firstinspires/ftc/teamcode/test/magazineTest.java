@@ -8,11 +8,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name="MagazineTest", group="Linear OpMode")
 public class magazineTest extends LinearOpMode
 {
-    private double servoPos;
+    private double servoPos = 0.5;
 
     @Override
     public void runOpMode() {
-        Servo mg = hardwareMap.get(Servo.class, "MG");
+        Servo mg = hardwareMap.get(Servo.class, "HA");
 
         waitForStart();
 
@@ -25,7 +25,7 @@ public class magazineTest extends LinearOpMode
 
             mg.setPosition(servoPos);
 
-            telemetry.addData("Servo Position: ", servoPos);
+            telemetry.addData("Servo Position: ", mg.getPosition());
             telemetry.update();
         }
     }

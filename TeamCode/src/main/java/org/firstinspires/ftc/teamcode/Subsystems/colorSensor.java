@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import android.graphics.Color;
+
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.subsystem.TurnTable;
 
 public class colorSensor
 {
@@ -26,36 +28,33 @@ public class colorSensor
         gary = hwMap.get(RevColorSensorV3.class, "gary");
         joe = hwMap.get(RevColorSensorV3.class, "joe");
 
-        bob.setGain(100);
+        bob.setGain(500);
     }
 
-    public static DetectedColor bobDetect(Telemetry telemetry)
+    public static int colorDetect(RevColorSensorV3 color)
     {
-        NormalizedRGBA normRGBA = bob.getNormalizedColors();
-        
-        float normRed, normGreen, normBlue;
-        normRed = normRGBA.red / (float) bob.getRawLightDetected();
-        normGreen = normRGBA.green / (float) bob.getRawLightDetected();
-        normBlue = normRGBA.blue / (float) bob.getRawLightDetected();
+        NormalizedRGBA rgba = color.getNormalizedColors();
+        float r = clamp01(rgba.red), g = clamp01(rgba.green), b = clamp01(rgba.blue);
+        // 크로마틱 정규화 → HSV
+        float sum = r + g + b; if (sum < 1e-6f) sum = 1e-6f;
+        float rc = r / sum, gc = g / sum, bc = b / sum;
 
-        double redToGreen, greenToGreen, blueToGreen;
-        redToGreen = 0.0005;
-        greenToGreen = 0.0013;
-        blueToGreen = 0.001;
+        float[] hsv = new float[3];
+        Color.RGBToHSV((int)(rc * 255f), (int)(gc * 255f), (int)(bc * 255f), hsv);
 
-        double redToPurple, greenToPurple, blueToPurple;
-        redToPurple = 5;
-        greenToPurple = 5;
-        blueToPurple = 5;
+        float H = hsv[0];
+        float S = hsv[1];
+        float V = hsv[2];
 
-        telemetry.addData("Red", normRed);
-        telemetry.addData("Green", normGreen);
-        telemetry.addData("Blue", normBlue);
-
-        if (normRed <= redToGreen && normGreen <= greenToGreen && normBlue <= blueToGreen) return DetectedColor.GREEN;
-        else if (normRed >= redToPurple && normGreen >= greenToPurple && normBlue >= blueToPurple) return DetectedColor.PURPLE;
-        else return DetectedColor.UNKNOWN;
+        //if (S < 0.25f || V < 0.10f) return DetectedColor.UNKNOWN;
+        if (H <= 165 && S >= 0.45) return 1;
+        else if (H >= 175)  return 2;
+        else return 0;
 
     }
 
+    private static float clamp01(float v) {
+        return v < 0f ? 0f : (v > 1f ? 1f : v);
+    }
+    
 }
