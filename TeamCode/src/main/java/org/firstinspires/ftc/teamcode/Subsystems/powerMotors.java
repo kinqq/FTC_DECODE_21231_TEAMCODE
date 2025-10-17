@@ -8,47 +8,56 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class powerMoters
+public class powerMotors
 {
-    public static GoBildaPinpointDriver odo;
+    public static GoBildaPinpointDriver odo; //Odo pod
 
-    public static DcMotor frontLeftDrive;
-    public static DcMotor backLeftDrive;
-    public static DcMotor frontRightDrive;
-    public static DcMotor backRightDrive;
+    public static DcMotor frontLeftDrive; //Front left driving motor
+    public static DcMotor backLeftDrive; //Back left driving motor
+    public static DcMotor frontRightDrive; //Front right driving motor
+    public static DcMotor backRightDrive; //Back right driving moto
 
-    public static DcMotor intake;
+    public static DcMotor intake; //Intake motor
+    public static DcMotor launcher; //Launcher motor
 
-    public static boolean intakeRunning;
+    public static boolean intakeRunning; //Check for the intake running
 
     public static void init(HardwareMap hwMap)
     {
-        frontLeftDrive = hwMap.get(DcMotor.class, "FLD");
-        frontRightDrive = hwMap.get(DcMotor.class, "FRD");
-        backLeftDrive = hwMap.get(DcMotor.class, "BLD");
-        backRightDrive = hwMap.get(DcMotor.class, "BRD");
-        intake = hwMap.get(DcMotor.class, "IN");
+        frontLeftDrive = hwMap.get(DcMotor.class, "FLD"); //Init frontLeftDrive
+        frontRightDrive = hwMap.get(DcMotor.class, "FRD"); //Init frontRightDrive
+        backLeftDrive = hwMap.get(DcMotor.class, "BLD"); //Init backLeftDrive
+        backRightDrive = hwMap.get(DcMotor.class, "BRD"); //Init backRightDrive
+        intake = hwMap.get(DcMotor.class, "IN"); //Init intake
+        launcher = hwMap.get(DcMotor.class, "LA"); //Init launcher
 
-        odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
+        odo = hwMap.get(GoBildaPinpointDriver.class, "odo"); //Init odometry
 
+        //Set motor directions for expected drive and intake/launch function
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
 
+        //Initialization for odometry
         odo.setOffsets(2.3622047244, -6.6141732283, DistanceUnit.INCH);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(
                 GoBildaPinpointDriver.EncoderDirection.REVERSED,
                 GoBildaPinpointDriver.EncoderDirection.REVERSED
         );
-
         odo.resetPosAndIMU();
 
-        intakeRunning = false;
+        //Reset vars
+        intakeRunning = true;
+
+        //Start intake and launcher
         intakeOff(false);
+        launcher.setPower(1);
     }
 
 
+    //Basic drive script without odometry or field centric drive
     public static void basicDrive(double x, double y, double rx)
     {
         double max;
@@ -102,6 +111,7 @@ public class powerMoters
         backRightDrive.setPower(backRightPower);
     }
 
+    //Basic drive script using odometry for field centric drive
     public static void odoDrive(double x, double y, double rx)
     {
         odo.update();
@@ -123,17 +133,18 @@ public class powerMoters
     }
 
 
+    //Allows disable or enable of intake
     public static void intakeOff(boolean stop)
     {
         if (stop)
         {
-            intake.setPower(0);
-            intakeRunning = false;
+            intake.setPower(0); //Turn off intake
+            intakeRunning = false; //Change variable to reflect change
         }
         else
         {
-            intake.setPower(1);
-            intakeRunning = true;
+            intake.setPower(1); //Turn on intake
+            intakeRunning = true; //Change variable to reflect change//Change variable to reflect change
         }
     }
 

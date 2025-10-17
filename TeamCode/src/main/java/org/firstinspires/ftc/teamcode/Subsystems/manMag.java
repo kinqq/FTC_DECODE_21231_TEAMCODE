@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.TimeUnit;
 
+
+//Personally feel as though documentation is unnecessary as file will be deleted once new OpMode proves to be stable
+
 public class manMag {
     public static Servo magazine;
 
@@ -39,7 +42,7 @@ public class manMag {
 
     public static void moveMag(Gamepad gm1, Gamepad gm2) {
         if (gm2.leftBumperWasPressed()) {
-            powerMoters.intakeOff(false);
+            powerMotors.intakeOff(false);
             if (servPos == 0.6) servPos = 0;
             else if (servPos == 1) servPos = 0.4;
             else if (servPos == 0.2) servPos = 0.8;
@@ -50,7 +53,7 @@ public class manMag {
             }
         }
         if (gm2.rightBumperWasPressed()) {
-            powerMoters.intakeOff(false);
+            powerMotors.intakeOff(false);
             if (servPos == 0.6) servPos = 0;
             else if (servPos == 1) servPos = 0.4;
             else if (servPos == 0.2) servPos = 0.8;
@@ -62,7 +65,7 @@ public class manMag {
         }
 
         if (gm2.yWasPressed()) {
-            powerMoters.intakeOff(true);
+            powerMotors.intakeOff(true);
             if (servPos == 0) servPos = 0.6;
             else if (servPos == 0.4) servPos = 1;
             else if (servPos == 0.8) servPos = 0.2;
@@ -92,7 +95,7 @@ public class manMag {
             if (servPos == 0.6) servPos = 0;
             else if (servPos == 1) servPos = 0.4;
             else if (servPos == 0.2) servPos = 0.8;
-            powerMoters.intakeOff(false);
+            powerMotors.intakeOff(false);
         }
     }
 }
