@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.test;
 
 import static org.firstinspires.ftc.teamcode.util.ConstantsServo.STATIC_COMP;
+import static org.firstinspires.ftc.teamcode.util.ConstantsServo.kD_VEL;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -10,72 +11,78 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-// FTCLib PIDF
-import com.arcrobotics.ftclib.controller.PIDFController;
+// FTCLib PID (verify your FTCLib version's class & signature)
+import com.arcrobotics.ftclib.controller.PIDController;
 
-import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.ConstantsServo;
 
-import java.util.Arrays;
+import java.util.Locale;
 
 @TeleOp(name = "TestServoPIDF", group = "Test")
 @Configurable
 public class TestCRServoPIDF extends OpMode {
-    // --- hardware names (changeable from DS) ---
     public static String servoName  = "turntable";
     public static String analogName = "analog";
 
-    // --- calibration (from measured data) ---
-    // voltage = CAL_A * pos + CAL_B
     private static final double CAL_A = 3.218;
     private static final double CAL_B = 0.008;
 
-    // --- angular mapping ---
-    public static double wrapRangeDeg = 360.0;  // full wrap range in degrees
+    public static double wrapRangeDeg = 360.0;
 
-    // --- simple jog / step settings ---
     public static double stepLarge = 180.0;
     public static double stepMed   = 45.0;
     public static double stepFine  = 15.0;
-    private static final double JOG_DEADBAND = 0.05;   // measured deadband (min power that overcomes stiction)
-    private static final double STATIC_ANGLE_THRESH = 1.0; // deg: 이 안의 오차면 static 보상 안함
+    private static final double STATIC_ANGLE_THRESH = 1.0;
 
+    private static final double BRAKE_ERR_THRESH_DEG = 3.0;
+    private static final double BRAKE_VEL_THRESH_DPS = 25.0;
+    private static final double BRAKE_POWER = -0.07;
+    private static final double MAX_BRAKE_TIME = 0.04;
+    private static final double BRAKE_COOLDOWN = 0.12;
+    private boolean brakeActive = false;
+    private double brakeStartTime = -10.0;
 
-    // --- internal state ---
+    // latency for prediction (tune)
+    private static final double LATENCY_SEC = 0.06;
+    private static final double MAX_PREDICT_DEG = 10.0;
+
     private CRServo crServo;
     private AnalogInput analog;
     private ContinuousAbsoluteTracker tracker;
-    private PIDFController pidf;
+    private PIDController pid;
 
     public static double targetDeg = 0.0;
     private double lastCmd = 0.0;
+
+    // timers: loopTimer -> dt; runtimeTimer -> absolute time (cooldown, braking)
     private final ElapsedTime loopTimer = new ElapsedTime();
+    private final ElapsedTime runtimeTimer = new ElapsedTime();
+    private double lastTargetDeg = 0.0;
 
     @Override
     public void init() {
         crServo = hardwareMap.get(CRServo.class, servoName);
         analog  = hardwareMap.get(AnalogInput.class, analogName);
 
-        // tracker uses the calibrated linear mapping to produce wrapped angle (0..wrapRangeDeg)
         tracker = new ContinuousAbsoluteTracker(analog, wrapRangeDeg);
 
-        // create PIDF controller (you can replace Constants with explicit gains if desired)
-        pidf = new PIDFController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD, ConstantsServo.kF);
+        // use your ConstantsServo gains (or replace with hard-coded initial tuning)
+        pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
-        // seed tracker and set initial target to current angle to avoid setpoint jumps
         tracker.updateAbsolute();
         targetDeg = tracker.getTotalAngleDeg();
+
         loopTimer.reset();
+        runtimeTimer.reset();
+        brakeStartTime = -10.0;
+        lastTargetDeg = targetDeg;
     }
 
     @Override
     public void loop() {
-        double dt = Math.max(1e-3, loopTimer.seconds());
-        // ensure PIDF gains are reapplied each loop (allows live-tuning via Constants or dashboard)
-        pidf.setPIDF(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD, ConstantsServo.kF);
-        loopTimer.reset();
+        // reapply gains so they can be changed live (dashboard)
+        pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
-        // --- target adjustments via buttons ---
         if (gamepad1.rightBumperWasPressed()) targetDeg += stepLarge;
         if (gamepad1.leftBumperWasPressed())  targetDeg -= stepLarge;
         if (gamepad1.aWasPressed())           targetDeg += stepMed;
@@ -84,46 +91,75 @@ public class TestCRServoPIDF extends OpMode {
         if (gamepad1.dpadDownWasPressed())    targetDeg -= stepFine;
 
         if (gamepad1.xWasPressed()) {
-            // rebase current position to 0°
             tracker.rebaseAbsolute(0.0);
             targetDeg = 0.0;
-            pidf.reset();
+            pid.reset();
         }
 
-        // --- sensor update ---
+        // --- sensor update & prediction ---
         tracker.updateAbsolute();
-        double currentDeg = tracker.getTotalAngleDeg();
+        double measuredDeg = tracker.getTotalAngleDeg();
         double velDps = tracker.getEstimatedVelocityDps();
+        double errMeasured = targetDeg - measuredDeg;
 
-        double out = pidf.calculate(currentDeg, targetDeg);
+        double predictedDeg = measuredDeg + velDps * LATENCY_SEC;
+        predictedDeg = measuredDeg + Range.clip(predictedDeg - measuredDeg, -MAX_PREDICT_DEG, MAX_PREDICT_DEG);
 
-        // Optional: small-angle deadband to avoid hunting near setpoint
-        double err = targetDeg - currentDeg;
-        if (Math.abs(err) < 0.2) { // 0.2 deg deadband (tune if necessary)
-            out = 0.0;
-        }
+        // NOTE: check your FTCLib PIDController.calculate signature.
+        // If it expects (measurement, setpoint) -> use pid.calculate(predictedDeg, targetDeg).
+        // If it expects (setpoint, measurement) -> use pid.calculate(targetDeg, predictedDeg).
+        double pidOut = pid.calculate(predictedDeg, targetDeg);
 
-        // Static friction (minimum command) compensation
-        if (Math.abs(out) > 0 && Math.abs(out) < STATIC_COMP && Math.abs(err) > STATIC_ANGLE_THRESH) {
-            // apply minimum command in the direction of the error
+        // vel-based damping
+        double velDamping = -kD_VEL * velDps;
+        double out = pidOut + velDamping;
+        double rawOut = out;
+
+        // static friction compensation
+        if (Math.abs(out) > 0 && Math.abs(out) < STATIC_COMP && Math.abs(errMeasured) > STATIC_ANGLE_THRESH) {
             out = Math.signum(out) * STATIC_COMP;
         }
 
-        // Clip and send
-        lastCmd = Range.clip(out, -1.0, 1.0);
-        crServo.setPower(lastCmd);
+        // --- braking pulse logic using runtimeTimer (absolute time) ---
+        double now = runtimeTimer.seconds();
+        if (!brakeActive) {
+            if (Math.abs(errMeasured) < BRAKE_ERR_THRESH_DEG && Math.abs(velDps) > BRAKE_VEL_THRESH_DPS && (now - brakeStartTime) > BRAKE_COOLDOWN) {
+                brakeActive = true;
+                brakeStartTime = now;
+            }
+        }
 
-        // --- telemetry ---
-        telemetry.addLine("=== CR + PIDF (calibrated) ===");
-        telemetry.addData("PIDF", Arrays.toString(pidf.getCoefficients()));
+        if (brakeActive) {
+            if ((now - brakeStartTime) < MAX_BRAKE_TIME) {
+                lastCmd = Range.clip(BRAKE_POWER, -1.0, 1.0) * Math.signum(out);
+                crServo.setPower(lastCmd);
+                telemetry.addData("Brake", "ACTIVE");
+            } else {
+                brakeActive = false;
+            }
+        } else {
+            lastCmd = Range.clip(out, -1.0, 1.0);
+            crServo.setPower(lastCmd);
+        }
+
+        // telemetry - show constants explicitly (safer than getCoefficients())
+        telemetry.addData("kP/kI/kD", String.format(Locale.US, "%.4f / %.4f / %.4f", ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD));
         telemetry.addData("Target", "%.2f deg", targetDeg);
-        telemetry.addData("Pos", "%.2f deg", currentDeg);
-        telemetry.addData("Err", "%.2f deg", (targetDeg - currentDeg));
+        telemetry.addData("Predicted", "%.2f deg", predictedDeg);
+        telemetry.addData("Measured", "%.2f deg", measuredDeg);
+        telemetry.addData("Err", "%.2f deg", (targetDeg - predictedDeg));
         telemetry.addData("Vel", "%.2f dps", velDps);
-        telemetry.addData("Cmd", "%.5f", lastCmd);
+        telemetry.addData("PIDout", "%.4f", pidOut);
+        telemetry.addData("VelDamp", "%.4f", velDamping);
+        telemetry.addData("RawOut", "%.4f", rawOut);
+        telemetry.addData("Cmd", "%.4f", lastCmd);
         telemetry.addData("Analog V", "%.3f V", tracker.getVoltage());
         telemetry.addData("Est Pos (0..1)", "%.3f", tracker.getEstimatedPosition());
         telemetry.update();
+
+        // update bookkeeping
+        lastTargetDeg = targetDeg;
+        loopTimer.reset(); // reset loop timer at end (so dt is valid next iteration)
     }
 
     @Override
@@ -131,7 +167,7 @@ public class TestCRServoPIDF extends OpMode {
         crServo.setPower(0);
     }
 
-    // --- Minimal continuous absolute tracker using the linear calibration ---
+    // --- Minimal continuous absolute tracker using linear calibration ---
     public static class ContinuousAbsoluteTracker {
         private final AnalogInput analog;
         private final double wrapDeg;
@@ -150,10 +186,7 @@ public class TestCRServoPIDF extends OpMode {
             t.reset();
         }
 
-        /** Convert measured voltage to normalized position [0..1] using the calibration,
-         * then to wrapped degrees [0..wrapDeg]. */
         private double mapVtoDeg(double v) {
-            // inverse calibration: pos = (v - CAL_B) / CAL_A
             double pos = (v - CAL_B) / CAL_A;
             pos = Range.clip(pos, 0.0, 1.0);
             return pos * wrapDeg;
@@ -161,10 +194,9 @@ public class TestCRServoPIDF extends OpMode {
 
         public void updateAbsolute() {
             double v = analog.getVoltage();
-            double wrapped = mapVtoDeg(v); // 0..wrapDeg
+            double wrapped = mapVtoDeg(v);
 
             if (Double.isNaN(lastWrappedDeg)) {
-                // first frame: seed values
                 lastWrappedDeg = wrapped;
                 totalDeg = wrapped;
                 lastTotalDeg = totalDeg;
@@ -173,10 +205,8 @@ public class TestCRServoPIDF extends OpMode {
             }
 
             double delta = wrapped - lastWrappedDeg;
-
-            // threshold for detecting wrap-around (simple heuristic: >50% wrap)
             double thresh = wrapDeg * 0.5;
-            if (delta >  thresh) turns -= 1;
+            if (delta > thresh) turns -= 1;
             if (delta < -thresh) turns += 1;
 
             totalDeg = turns * wrapDeg + wrapped;
@@ -189,7 +219,6 @@ public class TestCRServoPIDF extends OpMode {
             lastWrappedDeg = wrapped;
         }
 
-        /** Rebase the absolute total angle so that current becomes newBaseDeg. */
         public void rebaseAbsolute(double newBaseDeg) {
             updateAbsolute();
             double current = getTotalAngleDeg();
@@ -199,11 +228,9 @@ public class TestCRServoPIDF extends OpMode {
             turns = (int)Math.floor(totalDeg / wrapDeg);
         }
 
-        // getters
         public double getTotalAngleDeg()       { return totalDeg; }
         public double getEstimatedVelocityDps(){ return velDps; }
         public double getVoltage()             { return analog.getVoltage(); }
-        /** Return estimated position in [0..1] using the calibration inverse. */
         public double getEstimatedPosition() {
             double v = getVoltage();
             double pos = (v - CAL_B) / CAL_A;

@@ -50,7 +50,7 @@ repositories {
     mavenCentral()
     google()
     maven {
-      url = "https://repo.dairy.foundation/releases"
+        url = "https://repo.dairy.foundation/releases"
     }
     maven {
         url = "https://mymaven.bylazar.com/releases"
