@@ -14,9 +14,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class testTeleop extends OpMode {
 
     public static ElapsedTime runtime = new ElapsedTime(); //Represents time since robot initialization
-
-    public boolean newStart = true; //Variable to ensure second init phase only runs once
-
     public int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
     public int mosaicPos = 0; //Integer to represent which index of the mosaic the user is affecting
 
@@ -29,20 +26,17 @@ public class testTeleop extends OpMode {
         runtime.reset();
     }
 
+    @Override
+    public void start() {
+        powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
+        colorSensor.init(hardwareMap); //Initialize color sensors subsystem
+    }
+
     //Main game loop, runs after play button pressed
     @Override
     public void loop() {
-
-        if (newStart) //Secondary initialization process to ensure robot can preload magazine before id-ing
-        {
-            powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
-            colorSensor.init(hardwareMap); //Initialize color sensors subsystem
-
-            newStart = false; //Do not run second init twice
-        }
-
         //Send stick values to drive for designated drive type
-        powerMotors.basicDrive(
+        powerMotors.odoDrive(
                 -gamepad1.left_stick_x,
                 gamepad1.left_stick_y,
                 gamepad1.right_stick_x

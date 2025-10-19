@@ -16,7 +16,7 @@ public class TestCRServoMultiTurn extends OpMode {
     private AnalogInput analog;
 
     // ───── Names / tunables ────────────────────────────────────────────────────
-    public static String servoName = "turntable";
+    public static String servoName = "turret";
     public static String analogName = "analog";
 
     // CR servo power step
