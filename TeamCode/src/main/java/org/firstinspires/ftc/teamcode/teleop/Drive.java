@@ -14,6 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystem.TurnTable;
 import static org.firstinspires.ftc.teamcode.subsystem.TurnTable.*;
+
+import org.firstinspires.ftc.teamcode.subsystem.Turret;
 import org.firstinspires.ftc.teamcode.util.Constants;
 
 @TeleOp(name = "Drive")
@@ -22,16 +24,18 @@ public class Drive extends OpMode {
     private GoBildaPinpointDriver odo;
     private DcMotorEx frontLeft, backLeft, frontRight, backRight, intake, launcher;
     private TurnTable turn;
+    private Turret turret;
     public static double power = 0;
 
     @Override
     public void init() {
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
-        odo.setOffsets(2.3622047244, -6.6141732283, DistanceUnit.INCH);
+        //TODO: Fine tune
+        odo.setOffsets(-48, -182.5, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(
-            GoBildaPinpointDriver.EncoderDirection.REVERSED,
+            GoBildaPinpointDriver.EncoderDirection.FORWARD,
             GoBildaPinpointDriver.EncoderDirection.REVERSED
         );
 
@@ -47,8 +51,11 @@ public class Drive extends OpMode {
 
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turn = new TurnTable(hardwareMap);
+        turret = new Turret(hardwareMap);
 
         PanelsConfigurables.INSTANCE.refreshClass(Drive.class);
 
@@ -59,8 +66,14 @@ public class Drive extends OpMode {
     }
 
     @Override
+    public void start() {
+        turret.zeroHere();
+    }
+
+    @Override
     public void loop() {
         odo.update();
+        turret.update();
         double heading = -odo.getHeading(AngleUnit.RADIANS);
 
         double y = -gamepad1.left_stick_y; // Y stick is reversed
@@ -81,8 +94,14 @@ public class Drive extends OpMode {
         frontRight.setPower(frontRightPower);
         backRight.setPower(backRightPower);
 
-        if (gamepad1.dpadUpWasPressed()) power = Constants.INTAKE_ACTIVE_POWER;
-        if (gamepad1.dpadDownWasPressed()) power = -Constants.INTAKE_ACTIVE_POWER;
+        turret.setTarget(odo.getHeading(AngleUnit.DEGREES));
+        turret.setLaunchAngle(25);
+
+        if (gamepad2.dpadLeftWasPressed()) turret.adjustTarget(-10);
+        if (gamepad2.dpadRightWasPressed()) turret.adjustTarget(10);
+
+        if (gamepad1.dpadDownWasPressed()) power = Constants.INTAKE_ACTIVE_POWER;
+        if (gamepad1.dpadUpWasPressed()) power = -Constants.INTAKE_ACTIVE_POWER;
         if (gamepad1.dpadLeftWasPressed()) power = 0;
         intake.setPower(power);
 

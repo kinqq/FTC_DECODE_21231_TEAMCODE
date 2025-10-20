@@ -6,6 +6,7 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -31,7 +32,7 @@ public class TestColorSensor extends OpMode {
     private static final PwmRange SERVO_RANGE = new PwmRange(500, 2500);
 
     // --- 슬롯/센싱 포지션 ---
-    private static final double[] SENSE_POS = { 0.30, 0.65, 1.00 }; // slot1/2/3 sensing
+    private static final double[] SENSE_POS = { 0.14, 0.49, 0.83 }; // slot1/2/3 sensing
     private int slotIdx = 0; // 0..2
 
     // --- 타이밍 (ms) ---
@@ -56,6 +57,7 @@ public class TestColorSensor extends OpMode {
 
     // --- 하드웨어 ---
     private ServoImplEx turn;
+    private DcMotor motor;
     private NormalizedColorSensor color;
 
     // --- 상태머신 ---
@@ -75,10 +77,13 @@ public class TestColorSensor extends OpMode {
 
         turn = hw.get(ServoImplEx.class, TURN_SERVO_NAME);
         turn.setPwmRange(SERVO_RANGE);
+        turn.setPosition(SENSE_POS[0]);
+        motor = hw.get(DcMotor.class, "intake");
+        motor.setPower(-1);
 
         try {
             color = hw.get(NormalizedColorSensor.class, COLOR_NAME);
-            try { color.setGain(2.0f); }  catch (Exception ignored) {}
+            color.setGain(500);
         } catch (Exception e) {
             color = null; // 센서 미장착 허용
         }
@@ -199,7 +204,6 @@ public class TestColorSensor extends OpMode {
 
     /** HSV에 기반한 간단 분류 (현장 캘리브로 조정 권장) */
     private static DetectedColor classify(float H, float S, float V) {
-        if (S < 0.25f || V < 0.10f) return DetectedColor.UNKNOWN;
         if (H >= 90 && H <= 180)       return DetectedColor.GREEN;
         if (H >= 200 && H <= 320)      return DetectedColor.PURPLE;
         return DetectedColor.UNKNOWN;

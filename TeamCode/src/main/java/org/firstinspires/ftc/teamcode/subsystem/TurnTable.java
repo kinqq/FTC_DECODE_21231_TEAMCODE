@@ -40,9 +40,9 @@ public class TurnTable {
     public enum DetectedColor { PURPLE, GREEN, UNKNOWN }
 
     // ===== 색 센싱 웨이포인트/타이밍 =====
-    private static final double SLOT1_SENSE_POS = 0.30;
-    private static final double SLOT2_SENSE_POS = 0.65;
-    private static final double SLOT3_SENSE_POS = 1.00; // 0.88 + 0.10 → 1.0로 클립
+    private static final double SLOT1_SENSE_POS = 0.32;
+    private static final double SLOT2_SENSE_POS = 0.67;
+    private static final double SLOT3_SENSE_POS = 1.00;
     private static final double SENSE_DWELL_MS  = 400;  // 정지 후 샘플링 시간
 
     // === 동적 settle 계산 파라미터 ===

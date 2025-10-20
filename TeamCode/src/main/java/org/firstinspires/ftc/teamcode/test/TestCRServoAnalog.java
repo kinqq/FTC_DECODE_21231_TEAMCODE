@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 @Configurable
 public class TestCRServoAnalog extends OpMode {
     private CRServo crServo;          // 단일 CR 서보
-    public static String servoName1 = "turntable";
+    public static String servoName1 = "turret";
 
     private AnalogInput analog;       // 피드백(아날로그)
     public static double power = 0.0; // CR 서보 파워 [-1..1]
