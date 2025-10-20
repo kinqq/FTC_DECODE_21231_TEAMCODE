@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-//TODO: make it check color only when magazine moves to avoid overload without timer
-
 @TeleOp(name = "VERYBasicDrive")
 @Configurable
 public class testTeleop extends OpMode {
@@ -17,8 +15,8 @@ public class testTeleop extends OpMode {
 
     public boolean newStart = true; //Variable to ensure second init phase only runs once
 
-    public int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
-    public int mosaicPos = 0; //Integer to represent which index of the mosaic the user is affecting
+    public static int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
+    public static int mosaicPos = 0; //Integer to represent which index of the mosaic the user is affecting
 
     //Initialization process, runs when program initialized
     @Override
@@ -62,6 +60,13 @@ public class testTeleop extends OpMode {
         if (gamepad1.xWasPressed()) mosaic[mosaicPos] = 2;
         if (gamepad1.aWasPressed()) mosaic[mosaicPos] = 1;
 
+        if (gamepad2.yWasPressed()) magazine.launch(runtime); //When player 2 presses Y activate the hammer
+
+        //TODO: UPDATE THIS TO USE AN AUTOLAUNCH FUNCTION
+        if (magazine.MGAr[3] == 1)
+        {
+            magazine.autoLaunch(runtime);
+        }
 
 //        /*
 //        If player two presses A shut off the intake
@@ -80,18 +85,7 @@ public class testTeleop extends OpMode {
 //        if (gamepad2.rightBumperWasPressed()) magazine.servoPosition += 0.4; //Manually move servo up one slot
 //        if (gamepad2.leftBumperWasPressed()) magazine.servoPosition -= 0.4; //Manually move servo down one slot
 
-
-        if (gamepad2.yWasPressed()) magazine.launch(runtime); //When player 2 presses Y activate the hammer
-
-        //TODO: UPDATE THIS TO USE AN AUTOLAUNCH FUNCTION
-        if (magazine.MGAr[3] == 1)
-        {
-            if (mosaic[0] == 1) magazine.find(1);
-            if (mosaic[0] == 2) magazine.find(0);
-        }
-
-        magazine.updatePosition();
-
+        magazine.updatePosition(runtime);
 
         //Report the contents of the mosaic and active mosaic position
         telemetry.addLine("Mosaic: ");
