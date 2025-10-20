@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class testTeleop extends OpMode {
 
     public static ElapsedTime runtime = new ElapsedTime(); //Represents time since robot initialization
-    public int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
+    public static int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
     public int mosaicPos = 0; //Integer to represent which index of the mosaic the user is affecting
 
     //Initialization process, runs when program initialized
@@ -84,7 +84,7 @@ public class testTeleop extends OpMode {
             if (mosaic[0] == 2) magazine.find(0);
         }
 
-        magazine.updatePosition();
+        magazine.updatePosition(runtime);
 
 
         //Report the contents of the mosaic and active mosaic position
