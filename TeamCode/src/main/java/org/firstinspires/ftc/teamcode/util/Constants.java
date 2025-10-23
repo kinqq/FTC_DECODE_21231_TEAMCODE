@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.util;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import dev.frozenmilk.sinister.loading.Pinned;
 import dev.frozenmilk.sinister.loading.Preload;
@@ -24,10 +25,13 @@ public class Constants {
 
     // ===== 해머 동작 =====
     public static double HAMMER_REST = 0.48;
-    public static double HAMMER_FIRE = 0.76;
+    public static double HAMMER_FIRE = 0.72;
 
     // ===== 타이밍 (필요시 조정) =====
     public static double SETTLE_MS = 300; // 슈팅 위치 도달 안정화
     public static double FIRE_MS   = 200; // 해머 전진 펄스
     public static double RESET_MS  = 150; // 해머 복귀 대기
+
+    public static double RED_GOAL_X = 1800;
+    public static double RED_GOAL_Y = 1800;
 }
