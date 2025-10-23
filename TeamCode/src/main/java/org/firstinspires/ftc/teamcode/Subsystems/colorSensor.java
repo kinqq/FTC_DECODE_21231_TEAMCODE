@@ -23,6 +23,10 @@ public class colorSensor
         bob.setGain(500); //Set the gain of bob to 500 for more accurate testing
     }
 
+    public static float H;
+    public static float S;
+    public static float V;
+
     public static int colorDetect(RevColorSensorV3 color)
     {
         NormalizedRGBA rgba = color.getNormalizedColors(); //Set normalized RGBA to the normalized values of the indicated color sensor
@@ -38,13 +42,14 @@ public class colorSensor
         Color.RGBToHSV((int)(rc * 255f), (int)(gc * 255f), (int)(bc * 255f), hsv);
 
         //Separate the HSV values
-        float H = hsv[0];
-        float S = hsv[1];
-        float V = hsv[2];
+        H = hsv[0];
+        S = hsv[1];
+        V = hsv[2];
 
-        if (H <= 165 && S >= 0.45) return 1; //When the conditions are met for green return 1
-        else if (H >= 175)  return 2; //When the conditions are met for purple return 2
-        else return 0; //When no conditions are met return 0
+        if (H < 161 && S >= 0.4) return 1; //When the conditions are met for green return 1
+        else if (H > 180 && S <= 3.5)  return 2; //When the conditions are met for purple return 2
+        //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+        else return 0;
     }
 
     //More weird math I don't understand but works

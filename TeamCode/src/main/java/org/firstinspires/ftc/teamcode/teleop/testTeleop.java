@@ -7,29 +7,48 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-//TODO: make it check color only when magazine moves to avoid overload without timer
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 
 @TeleOp(name = "VERYBasicDrive")
 @Configurable
 public class testTeleop extends OpMode {
 
     public static ElapsedTime runtime = new ElapsedTime(); //Represents time since robot initialization
+
     public static int[] mosaic = {0, 0, 0}; //Array to store the expected mosaic
-    public int mosaicPos = 0; //Integer to represent which index of the mosaic the user is affecting
+    public int mosaicPos = 0;//Integer to represent which index of the mosaic the user is affecting
+
+    public double launcherSpeed = 1;
+
+    double start = runtime.now(TimeUnit.SECONDS); //Represents start time
+
+    public static boolean opModeIsActive = false;
+
+    ExecutorService magExec = Executors.newSingleThreadExecutor();
+    Future<?> currentLaunch;
 
     //Initialization process, runs when program initialized
     @Override
     public void init()
     {
         magazine.init(hardwareMap); //Initialize magazine subsystem
-//        manMag.init(hardwareMap, runtime); //Initializes the manual magazine subsystem for manual magazine management
+        colorSensor.init(hardwareMap); //Initialize color sensors subsystem
+//      manMag.init(hardwareMap, runtime); //Initializes the manual magazine subsystem for manual magazine management
         runtime.reset();
+        opModeIsActive = true;
+        magazine.reCheck();
     }
 
     @Override
     public void start() {
         powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
-        colorSensor.init(hardwareMap); //Initialize color sensors subsystem
+
+
+
     }
 
     //Main game loop, runs after play button pressed
@@ -51,10 +70,19 @@ public class testTeleop extends OpMode {
         If player one presses A then change the currently active mosaic piece to green and
             automatically move mosaic position forward one
          */
-        if (gamepad1.leftBumperWasPressed()) mosaicPos -= 1 % 3;
-        if (gamepad1.rightBumperWasPressed()) mosaicPos += 1 % 3;
-        if (gamepad1.xWasPressed()) mosaic[mosaicPos] = 2;
-        if (gamepad1.aWasPressed()) mosaic[mosaicPos] = 1;
+        if (gamepad1.leftBumperWasPressed()) mosaicPos = (mosaicPos - 1) % 3;
+        if (gamepad1.rightBumperWasPressed()) mosaicPos = (mosaicPos + 1) % 3;
+        if (gamepad1.xWasPressed())
+        {
+            mosaic[mosaicPos] = 2;
+            mosaicPos = (mosaicPos + 1) % 3;
+        }
+
+        if (gamepad1.aWasPressed())
+        {
+            mosaic[mosaicPos] = 1;
+            mosaicPos = (mosaicPos + 1) % 3;
+        }
 
 
 //        /*
@@ -74,17 +102,37 @@ public class testTeleop extends OpMode {
 //        if (gamepad2.rightBumperWasPressed()) magazine.servoPosition += 0.4; //Manually move servo up one slot
 //        if (gamepad2.leftBumperWasPressed()) magazine.servoPosition -= 0.4; //Manually move servo down one slot
 
+//        if (gamepad2.yWasPressed()) magazine.launch(runtime); //When player 2 presses Y activate the hammer
 
-        if (gamepad2.yWasPressed()) magazine.launch(runtime); //When player 2 presses Y activate the hammer
+//        if (gamepad2.leftBumperWasPressed())
+//        {
+//            magazine.servoPosition = magazine.find(1);
+//        }
+//        if (gamepad2.rightBumperWasPressed())
+//        {
+//            magazine.servoPosition = magazine.find(0);
+//        }
 
-        //TODO: UPDATE THIS TO USE AN AUTOLAUNCH FUNCTION
-        if (magazine.MGAr[3] == 1)
-        {
-            if (mosaic[0] == 1) magazine.find(1);
-            if (mosaic[0] == 2) magazine.find(0);
+        if (gamepad2.yWasPressed()) {
+            if (currentLaunch == null || currentLaunch.isDone()) {
+                currentLaunch = magExec.submit(magazine::autoLaunch);
+            }
         }
 
-        magazine.updatePosition(runtime);
+        if (gamepad1.right_trigger > 0.00) launcherSpeed = 0.5;
+        if (gamepad1.left_trigger > 0.00) launcherSpeed = 1;
+        if (gamepad1.yWasPressed()) magazine.MGAr[magazine.activeMG] = 1;
+        if (gamepad1.bWasPressed()) magazine.MGAr[magazine.activeMG] = 2;
+
+        if (runtime.now(TimeUnit.SECONDS) - start > 2 && magazine.MGAr[3] == 0) {
+            magazine.checkColors();
+            start = runtime.now(TimeUnit.SECONDS);
+        }
+
+        if (gamepad1.backWasPressed()) magazine.reCheck();
+
+        magazine.updatePosition();
+
 
 
         //Report the contents of the mosaic and active mosaic position
@@ -109,5 +157,15 @@ public class testTeleop extends OpMode {
         telemetry.addLine("Servo Data: "); //Caption for servo data section
         telemetry.addData("Servo Position (real)", magazine.magazine.getPosition()); //Real servo position
         telemetry.addData("Servo Position (reported)", magazine.servoPosition); //Expected servo position
+
+        telemetry.addData("Color sensor H", colorSensor.H);
+        telemetry.addData("Color sensor S", colorSensor.S);
+        telemetry.addData("Color sensor V", colorSensor.V);
+    }
+
+    @Override
+    public void stop()
+    {
+        opModeIsActive = false;
     }
 }

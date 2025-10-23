@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import java.util.concurrent.locks.ReentrantLock;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -21,6 +22,11 @@ public class magazine
     public static boolean launching;
     public static boolean autoLaunching;
 
+    public static ElapsedTime stuckTimer = new ElapsedTime();
+
+    private static final ReentrantLock opLock = new ReentrantLock(true);
+
+
     //Initialization, runs when called in teleop
     public static void init(HardwareMap hwMap)
     {
@@ -33,12 +39,15 @@ public class magazine
         MGAr[0] = 0;
         MGAr[1] = 0;
         MGAr[2] = 0;
+        MGAr[3] = 0;
         readyToLaunch = false;
         launching = false;
         autoLaunching = false;
 
         hammer.setPosition(0.48); //Move the hammer into initialized position
         magazine.setPosition(servoPosition); //Move magazine to initialized position
+
+        stuckTimer.reset();
     }
 
     //Finds a ball of specified color (0: purple, 1: green, 2: empty)
@@ -48,40 +57,40 @@ public class magazine
         {
             case 0: //If purple
                 //All same code but checking for green
-                powerMotors.intakeOff(true);
+                //powerMotors.intakeOff(true);
                 if (MGAr[0] == 1)
                 {
-                    return 0.6;
                     readyToLaunch = true;
+                    return 0.55;
                 }
                 else if (MGAr[1] == 1)
                 {
-                    return 1;
                     readyToLaunch = true;
+                    return 0.95;
                 }
                 else if (MGAr[2] == 1)
                 {
-                    return 0.2;
                     readyToLaunch = true;
+                    return 0.2;
                 }
                 break;
             case 1:
-                powerMotors.intakeOff(true); //Disables intake
+                //powerMotors.intakeOff(true); //Disables intake
 
                 if (MGAr[0] == 2) //If slot #1 from init has a purple
                 {
-                    return 0.6; //Set servo to the slot #1 intake position
                     readyToLaunch = true; //Set readyToLaunch to true
+                    return 0.55; //Set servo to the slot #1 intake position
                 }
                 else if (MGAr[1] == 2) //If slot #2 from init has purple
                 {
-                    return 1; //Set servo to the slot #2 intake position
                     readyToLaunch = true; //Set readyToLaunch to true
+                    return 0.95; //Set servo to the slot #2 intake position
                 }
                 else if (MGAr[2] == 2) //If slot #3 from init has purple
                 {
-                    return 0.2; //Set servo to the slot #3 intake position
                     readyToLaunch = true; //Set readyToLaunch to true
+                    return 0.2; //Set servo to the slot #3 intake position
                 }
                 break;
             case 2:
@@ -106,72 +115,124 @@ public class magazine
     //Manual launch program
     public static void launch(ElapsedTime runtime)
     {
-        if (readyToLaunch) {
-            double start = runtime.now(TimeUnit.SECONDS); //Sets the variable start to the time when function was called
+        opLock.lock();
+        try
+        {
             launching = true; //Set launching to true preventing magazine movement
-            hammer.setPosition(0.8); //Move the hammer to fully pushed position
+            hammer.setPosition(0.7); //Move the hammer to fully pushed position
 
-            while (runtime.now(TimeUnit.SECONDS) - start > 0.1) {} //Wait 0.5 seconds
+            double start = runtime.now(TimeUnit.SECONDS); //Sets the variable start to the time when function was called
+            while (runtime.now(TimeUnit.SECONDS) - start < 0.1) ; //Wait 0.5 seconds
 
-            launching = false; //Set launching to false allowing movement
-            readyToLaunch = false; //Set readyToLaunch to false stopping another launch
             hammer.setPosition(0.48); //Set hammer to waiting position
+
+            start = runtime.now(TimeUnit.SECONDS); //Sets the variable start to the time when function was called
+            while (runtime.now(TimeUnit.SECONDS) - start < 0.1) ; //Wait 0.5 seconds
+
+            //launching = false; //Set launching to false allowing movement
+            //readyToLaunch = false; //Set readyToLaunch to false stopping another launch
+        } finally
+        {
+            opLock.unlock();
         }
     }
 
-    public static void autoLaunch(ElapsedTime runtime)
+    public static void autoLaunch()
     {
-        autoLaunching = true;
-        double specialServoPosition;
+        opLock.lock();
+        try
+        {
+            double specialServoPosition = 0;
+            hammer.setPosition(0.48);
 
-        specialServoPosition = find(testTeleop.mosaic[0] - 1);
-        magazine.setPosition(specialServoPosition);
+            specialServoPosition = find(testTeleop.mosaic[0] - 1);
+            magazine.setPosition(specialServoPosition);
+            waitSeconds(0.5);
 
-        double start = runtime.now(TimeUnit.SECONDS);
-        while (runtime.now(TimeUnit.SECONDS) - start < 0.2);
+            hammer.setPosition(0.7);
+            waitSeconds(0.2);
+            hammer.setPosition(0.48);
+            if (specialServoPosition == 0.55) MGAr[0] = 0;
+            if (specialServoPosition == 0.95) MGAr[1] = 0;
+            if (specialServoPosition == 2) MGAr[2] = 0;
 
-        launch(testTeleop.runtime);
+            waitSeconds(0.5);
+            specialServoPosition = find(testTeleop.mosaic[1] - 1);
+            magazine.setPosition(specialServoPosition);
+            waitSeconds(0.5);
 
-        while (launching);
+            hammer.setPosition(0.7);
+            waitSeconds(0.2);
+            hammer.setPosition(0.48);
+            if (specialServoPosition == 0.55) MGAr[0] = 0;
+            if (specialServoPosition == 0.95) MGAr[1] = 0;
+            if (specialServoPosition == 2) MGAr[2] = 0;
 
-        specialServoPosition = find(testTeleop.mosaic[1] - 1);
-        magazine.setPosition(specialServoPosition);
+            waitSeconds(0.5);
+            specialServoPosition = find(testTeleop.mosaic[2] - 1);
+            magazine.setPosition(specialServoPosition);
+            waitSeconds(0.5);
 
-        start = runtime.now(TimeUnit.SECONDS);
-        while (runtime.now(TimeUnit.SECONDS) - start < 0.2);
+            hammer.setPosition(0.7);
+            waitSeconds(0.2);
+            hammer.setPosition(0.48);
+            if (specialServoPosition == 0.55) MGAr[0] = 0;
+            if (specialServoPosition == 0.95) MGAr[1] = 0;
+            if (specialServoPosition == 2) MGAr[2] = 0;
 
-        launch(testTeleop.runtime);
-
-        while (launching);
-
-        specialServoPosition = find(testTeleop.mosaic[2] - 1);
-        magazine.setPosition(specialServoPosition);
-
-        start = runtime.now(TimeUnit.SECONDS);
-        while (runtime.now(TimeUnit.SECONDS) - start < 0.2);
-
-        launch(testTeleop.runtime);
+            waitSeconds(0.5);
+            magazine.setPosition(0);
+            MGAr = new int[] {0, 0, 0, 0};
+            activeMG = 0;
+            servoPosition = 0;
+        } finally {
+            opLock.unlock();
+        }
     }
 
     //Update the physical servo position, done at end to ensure time for all math to happen making only one move happen
-    public static void updatePosition(ElapsedTime runtime)
+    public static void updatePosition()
     {
-        if (!readyToLaunch) servoPosition = find(2); //Always find an empty slot if not ready to launch
-
-        if (servoPosition == 0) activeMG = 0; //If servo is in position one then activeMG equals zero
-        else if (servoPosition == 0.4) activeMG = 1; //If servo is in position two then activeMG equals 1
-        else if (servoPosition == 0.8) activeMG = 2; //If servo is in position three then activeMG equals 2
-
-        if (MGAr[0] != 0 && MGAr[1] != 0 && MGAr[2] != 0) MGAr[3] = 1; //If the magazine is full update the full check slot
-        else MGAr[3] = 0; //If magazine is not full set full check to 0
-
-        double start = runtime.now(TimeUnit.SECONDS); //Represents start time
-
-        if (autoLaunching)
+        if (!opLock.isLocked())
         {
-            magazine.setPosition(servoPosition); //Update the physical servo position
-            while (runtime.now(TimeUnit.SECONDS) - start < 0.1) ; //Wait 0.5 seconds
-            checkColors(); //Check the color AFTER SERVO MOVE with bob
+            if (MGAr[3] == 0) servoPosition = find(2);
+
+            if (servoPosition == 0)
+                activeMG = 0; //If servo is in position one then activeMG equals zero
+            else if (servoPosition == 0.4)
+                activeMG = 1; //If servo is in position two then activeMG equals 1
+            else if (servoPosition == 0.8)
+                activeMG = 2; //If servo is in position three then activeMG equals 2
+
+            if (MGAr[0] != 0 && MGAr[1] != 0 && MGAr[2] != 0)
+                MGAr[3] = 1; //If the magazine is full update the full check slot
+            else MGAr[3] = 0; //If magazine is not full set full check to 0
+
+            if (MGAr[3] == 0) magazine.setPosition(servoPosition); //Update the physical servo position
+        }
+    }
+
+    public static void reCheck()
+    {
+        servoPosition = 0;
+        magazine.setPosition(servoPosition);
+        checkColors();
+        waitSeconds(0.5);
+        servoPosition = 0.4;
+        magazine.setPosition(servoPosition);
+        checkColors();
+        waitSeconds(0.5);
+        servoPosition = 0.8;
+        magazine.setPosition(servoPosition);
+        checkColors();
+        waitSeconds(0.5);
+    }
+
+    private static void waitSeconds(double seconds) {
+        try {
+            Thread.sleep((long)(seconds * 1000));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

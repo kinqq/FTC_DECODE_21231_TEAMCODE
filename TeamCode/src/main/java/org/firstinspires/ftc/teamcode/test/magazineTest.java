@@ -12,7 +12,7 @@ public class magazineTest extends LinearOpMode
 
     @Override
     public void runOpMode() {
-        Servo mg = hardwareMap.get(Servo.class, "HA");
+        Servo mg = hardwareMap.get(Servo.class, "MG");
 
         waitForStart();
 
