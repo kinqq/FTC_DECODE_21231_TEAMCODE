@@ -1,110 +1,110 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
-import static org.firstinspires.ftc.teamcode.util.ConstantsServo.STATIC_COMP;
-import static org.firstinspires.ftc.teamcode.util.ConstantsServo.kD_VEL;
-
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.util.ConstantsPIDF;
 import org.firstinspires.ftc.teamcode.util.ConstantsServo;
-import org.firstinspires.ftc.teamcode.util.ContinuousAbsoluteTracker;
 
 public class Turret {
-    private CRServo turret;
-    private Servo launchAngle;
-    private ContinuousAbsoluteTracker tracker;
+    private DcMotorEx turretMotor;
+    private ServoImplEx launchAngle;
     private PIDController pid;
 
-    private static final double SERVO_TO_TURRET_GEAR_RATIO = 5.6111111111;
-    private static final double LATENCY_SEC = 0.06;
-    private static final double MAX_PREDICT_DEG = 10.0;
-    private static final double STATIC_ANGLE_THRESH = 1.0;
+    // mechanical parameters
+    private static final double MOTOR_TO_TURRET_GEAR_RATIO = 5.6111111111;
+    private static final double TICKS_PER_REV = 537.7; // e.g. GoBilda 5202-0002-0007 motor (edit if different)
 
+    // state
     private double targetTurretDeg = 0.0;
     private double lastCmd = 0.0;
-    private double angle = 0;
+    private double angle = 0.0;
+
     private final ElapsedTime loopTimer = new ElapsedTime();
 
     public Turret(HardwareMap hwMap) {
-        turret = hwMap.get(CRServo.class, "turret");
-        launchAngle = hwMap.get(Servo.class, "launchAngle");
-        AnalogInput analog = hwMap.get(AnalogInput.class, "analog");
-        tracker = new ContinuousAbsoluteTracker(analog, 360);
-        pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        turretMotor = hwMap.get(DcMotorEx.class, "turret");
+        launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
 
-        turret.setPower(0);
-        loopTimer.reset();
-        tracker.updateAbsolute();
+        launchAngle.setPwmRange(new PwmControl.PwmRange(500, 2500));
+
+        pid = new PIDController(ConstantsPIDF.p, ConstantsPIDF.i, ConstantsPIDF.d);
+
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor.setPower(0);
+
         targetTurretDeg = getAngleDeg();
+        loopTimer.reset();
     }
 
     /** Main control loop */
     public void update() {
-        tracker.updateAbsolute();
         pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
-        double measuredServoDeg = tracker.getTotalAngleDeg();
-        double targetServoDeg = targetTurretDeg * SERVO_TO_TURRET_GEAR_RATIO;
+        double measuredMotorDeg = getMotorAngleDeg();
+        double measuredMotorTick = measuredMotorDeg * TICKS_PER_REV / 360.0;
+        double targetMotorDeg = targetTurretDeg * MOTOR_TO_TURRET_GEAR_RATIO;
+        double targetMotorTick = targetMotorDeg * TICKS_PER_REV / 360.0;
 
-        double velDpsServo = tracker.getEstimatedVelocityDps();
-        double errMeasured = targetServoDeg - measuredServoDeg;
+        double pidOut = pid.calculate(measuredMotorTick, targetMotorTick);
 
-        double predictedServoDeg = measuredServoDeg + velDpsServo * LATENCY_SEC;
-        predictedServoDeg = measuredServoDeg + Range.clip(
-            predictedServoDeg - measuredServoDeg, -MAX_PREDICT_DEG, MAX_PREDICT_DEG);
-
-        double pidOut = pid.calculate(predictedServoDeg, targetServoDeg);
-        double velDamping = -kD_VEL * velDpsServo;
-        double out = pidOut + velDamping;
-
-        if (Math.abs(out) > 0 && Math.abs(out) < STATIC_COMP &&
-            Math.abs(errMeasured) > STATIC_ANGLE_THRESH)
-            out = Math.signum(out) * STATIC_COMP;
-
-        lastCmd = Range.clip(out, -1.0, 1.0);
-        turret.setPower(lastCmd);
+        lastCmd = Range.clip(pidOut, -1.0, 1.0);
+        turretMotor.setPower(lastCmd);
 
         double anglePos = -0.0038 * angle + 0.871;
+        anglePos = Range.clip(anglePos, 0.0, 1.0);
         launchAngle.setPosition(anglePos);
-
-        loopTimer.reset();
     }
 
-    /** Set absolute turret angle in degrees */
+    /** Convert encoder ticks → motor degrees */
+    private double getMotorAngleDeg() {
+        return turretMotor.getCurrentPosition() * (360.0 / TICKS_PER_REV);
+    }
+
+    /** Convert motor deg → turret deg */
+    public double getAngleDeg() {
+        return getMotorAngleDeg() / MOTOR_TO_TURRET_GEAR_RATIO;
+    }
+
+    /** Set absolute turret angle (degrees) */
     public void setTarget(double turretDeg) {
         targetTurretDeg = turretDeg;
     }
 
-    /** Increment target angle */
+    /** Adjust target relative to current value */
     public void adjustTarget(double deltaTurretDeg) {
         targetTurretDeg += deltaTurretDeg;
     }
 
-    /** Zero current turret position */
+    /** Reset encoder, zero turret */
     public void zeroHere() {
-        tracker.rebaseAbsolute(0.0);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         targetTurretDeg = 0.0;
         pid.reset();
     }
 
-    /** Launch angle range from 20 deg to 45 deg  */
+    /** Launch angle control (20–50 deg) */
     public void setLaunchAngle(double angle) {
-        this.angle = Range.clip(angle, 20, 45);
+        this.angle = Range.clip(angle, 20, 50);
     }
 
+    // telemetry helpers
     public double getTargetDeg() { return targetTurretDeg; }
-    public double getAngleDeg() { return tracker.getTotalAngleDeg() / SERVO_TO_TURRET_GEAR_RATIO; }
-    public double getVelocityDps() { return tracker.getEstimatedVelocityDps() / SERVO_TO_TURRET_GEAR_RATIO; }
     public double getCommand() { return lastCmd; }
     public double getErrorDeg() { return targetTurretDeg - getAngleDeg(); }
-    public double getAnalogVoltage() { return tracker.getVoltage(); }
-    public double getEstimatedPos() { return tracker.getEstimatedPosition(); }
     public double getLaunchAngle() { return angle; }
 
-    public void stop() { turret.setPower(0); }
+    public void stop() {
+        turretMotor.setPower(0);
+    }
 }

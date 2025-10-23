@@ -52,17 +52,17 @@ public class magazine
                 if (MGAr[0] == 1)
                 {
                     return 0.6;
-                    readyToLaunch = true;
+//                    readyToLaunch = true;
                 }
                 else if (MGAr[1] == 1)
                 {
                     return 1;
-                    readyToLaunch = true;
+//                    readyToLaunch = true;
                 }
                 else if (MGAr[2] == 1)
                 {
                     return 0.2;
-                    readyToLaunch = true;
+//                    readyToLaunch = true;
                 }
                 break;
             case 1:
@@ -71,17 +71,17 @@ public class magazine
                 if (MGAr[0] == 2) //If slot #1 from init has a purple
                 {
                     return 0.6; //Set servo to the slot #1 intake position
-                    readyToLaunch = true; //Set readyToLaunch to true
+//                    readyToLaunch = true; //Set readyToLaunch to true
                 }
                 else if (MGAr[1] == 2) //If slot #2 from init has purple
                 {
                     return 1; //Set servo to the slot #2 intake position
-                    readyToLaunch = true; //Set readyToLaunch to true
+//                    readyToLaunch = true; //Set readyToLaunch to true
                 }
                 else if (MGAr[2] == 2) //If slot #3 from init has purple
                 {
                     return 0.2; //Set servo to the slot #3 intake position
-                    readyToLaunch = true; //Set readyToLaunch to true
+//                    readyToLaunch = true; //Set readyToLaunch to true
                 }
                 break;
             case 2:

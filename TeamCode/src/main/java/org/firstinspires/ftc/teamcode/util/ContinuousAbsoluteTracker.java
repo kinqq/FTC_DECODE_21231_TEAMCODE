@@ -12,6 +12,8 @@ public class ContinuousAbsoluteTracker {
     private int turns = 0;
     private double totalDeg = 0.0;
 
+    private double offsetDeg = 0.0;      // <- zero/offset accumulator
+
     private double lastTotalDeg = 0.0;
     private double velDps = 0.0;
     private final ElapsedTime t = new ElapsedTime();
@@ -37,7 +39,7 @@ public class ContinuousAbsoluteTracker {
 
         if (Double.isNaN(lastWrappedDeg)) {
             lastWrappedDeg = wrapped;
-            totalDeg = wrapped;
+            totalDeg = wrapped + offsetDeg;  // include offset
             lastTotalDeg = totalDeg;
             t.reset();
             return;
@@ -48,7 +50,7 @@ public class ContinuousAbsoluteTracker {
         if (delta > thresh) turns -= 1;
         if (delta < -thresh) turns += 1;
 
-        totalDeg = turns * wrapDeg + wrapped;
+        totalDeg = turns * wrapDeg + wrapped + offsetDeg;  // include offset
 
         double dt = Math.max(1e-3, t.seconds());
         velDps = (totalDeg - lastTotalDeg) / dt;
@@ -58,18 +60,18 @@ public class ContinuousAbsoluteTracker {
         lastWrappedDeg = wrapped;
     }
 
+    /** Rebase current absolute angle to newBaseDeg (e.g., zeroHere -> 0). */
     public void rebaseAbsolute(double newBaseDeg) {
         updateAbsolute();
         double current = getTotalAngleDeg();
-        double shift = newBaseDeg - current;
-        totalDeg = current + shift;
-        lastTotalDeg = totalDeg;
-        turns = (int)Math.floor(totalDeg / wrapDeg);
+        offsetDeg += (newBaseDeg - current);  // shift reference persistently
+        lastTotalDeg = newBaseDeg;
+        t.reset();
     }
 
-    public double getTotalAngleDeg()       { return totalDeg; }
-    public double getEstimatedVelocityDps(){ return velDps; }
-    public double getVoltage()             { return analog.getVoltage(); }
+    public double getTotalAngleDeg()        { return totalDeg; }
+    public double getEstimatedVelocityDps() { return velDps; }
+    public double getVoltage()              { return analog.getVoltage(); }
     public double getEstimatedPosition() {
         double v = getVoltage();
         double pos = (v - CAL_B) / CAL_A;
