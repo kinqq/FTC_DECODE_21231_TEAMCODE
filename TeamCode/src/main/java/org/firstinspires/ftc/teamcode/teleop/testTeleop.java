@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Subsystems.*;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -11,6 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.firstinspires.ftc.teamcode.subsystem.*;
+import org.firstinspires.ftc.teamcode.util.AllianceColor;
+import org.firstinspires.ftc.teamcode.util.Constants;
 
 
 @TeleOp(name = "VERYBasicDrive")
@@ -23,8 +28,10 @@ public class testTeleop extends OpMode {
     public int mosaicPos = 0;//Integer to represent which index of the mosaic the user is affecting
 
     public double launcherSpeed = 1;
-
+    private AllianceColor allianceColor = AllianceColor.RED;
     double start = runtime.now(TimeUnit.SECONDS); //Represents start time
+
+    Turret turret;
 
     public static boolean opModeIsActive = false;
 
@@ -37,6 +44,8 @@ public class testTeleop extends OpMode {
     {
         magazine.init(hardwareMap); //Initialize magazine subsystem
         colorSensor.init(hardwareMap); //Initialize color sensors subsystem
+        turret = new Turret(hardwareMap);
+
 //      manMag.init(hardwareMap, runtime); //Initializes the manual magazine subsystem for manual magazine management
         runtime.reset();
         opModeIsActive = true;
@@ -47,8 +56,8 @@ public class testTeleop extends OpMode {
     public void start() {
         powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
 
-
-
+        turret.zeroHere();
+        turret.setLaunchAngle(45);
     }
 
     //Main game loop, runs after play button pressed
@@ -124,7 +133,7 @@ public class testTeleop extends OpMode {
         if (gamepad1.yWasPressed()) magazine.MGAr[magazine.activeMG] = 1;
         if (gamepad1.bWasPressed()) magazine.MGAr[magazine.activeMG] = 2;
 
-        if (runtime.now(TimeUnit.SECONDS) - start > 2 && magazine.MGAr[3] == 0) {
+        if (runtime.now(TimeUnit.SECONDS) - start > 1 && magazine.MGAr[3] == 0) {
             magazine.checkColors();
             start = runtime.now(TimeUnit.SECONDS);
         }
@@ -133,7 +142,21 @@ public class testTeleop extends OpMode {
 
         magazine.updatePosition();
 
+        if (gamepad2.backWasPressed()) turret.zeroHere();
 
+
+        double xDistanceFromGoal = Constants.RED_GOAL_X - powerMotors.odo.getPosX(DistanceUnit.MM) + 150;
+        double yDistanceFromGoal = Constants.RED_GOAL_Y + powerMotors.odo.getPosY(DistanceUnit.MM);
+        double angleFromPosition = Math.atan2(yDistanceFromGoal, xDistanceFromGoal) / Math.PI * 180;
+        double angleFromHeading = -powerMotors.odo.getHeading(AngleUnit.DEGREES);
+        if (allianceColor == AllianceColor.RED) turret.setTarget(angleFromHeading - angleFromPosition);
+        if (allianceColor == AllianceColor.BLUE) turret.setTarget(angleFromHeading + angleFromPosition);
+
+        if (gamepad2.dpadLeftWasPressed()) turret.adjustTarget(-1);
+        if (gamepad2.dpadRightWasPressed()) turret.adjustTarget(1);
+        if (gamepad2.dpadUpWasPressed()) turret.setLaunchAngle(turret.getLaunchAngle() + 10);
+        if (gamepad2.dpadDownWasPressed()) turret.setLaunchAngle(turret.getLaunchAngle() - 10);
+        turret.update();
 
         //Report the contents of the mosaic and active mosaic position
         telemetry.addLine("Mosaic: ");

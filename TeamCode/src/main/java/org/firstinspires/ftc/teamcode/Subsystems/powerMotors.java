@@ -53,7 +53,7 @@ public class powerMotors
 
         //Start intake and launcher
         intakeOff(false);
-        launcher.setPower(1);
+        //launcher.setPower(1);
     }
 
 

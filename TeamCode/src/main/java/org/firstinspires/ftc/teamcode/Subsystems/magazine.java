@@ -143,11 +143,12 @@ public class magazine
         try
         {
             double specialServoPosition = 0;
+            powerMotors.launcher.setPower(1);
             hammer.setPosition(0.48);
 
             specialServoPosition = find(testTeleop.mosaic[0] - 1);
             magazine.setPosition(specialServoPosition);
-            waitSeconds(0.5);
+            waitSeconds(3);
 
             hammer.setPosition(0.7);
             waitSeconds(0.2);
@@ -156,7 +157,7 @@ public class magazine
             if (specialServoPosition == 0.95) MGAr[1] = 0;
             if (specialServoPosition == 2) MGAr[2] = 0;
 
-            waitSeconds(0.5);
+            waitSeconds(2);
             specialServoPosition = find(testTeleop.mosaic[1] - 1);
             magazine.setPosition(specialServoPosition);
             waitSeconds(0.5);
@@ -168,7 +169,7 @@ public class magazine
             if (specialServoPosition == 0.95) MGAr[1] = 0;
             if (specialServoPosition == 2) MGAr[2] = 0;
 
-            waitSeconds(0.5);
+            waitSeconds(2);
             specialServoPosition = find(testTeleop.mosaic[2] - 1);
             magazine.setPosition(specialServoPosition);
             waitSeconds(0.5);
@@ -185,6 +186,7 @@ public class magazine
             MGAr = new int[] {0, 0, 0, 0};
             activeMG = 0;
             servoPosition = 0;
+            powerMotors.launcher.setPower(0);
         } finally {
             opLock.unlock();
         }
