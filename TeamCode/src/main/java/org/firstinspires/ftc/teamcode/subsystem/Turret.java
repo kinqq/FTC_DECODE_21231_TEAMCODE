@@ -3,18 +3,23 @@ package org.firstinspires.ftc.teamcode.subsystem;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.command.Command;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.util.ConstantsPIDF;
 import org.firstinspires.ftc.teamcode.util.ConstantsServo;
 
+import dev.nextftc.core.commands.utility.LambdaCommand;
+
 public class Turret {
-    private DcMotorEx turretMotor;
+    public DcMotorEx turretMotor, launchMotor;
     private ServoImplEx launchAngle;
     private PIDController pid;
 
@@ -24,6 +29,7 @@ public class Turret {
 
     // state
     private double targetTurretDeg = 0.0;
+    private double offset = 0.0;
     private double lastCmd = 0.0;
     private double angle = 0.0;
 
@@ -31,6 +37,7 @@ public class Turret {
 
     public Turret(HardwareMap hwMap) {
         turretMotor = hwMap.get(DcMotorEx.class, "turret");
+        launchMotor = hwMap.get(DcMotorEx.class, "launcher");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
 
         launchAngle.setPwmRange(new PwmControl.PwmRange(500, 2500));
@@ -38,9 +45,13 @@ public class Turret {
         pid = new PIDController(ConstantsPIDF.p, ConstantsPIDF.i, ConstantsPIDF.d);
 
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setPower(0);
+
+        launchMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor.setPower(0);
 
         targetTurretDeg = getAngleDeg();
         loopTimer.reset();
@@ -52,7 +63,7 @@ public class Turret {
 
         double measuredMotorDeg = getMotorAngleDeg();
         double measuredMotorTick = measuredMotorDeg * TICKS_PER_REV / 360.0;
-        double targetMotorDeg = targetTurretDeg * MOTOR_TO_TURRET_GEAR_RATIO;
+        double targetMotorDeg = (targetTurretDeg + offset) * MOTOR_TO_TURRET_GEAR_RATIO;
         double targetMotorTick = targetMotorDeg * TICKS_PER_REV / 360.0;
 
         double pidOut = pid.calculate(measuredMotorTick, targetMotorTick);
@@ -77,12 +88,12 @@ public class Turret {
 
     /** Set absolute turret angle (degrees) */
     public void setTarget(double turretDeg) {
-        targetTurretDeg = turretDeg;
+        targetTurretDeg = Range.clip(turretDeg, -135, 135);
     }
 
     /** Adjust target relative to current value */
     public void adjustTarget(double deltaTurretDeg) {
-        targetTurretDeg += deltaTurretDeg;
+        offset += deltaTurretDeg;
     }
 
     /** Reset encoder, zero turret */
@@ -96,6 +107,21 @@ public class Turret {
     /** Launch angle control (20–50 deg) */
     public void setLaunchAngle(double angle) {
         this.angle = Range.clip(angle, 20, 50);
+    }
+
+    public void activateLauncher() {
+        this.launchMotor.setPower(1.0);
+        this.launchMotor.setVelocity(200, AngleUnit.DEGREES);
+    }
+
+    public void deactivateLauncher() {
+        this.launchMotor.setPower(0.0);
+        this.launchMotor.setVelocity(0, AngleUnit.DEGREES);
+    }
+
+    public void toggleLauncher() {
+        if (launchMotor.getPower() == 1.0) deactivateLauncher();
+        else activateLauncher();
     }
 
     // telemetry helpers

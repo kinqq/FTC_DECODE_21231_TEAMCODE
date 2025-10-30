@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedropathing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -26,8 +26,9 @@ public class Constants {
         .forwardZeroPowerAcceleration(-63.06831377305596)
         .lateralZeroPowerAcceleration(-91.68048771463215)
         .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.001, 0.04))
-        .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.04));
-//        .drivePIDFCoefficients(new FilteredPIDFCoefficients());
+        .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.04))
+        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001, 0.6, 0.03))
+        .centripetalScaling(0.001);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -46,7 +47,7 @@ public class Constants {
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
         .forwardPodY(-1.8897637795)
-        .strafePodX(-7.1850393701)
+        .strafePodX(-7.25)
         .distanceUnit(DistanceUnit.INCH)
         .hardwareMapName("odo")
         .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
