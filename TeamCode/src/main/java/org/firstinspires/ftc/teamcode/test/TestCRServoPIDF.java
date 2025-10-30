@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.util.ConstantsServo.STATIC_COMP;
 import static org.firstinspires.ftc.teamcode.util.ConstantsServo.kD_VEL;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -19,6 +20,7 @@ import java.util.Locale;
 
 @TeleOp(name = "TestServoPIDF", group = "Test")
 @Configurable
+@Disabled
 public class TestCRServoPIDF extends OpMode {
 
     // --- Hardware Names ---

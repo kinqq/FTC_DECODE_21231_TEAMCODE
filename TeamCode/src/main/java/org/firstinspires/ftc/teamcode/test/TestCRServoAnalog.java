@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.test;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -9,6 +10,7 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "TestCRServoAnalog", group = "Test")
 @Configurable
+@Disabled
 public class TestCRServoAnalog extends OpMode {
     private CRServo crServo;          // 단일 CR 서보
     public static String servoName1 = "turret";
