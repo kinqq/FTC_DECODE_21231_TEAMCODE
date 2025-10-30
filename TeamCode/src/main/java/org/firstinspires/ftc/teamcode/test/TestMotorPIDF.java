@@ -28,7 +28,7 @@ public class TestMotorPIDF extends OpMode {
 
     @Override
     public void init() {
-        motor = hardwareMap.get(DcMotorEx.class, "turret");
+        motor = hardwareMap.get(DcMotorEx.class, "intake");
 
         // Reset encoder and configure motor
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

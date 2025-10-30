@@ -112,11 +112,11 @@ public class Drive extends OpMode {
 
         double xDistanceFromGoal = Constants.RED_GOAL_X - odo.getPosX(DistanceUnit.MM) + 150;
         double yDistanceFromGoal = Constants.RED_GOAL_Y + odo.getPosY(DistanceUnit.MM);
-        double angleFromPosition = Math.atan2(yDistanceFromGoal, xDistanceFromGoal) / Math.PI * 180;
+        double angleFromPosition = Math.atan2(xDistanceFromGoal, yDistanceFromGoal) / Math.PI * 180;
         double angleFromHeading = -odo.getHeading(AngleUnit.DEGREES);
 
-//        if (allianceColor == AllianceColor.RED) turret.setTarget(angleFromHeading - angleFromPosition);
-//        if (allianceColor == AllianceColor.BLUE) turret.setTarget(angleFromHeading + angleFromPosition);
+        if (allianceColor == AllianceColor.RED) turret.setTarget(angleFromHeading - angleFromPosition);
+        if (allianceColor == AllianceColor.BLUE) turret.setTarget(angleFromHeading + angleFromPosition);
 
         if (gamepad2.dpadLeftWasPressed()) turret.adjustTarget(-1);
         if (gamepad2.dpadRightWasPressed()) turret.adjustTarget(1);
