@@ -20,14 +20,14 @@ public class colorSensor
         gary = hwMap.get(RevColorSensorV3.class, "gary"); //Set gary to "gary"
         joe = hwMap.get(RevColorSensorV3.class, "joe"); //Set joe to "joe"
 
-        bob.setGain(500); //Set the gain of bob to 500 for more accurate testing
+       // bob.setGain(500); //Set the gain of bob to 500 for more accurate testing
     }
 
     public static float H;
     public static float S;
     public static float V;
 
-    public static int colorDetect(RevColorSensorV3 color)
+    public static int colorDetect(RevColorSensorV3 color, int bob_gary_joe)
     {
         NormalizedRGBA rgba = color.getNormalizedColors(); //Set normalized RGBA to the normalized values of the indicated color sensor
 
@@ -46,10 +46,25 @@ public class colorSensor
         S = hsv[1];
         V = hsv[2];
 
-        if (H < 161 && S >= 0.4) return 1; //When the conditions are met for green return 1
-        else if (H > 180 && S <= 3.5)  return 2; //When the conditions are met for purple return 2
-        //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
-        else return 0;
+        if (bob_gary_joe == 1) {
+            if (H < 170 && S > 0.51) return 1; //When the conditions are met for green return 1
+            else if (H > 175 && S <= 0.5)
+                return 2; //When the conditions are met for purple return 2
+                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+            else return 0;
+        } else if (bob_gary_joe == 0) {
+            if (H < 165 && S >= 0.45) return 1; //When the conditions are met for green return 1
+            else if (H > 170 && S <= 0.5)
+                return 2; //When the conditions are met for purple return 2
+                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+            else return 0;
+        } else if (bob_gary_joe == 2) {
+            if (H <= 160 && S > 0.52) return 1; //When the conditions are met for green return 1
+            else if (H >= 170 && S <= 0.5)
+                return 2; //When the conditions are met for purple return 2
+                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+            else return 0;
+        } else return -2;
     }
 
     //More weird math I don't understand but works

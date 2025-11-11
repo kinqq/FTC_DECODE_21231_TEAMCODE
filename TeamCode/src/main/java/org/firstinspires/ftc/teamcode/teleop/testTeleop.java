@@ -7,13 +7,14 @@ import org.firstinspires.ftc.teamcode.Subsystems.*;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.firstinspires.ftc.teamcode.subsystem.*;
+
 import org.firstinspires.ftc.teamcode.util.AllianceColor;
 import org.firstinspires.ftc.teamcode.util.Constants;
 
@@ -28,10 +29,11 @@ public class testTeleop extends OpMode {
     public int mosaicPos = 0;//Integer to represent which index of the mosaic the user is affecting
 
     public double launcherSpeed = 1;
-    private AllianceColor allianceColor = AllianceColor.RED;
+    private final AllianceColor allianceColor = AllianceColor.RED;
     double start = runtime.now(TimeUnit.SECONDS); //Represents start time
 
-    Turret turret;
+    turret turret;
+    private VoltageSensor roboVoltage;
 
     public static boolean opModeIsActive = false;
 
@@ -42,20 +44,19 @@ public class testTeleop extends OpMode {
     @Override
     public void init()
     {
-        magazine.init(hardwareMap); //Initialize magazine subsystem
         colorSensor.init(hardwareMap); //Initialize color sensors subsystem
-        turret = new Turret(hardwareMap);
+        roboVoltage = hardwareMap.get(VoltageSensor.class, "Expansion Hub 1");
 
 //      manMag.init(hardwareMap, runtime); //Initializes the manual magazine subsystem for manual magazine management
         runtime.reset();
         opModeIsActive = true;
-        magazine.reCheck();
     }
 
     @Override
     public void start() {
         powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
-
+        magazine.init(hardwareMap); //Initialize magazine subsystem
+        turret = new turret(hardwareMap);
         turret.zeroHere();
         turret.setLaunchAngle(45);
     }
@@ -127,22 +128,26 @@ public class testTeleop extends OpMode {
                 currentLaunch = magExec.submit(magazine::autoLaunch);
             }
         }
+        if (gamepad2.xWasPressed()) {
+            if (currentLaunch == null || currentLaunch.isDone()) {
+                currentLaunch = magExec.submit(magazine::launch);
+            }
+        }
 
         if (gamepad1.right_trigger > 0.00) launcherSpeed = 0.5;
         if (gamepad1.left_trigger > 0.00) launcherSpeed = 1;
         if (gamepad1.yWasPressed()) magazine.MGAr[magazine.activeMG] = 1;
-        if (gamepad1.bWasPressed()) magazine.MGAr[magazine.activeMG] = 2;
+        //if (gamepad1.bWasPressed()) magazine.MGAr[magazine.activeMG] = 2;
 
-        if (runtime.now(TimeUnit.SECONDS) - start > 1 && magazine.MGAr[3] == 0) {
-            magazine.checkColors();
+        if (gamepad2.backWasPressed()) magazine.eject();
+
+        if (gamepad1.bWasPressed()) powerMotors.toggleIntake();
+
+
+        if (runtime.now(TimeUnit.SECONDS) - start > 0.05) {
+            magazine.updatePosition();
             start = runtime.now(TimeUnit.SECONDS);
         }
-
-        if (gamepad1.backWasPressed()) magazine.reCheck();
-
-        magazine.updatePosition();
-
-        if (gamepad2.backWasPressed()) turret.zeroHere();
 
 
         double xDistanceFromGoal = Constants.RED_GOAL_X - powerMotors.odo.getPosX(DistanceUnit.MM) + 150;
@@ -166,15 +171,21 @@ public class testTeleop extends OpMode {
         telemetry.addLine(); //Empty line
         telemetry.addLine("Color Sensor:"); //Caption for the color sensor section
         //Print the color currently in the active position (0: empty, 1: green, 2: purple)
-        telemetry.addData("Detected Color", colorSensor.colorDetect(colorSensor.bob));
+        telemetry.addData("Detected Color bob", colorSensor.colorDetect(colorSensor.bob, 0));
+        telemetry.addData("Detected Color gary", colorSensor.colorDetect(colorSensor.gary, 1));
+        telemetry.addData("Detected Color joe", colorSensor.colorDetect(colorSensor.joe, 2));
+
+
 
         telemetry.addLine(); //Empty Line
         telemetry.addLine("Magazine: "); //Caption indicating the magazine section
         telemetry.addData("Is full", magazine.MGAr[3]); //Prints whether or not the magazine is full
+        telemetry.addData("Active MG", magazine.MGAr[0] + ", " + magazine.MGAr[1] + ", " + magazine.MGAr[2]);
+        telemetry.addData("MGAr.activeMG", magazine.MGAr[magazine.activeMG]);
         telemetry.addData("Currently active", magazine.activeMG); //Prints which slot is currently active
         telemetry.addData("Active Slot", magazine.MGAr[magazine.activeMG]); //Prints the color in the active slot
-        telemetry.addData("Top Right", magazine.MGAr[(magazine.activeMG + 1) % 3]); //Prints color in top right
         telemetry.addData("Top Left", magazine.MGAr[(magazine.activeMG + 2) % 3]); //Prints color in top left
+        telemetry.addData("Top Right", magazine.MGAr[(magazine.activeMG + 1) % 3]); //Prints color in top right
 
         telemetry.addLine(); //Empty Line
         telemetry.addLine("Servo Data: "); //Caption for servo data section
@@ -184,11 +195,26 @@ public class testTeleop extends OpMode {
         telemetry.addData("Color sensor H", colorSensor.H);
         telemetry.addData("Color sensor S", colorSensor.S);
         telemetry.addData("Color sensor V", colorSensor.V);
+        telemetry.addData("Distance", colorSensor.bob.getDistance(DistanceUnit.MM));
+        telemetry.addData("V", powerMotors.launcher.getVelocity());
+
+
+        telemetry.addData("Voltage", roboVoltage.getVoltage());
+        telemetry.addLine();
+
+
+        telemetry.addData("HEADING", powerMotors.odo.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("POS X", powerMotors.odo.getPosX(DistanceUnit.MM));
+        telemetry.addData("POS Y", powerMotors.odo.getPosY(DistanceUnit.MM));
+
+        telemetry.update();
     }
 
     @Override
     public void stop()
     {
+        turret.zeroHere();
+        turret.update();
         opModeIsActive = false;
     }
 }

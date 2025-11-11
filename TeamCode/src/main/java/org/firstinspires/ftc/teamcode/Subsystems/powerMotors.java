@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -17,8 +18,8 @@ public class powerMotors
     public static DcMotor frontRightDrive; //Front right driving motor
     public static DcMotor backRightDrive; //Back right driving moto
 
-    public static DcMotor intake; //Intake motor
-    public static DcMotor launcher; //Launcher motor
+    public static DcMotorEx intake; //Intake motor
+    public static DcMotorEx launcher; //Launcher motor
 
     public static boolean intakeRunning; //Check for the intake running
 
@@ -28,8 +29,8 @@ public class powerMotors
         frontRightDrive = hwMap.get(DcMotor.class, "FRD"); //Init frontRightDrive
         backLeftDrive = hwMap.get(DcMotor.class, "BLD"); //Init backLeftDrive
         backRightDrive = hwMap.get(DcMotor.class, "BRD"); //Init backRightDrive
-        intake = hwMap.get(DcMotor.class, "IN"); //Init intake
-        launcher = hwMap.get(DcMotor.class, "LA"); //Init launcher
+        intake = hwMap.get(DcMotorEx.class, "IN"); //Init intake
+        launcher = hwMap.get(DcMotorEx.class, "LA"); //Init launcher
 
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo"); //Init odometry
 
@@ -40,7 +41,7 @@ public class powerMotors
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
 
         //Initialization for odometry
-        odo.setOffsets(2.3622047244, -6.6141732283, DistanceUnit.INCH);
+        odo.setOffsets(-48, -182.5, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(
                 GoBildaPinpointDriver.EncoderDirection.REVERSED,
@@ -146,6 +147,14 @@ public class powerMotors
             intake.setPower(1); //Turn on intake
             intakeRunning = true; //Change variable to reflect change//Change variable to reflect change
         }
+    }
+
+    public static int intakeToggle = 0;
+    public static void toggleIntake()
+    {
+        intake.setPower((intakeToggle + 1) % 2);
+        intakeToggle = (intakeToggle + 1) % 2;
+
     }
 
 

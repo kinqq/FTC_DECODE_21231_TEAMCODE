@@ -1,14 +1,20 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.testTeleop;
 
 import java.util.concurrent.TimeUnit;
 
+@Configurable
 public class magazine
 {
     public static Servo magazine; //Servo that controls the position of the magazine
@@ -24,6 +30,8 @@ public class magazine
 
     public static ElapsedTime stuckTimer = new ElapsedTime();
 
+    private static VoltageSensor roboVoltage;
+
     private static final ReentrantLock opLock = new ReentrantLock(true);
 
 
@@ -32,6 +40,7 @@ public class magazine
     {
         magazine = hwMap.get(Servo.class, "MG"); //Initializes the magazine based on the servo "MG"
         hammer = hwMap.get(Servo.class, "HA"); //Initializes the hammer based on the servo "HA"
+        roboVoltage = hwMap.get(VoltageSensor.class, "Expansion Hub 1");
 
         //Reset variables
         servoPosition = 0;
@@ -61,12 +70,12 @@ public class magazine
                 if (MGAr[0] == 1)
                 {
                     readyToLaunch = true;
-                    return 0.55;
+                    return 0.6;
                 }
                 else if (MGAr[1] == 1)
                 {
                     readyToLaunch = true;
-                    return 0.95;
+                    return 0.98;
                 }
                 else if (MGAr[2] == 1)
                 {
@@ -80,12 +89,12 @@ public class magazine
                 if (MGAr[0] == 2) //If slot #1 from init has a purple
                 {
                     readyToLaunch = true; //Set readyToLaunch to true
-                    return 0.55; //Set servo to the slot #1 intake position
+                    return 0.6; //Set servo to the slot #1 intake position
                 }
                 else if (MGAr[1] == 2) //If slot #2 from init has purple
                 {
                     readyToLaunch = true; //Set readyToLaunch to true
-                    return 0.95; //Set servo to the slot #2 intake position
+                    return 0.98; //Set servo to the slot #2 intake position
                 }
                 else if (MGAr[2] == 2) //If slot #3 from init has purple
                 {
@@ -94,8 +103,7 @@ public class magazine
                 }
                 break;
             case 2:
-                powerMotors.intakeOff(false); //Turn intake off
-
+                //powerMotors.intakeOff(false); //Turn intake off
                 if (MGAr[0] == 0) return 0; //Set servo to init position 1
                 else if (MGAr[1] == 0) return 0.4; //Set servo to init position 2
                 else if (MGAr[2] == 0) return 0.8; //Set servo to init position 3
@@ -103,36 +111,65 @@ public class magazine
             default:
                 return servoPosition;
         }
-        return 0;
+        return servoPosition;
     }
 
     //Check the color sensors and put that color in the correct position within MGAr
-    public static void checkColors()
+    public static void checkSlots()
     {
-        MGAr[activeMG] = colorSensor.colorDetect(colorSensor.bob); //Check bob and set the return to the active slot
+        MGAr[activeMG] = colorSensor.colorDetect(colorSensor.bob, 0);
+        //MGAr[(activeMG + 2) % 3] = colorSensor.colorDetect(colorSensor.gary, 1); //Check bob and set the return to the active slot
+        //MGAr[(activeMG + 1) % 3] = colorSensor.colorDetect(colorSensor.joe, 2); //Check bob and set the return to the active slot
+
+        if (colorSensor.gary.getDistance(DistanceUnit.MM) < 65) MGAr[(activeMG + 2) % 3] = -1;
+        else MGAr[(activeMG + 2) % 3] = 0;
+        if (colorSensor.joe.getDistance(DistanceUnit.MM) < 65) MGAr[(activeMG + 1) % 3] = -1;
+        else MGAr[(activeMG + 1) % 3] = 0;
+
     }
 
-    //Manual launch program
-    public static void launch(ElapsedTime runtime)
+    public static void checkColors()
+    {
+        MGAr[activeMG] = colorSensor.colorDetect(colorSensor.bob, 0);
+        MGAr[(activeMG + 2) % 3] = colorSensor.colorDetect(colorSensor.gary, 1); //Check bob and set the return to the active slot
+        MGAr[(activeMG + 1) % 3] = colorSensor.colorDetect(colorSensor.joe, 2); //Check bob and set the return to the active slot
+    }
+
+    public static void launch()
     {
         opLock.lock();
         try
         {
-            launching = true; //Set launching to true preventing magazine movement
-            hammer.setPosition(0.7); //Move the hammer to fully pushed position
+            double specialServoPosition = 0.2;
 
-            double start = runtime.now(TimeUnit.SECONDS); //Sets the variable start to the time when function was called
-            while (runtime.now(TimeUnit.SECONDS) - start < 0.1) ; //Wait 0.5 seconds
+            //powerMotors.launcher.setPower(1);
+            powerMotors.launcher.setVelocity(1850);
+            hammer.setPosition(0.48);
 
-            hammer.setPosition(0.48); //Set hammer to waiting position
+            for (int i = 0; i < 3; i++)
+            {
+                magazine.setPosition(specialServoPosition);
 
-            start = runtime.now(TimeUnit.SECONDS); //Sets the variable start to the time when function was called
-            while (runtime.now(TimeUnit.SECONDS) - start < 0.1) ; //Wait 0.5 seconds
+                //waitSeconds((0.05 + (3.0 - 0.05) * Math.pow(1.0 - (powerMotors.launcher.getVelocity() / 1900), 2.0) / (roboVoltage.getVoltage() / 12.5)) + 0.3);
+                while (powerMotors.launcher.getVelocity() < 1850);
 
-            //launching = false; //Set launching to false allowing movement
-            //readyToLaunch = false; //Set readyToLaunch to false stopping another launch
-        } finally
-        {
+                waitSeconds(0.2);
+
+                hammer.setPosition(0.7);
+                waitSeconds(0.075);
+                hammer.setPosition(0.48);
+
+                specialServoPosition += 0.4;
+                waitSeconds(0.5);
+            }
+
+            magazine.setPosition(0);
+            MGAr = new int[] {0, 0, 0, 0};
+            activeMG = 0;
+            servoPosition = 0;
+            powerMotors.launcher.setPower(0);
+
+        } finally {
             opLock.unlock();
         }
     }
@@ -143,50 +180,39 @@ public class magazine
         try
         {
             double specialServoPosition = 0;
+
             powerMotors.launcher.setPower(1);
             hammer.setPosition(0.48);
+            magazine.setPosition(0);
 
-            specialServoPosition = find(testTeleop.mosaic[0] - 1);
-            magazine.setPosition(specialServoPosition);
-            waitSeconds(3);
+            checkColors();
+            waitSeconds(0.01);
 
-            hammer.setPosition(0.7);
-            waitSeconds(0.2);
-            hammer.setPosition(0.48);
-            if (specialServoPosition == 0.55) MGAr[0] = 0;
-            if (specialServoPosition == 0.95) MGAr[1] = 0;
-            if (specialServoPosition == 2) MGAr[2] = 0;
 
-            waitSeconds(2);
-            specialServoPosition = find(testTeleop.mosaic[1] - 1);
-            magazine.setPosition(specialServoPosition);
-            waitSeconds(0.5);
 
-            hammer.setPosition(0.7);
-            waitSeconds(0.2);
-            hammer.setPosition(0.48);
-            if (specialServoPosition == 0.55) MGAr[0] = 0;
-            if (specialServoPosition == 0.95) MGAr[1] = 0;
-            if (specialServoPosition == 2) MGAr[2] = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                specialServoPosition = find(testTeleop.mosaic[i] - 1);
+                magazine.setPosition(specialServoPosition);
 
-            waitSeconds(2);
-            specialServoPosition = find(testTeleop.mosaic[2] - 1);
-            magazine.setPosition(specialServoPosition);
-            waitSeconds(0.5);
+                waitSeconds((0.05 + (3.0 - 0.05) * Math.pow(1.0 - (powerMotors.launcher.getVelocity() / 1900), 2.0) / (roboVoltage.getVoltage() / 12.5)) + 0.6);
 
-            hammer.setPosition(0.7);
-            waitSeconds(0.2);
-            hammer.setPosition(0.48);
-            if (specialServoPosition == 0.55) MGAr[0] = 0;
-            if (specialServoPosition == 0.95) MGAr[1] = 0;
-            if (specialServoPosition == 2) MGAr[2] = 0;
+                hammer.setPosition(0.7);
+                waitSeconds(0.057);
+                hammer.setPosition(0.48);
 
-            waitSeconds(0.5);
+                if (specialServoPosition == 0.6) MGAr[0] = 0;
+                if (specialServoPosition == 0.98) MGAr[1] = 0;
+                if (specialServoPosition == 0.2) MGAr[2] = 0;
+                waitSeconds(0.5);
+            }
+
             magazine.setPosition(0);
             MGAr = new int[] {0, 0, 0, 0};
             activeMG = 0;
             servoPosition = 0;
             powerMotors.launcher.setPower(0);
+
         } finally {
             opLock.unlock();
         }
@@ -197,7 +223,9 @@ public class magazine
     {
         if (!opLock.isLocked())
         {
-            if (MGAr[3] == 0) servoPosition = find(2);
+            checkSlots();
+
+            servoPosition = find(2);
 
             if (servoPosition == 0)
                 activeMG = 0; //If servo is in position one then activeMG equals zero
@@ -210,24 +238,18 @@ public class magazine
                 MGAr[3] = 1; //If the magazine is full update the full check slot
             else MGAr[3] = 0; //If magazine is not full set full check to 0
 
-            if (MGAr[3] == 0) magazine.setPosition(servoPosition); //Update the physical servo position
+            magazine.setPosition(servoPosition); //Update the physical servo position
         }
     }
 
-    public static void reCheck()
+    public static void eject()
     {
-        servoPosition = 0;
-        magazine.setPosition(servoPosition);
-        checkColors();
+        powerMotors.intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        powerMotors.intakeOff(false);
         waitSeconds(0.5);
-        servoPosition = 0.4;
-        magazine.setPosition(servoPosition);
-        checkColors();
-        waitSeconds(0.5);
-        servoPosition = 0.8;
-        magazine.setPosition(servoPosition);
-        checkColors();
-        waitSeconds(0.5);
+        powerMotors.intakeOff(true);
+        powerMotors.intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        powerMotors.intakeOff(false);
     }
 
     private static void waitSeconds(double seconds) {

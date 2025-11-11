@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 
 @TeleOp(name="MagazineTest", group="Test")
-@Disabled
+
 public class magazineTest extends LinearOpMode
 {
     private double servoPos = 0.5;
