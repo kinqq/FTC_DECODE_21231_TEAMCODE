@@ -56,6 +56,8 @@ public class testTeleop extends OpMode {
     public void start() {
         powerMotors.init(hardwareMap); //Initialize the high power motors subsystem
         magazine.init(hardwareMap); //Initialize magazine subsystem
+        powerMotors.odo.setPosX(1767.2864, DistanceUnit.MM);
+        powerMotors.odo.setPosY(451.228, DistanceUnit.MM);
         turret = new turret(hardwareMap);
         turret.zeroHere();
         turret.setLaunchAngle(45);
@@ -65,7 +67,7 @@ public class testTeleop extends OpMode {
     @Override
     public void loop() {
         //Send stick values to drive for designated drive type
-        powerMotors.odoDrive(
+        powerMotors.basicDrive(
                 -gamepad1.left_stick_x,
                 gamepad1.left_stick_y,
                 gamepad1.right_stick_x

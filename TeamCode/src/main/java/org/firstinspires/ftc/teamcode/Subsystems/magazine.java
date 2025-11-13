@@ -118,13 +118,16 @@ public class magazine
     public static void checkSlots()
     {
         MGAr[activeMG] = colorSensor.colorDetect(colorSensor.bob, 0);
-        //MGAr[(activeMG + 2) % 3] = colorSensor.colorDetect(colorSensor.gary, 1); //Check bob and set the return to the active slot
-        //MGAr[(activeMG + 1) % 3] = colorSensor.colorDetect(colorSensor.joe, 2); //Check bob and set the return to the active slot
+        MGAr[(activeMG + 2) % 3] = colorSensor.colorDetect(colorSensor.gary, 1); //Check bob and set the return to the active slot
+        MGAr[(activeMG + 1) % 3] = colorSensor.colorDetect(colorSensor.joe, 2); //Check bob and set the return to the active slot
 
+        /*
         if (colorSensor.gary.getDistance(DistanceUnit.MM) < 65) MGAr[(activeMG + 2) % 3] = -1;
         else MGAr[(activeMG + 2) % 3] = 0;
         if (colorSensor.joe.getDistance(DistanceUnit.MM) < 65) MGAr[(activeMG + 1) % 3] = -1;
         else MGAr[(activeMG + 1) % 3] = 0;
+
+         */
 
     }
 
