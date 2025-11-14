@@ -48,13 +48,13 @@ public class colorSensor
 
         if (bob_gary_joe == 1) {
             if (H < 172 && S > 0.51) return 1; //When the conditions are met for green return 1
-            else if (H > 175 && S <= 0.49)
+            else if (H > 185 && S <= 0.49)
                 return 2; //When the conditions are met for purple return 2
                 //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
             else return 0;
         } else if (bob_gary_joe == 0) {
             if (H < 165 && S >= 0.4) return 1; //When the conditions are met for green return 1
-            else if (H > 165 && S <= 0.5)
+            else if (H > 180 && S <= 0.5)
                 return 2; //When the conditions are met for purple return 2
                 //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
             else return 0;

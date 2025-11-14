@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -25,12 +26,12 @@ public class powerMotors
 
     public static void init(HardwareMap hwMap)
     {
-        frontLeftDrive = hwMap.get(DcMotor.class, "FLD"); //Init frontLeftDrive
-        frontRightDrive = hwMap.get(DcMotor.class, "FRD"); //Init frontRightDrive
-        backLeftDrive = hwMap.get(DcMotor.class, "BLD"); //Init backLeftDrive
-        backRightDrive = hwMap.get(DcMotor.class, "BRD"); //Init backRightDrive
-        intake = hwMap.get(DcMotorEx.class, "IN"); //Init intake
-        launcher = hwMap.get(DcMotorEx.class, "LA"); //Init launcher
+        frontLeftDrive = hwMap.get(DcMotor.class, "leftFront"); //Init frontLeftDrive
+        frontRightDrive = hwMap.get(DcMotor.class, "rightFront"); //Init frontRightDrive
+        backLeftDrive = hwMap.get(DcMotor.class, "leftBack"); //Init backLeftDrive
+        backRightDrive = hwMap.get(DcMotor.class, "rightBack"); //Init backRightDrive
+        intake = hwMap.get(DcMotorEx.class, "intake"); //Init intake
+        launcher = hwMap.get(DcMotorEx.class, "launcher"); //Init launcher
 
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo"); //Init odometry
 
@@ -55,6 +56,11 @@ public class powerMotors
         //Start intake and launcher
         intakeOff(false);
         //launcher.setPower(1);
+
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
 
@@ -100,16 +106,13 @@ public class powerMotors
             backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
-        frontLeftPower = frontLeftPower * 0.5;
-        frontRightPower = frontRightPower * 0.5;
-        backLeftPower = backLeftPower * 0.5;
-        backRightPower = backRightPower * 0.5;
-
         // Send calculated power to wheels
         frontLeftDrive.setPower(frontLeftPower);
         frontRightDrive.setPower(frontRightPower);
         backLeftDrive.setPower(backLeftPower);
         backRightDrive.setPower(backRightPower);
+
+        odo.update();
     }
 
     //Basic drive script using odometry for field centric drive

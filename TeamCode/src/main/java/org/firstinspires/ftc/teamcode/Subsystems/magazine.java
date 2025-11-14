@@ -30,17 +30,14 @@ public class magazine
 
     public static ElapsedTime stuckTimer = new ElapsedTime();
 
-    private static VoltageSensor roboVoltage;
-
     private static final ReentrantLock opLock = new ReentrantLock(true);
 
 
     //Initialization, runs when called in teleop
     public static void init(HardwareMap hwMap)
     {
-        magazine = hwMap.get(Servo.class, "MG"); //Initializes the magazine based on the servo "MG"
-        hammer = hwMap.get(Servo.class, "HA"); //Initializes the hammer based on the servo "HA"
-        roboVoltage = hwMap.get(VoltageSensor.class, "Expansion Hub 1");
+        magazine = hwMap.get(Servo.class, "turntable"); //Initializes the magazine based on the servo "MG"
+        hammer = hwMap.get(Servo.class, "hammer"); //Initializes the hammer based on the servo "HA"
 
         //Reset variables
         servoPosition = 0;
@@ -52,9 +49,6 @@ public class magazine
         readyToLaunch = false;
         launching = false;
         autoLaunching = false;
-
-        hammer.setPosition(0.48); //Move the hammer into initialized position
-        magazine.setPosition(servoPosition); //Move magazine to initialized position
 
         stuckTimer.reset();
     }
@@ -198,7 +192,7 @@ public class magazine
                 specialServoPosition = find(testTeleop.mosaic[i] - 1);
                 magazine.setPosition(specialServoPosition);
 
-                waitSeconds((0.05 + (3.0 - 0.05) * Math.pow(1.0 - (powerMotors.launcher.getVelocity() / 1900), 2.0) / (roboVoltage.getVoltage() / 12.5)) + 0.6);
+                while (powerMotors.launcher.getVelocity() < 1850);
 
                 hammer.setPosition(0.7);
                 waitSeconds(0.057);
@@ -241,6 +235,7 @@ public class magazine
                 MGAr[3] = 1; //If the magazine is full update the full check slot
             else MGAr[3] = 0; //If magazine is not full set full check to 0
 
+            hammer.setPosition(0.48);
             magazine.setPosition(servoPosition); //Update the physical servo position
         }
     }
