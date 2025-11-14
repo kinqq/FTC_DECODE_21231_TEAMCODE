@@ -17,6 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.Magazine;
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.Slot;
 
 @Autonomous(name = "SixArtifactsBlue")
 public class SixArtifactsBlue extends LinearOpMode {
@@ -60,7 +62,7 @@ public class SixArtifactsBlue extends LinearOpMode {
         mag    = new Magazine(hardwareMap);
         mag.init();
         // Start neutral; we mark as we pick up
-        mag.setColors(Magazine.DetectedColor.UNKNOWN, Magazine.DetectedColor.UNKNOWN, Magazine.DetectedColor.UNKNOWN);
+        mag.setColors(DetectedColor.UNKNOWN, DetectedColor.UNKNOWN, DetectedColor.UNKNOWN);
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -108,7 +110,7 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case FIRE_1:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.FIRST)) {
+                        if (mag.tryStartLaunch(Slot.FIRST)) {
                             state = State.WAIT_FIRE_1;
                             stateTimer.reset();
                         }
@@ -124,7 +126,7 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case FIRE_2:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.SECOND)) {
+                        if (mag.tryStartLaunch(Slot.SECOND)) {
                             state = State.WAIT_FIRE_2;
                             stateTimer.reset();
                         }
@@ -140,7 +142,7 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case FIRE_3:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.THIRD)) {
+                        if (mag.tryStartLaunch(Slot.THIRD)) {
                             state = State.WAIT_FIRE_3;
                             stateTimer.reset();
                         }
@@ -158,7 +160,7 @@ public class SixArtifactsBlue extends LinearOpMode {
                 case PATH2_SETUP:
                     follower.followPath(paths.Path2, true);
                     turret.deactivateLauncher();
-                    if (!mag.isBusy()) mag.setSlot(Magazine.Slot.FIRST);
+                    if (!mag.isBusy()) mag.setSlot(Slot.FIRST);
                     intake.setPower(INTAKE_POWER);
                     state = State.WAIT_PATH2;
                     stateTimer.reset();
@@ -181,8 +183,8 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case WAIT_PATH3_THEN_SLOT2:
                     if (stateTimer.seconds() > SETTLE_S) {
-                        if (!mag.isBusy()) mag.setSlot(Magazine.Slot.SECOND);
-                        markSlotColor(Magazine.Slot.FIRST, Magazine.DetectedColor.PURPLE);
+                        if (!mag.isBusy()) mag.setSlot(Slot.SECOND);
+                        markSlotColor(Slot.FIRST, DetectedColor.PURPLE);
                         if (!follower.isBusy()) {
                             state = State.PATH4_SETUP;
                             stateTimer.reset();
@@ -199,8 +201,8 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case WAIT_PATH4_THEN_SLOT3:
                     if (stateTimer.seconds() > SETTLE_S) {
-                        if (!mag.isBusy()) mag.setSlot(Magazine.Slot.THIRD);
-                        markSlotColor(Magazine.Slot.SECOND, Magazine.DetectedColor.PURPLE);
+                        if (!mag.isBusy()) mag.setSlot(Slot.THIRD);
+                        markSlotColor(Slot.SECOND, DetectedColor.PURPLE);
                         if (!follower.isBusy()) {
                             state = State.PATH5_SETUP;
                             stateTimer.reset();
@@ -211,7 +213,7 @@ public class SixArtifactsBlue extends LinearOpMode {
                 /* ------------- Path5: mark slot3=GREEN ------------- */
                 case PATH5_SETUP:
                     follower.followPath(paths.Path5, true);
-                    markSlotColor(Magazine.Slot.THIRD, Magazine.DetectedColor.GREEN);
+                    markSlotColor(Slot.THIRD, DetectedColor.GREEN);
                     state = State.WAIT_PATH5_MARK;
                     stateTimer.reset();
                     break;
@@ -246,7 +248,7 @@ public class SixArtifactsBlue extends LinearOpMode {
                 /* ------------- Volley #2 by slot (deterministic) ------------- */
                 case FIRE_A:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.FIRST)) {
+                        if (mag.tryStartLaunch(Slot.FIRST)) {
                             state = State.WAIT_FIRE_A;
                             stateTimer.reset();
                         }
@@ -262,7 +264,7 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case FIRE_B:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.SECOND)) {
+                        if (mag.tryStartLaunch(Slot.SECOND)) {
                             state = State.WAIT_FIRE_B;
                             stateTimer.reset();
                         }
@@ -278,7 +280,7 @@ public class SixArtifactsBlue extends LinearOpMode {
 
                 case FIRE_C:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.THIRD)) {
+                        if (mag.tryStartLaunch(Slot.THIRD)) {
                             state = State.WAIT_FIRE_C;
                             stateTimer.reset();
                         }
@@ -309,10 +311,10 @@ public class SixArtifactsBlue extends LinearOpMode {
     }
 
     /** Mark a single slot’s color without changing the others. */
-    private void markSlotColor(Magazine.Slot slot, Magazine.DetectedColor color) {
-        Magazine.DetectedColor c1 = mag.getLastColor(Magazine.Slot.FIRST);
-        Magazine.DetectedColor c2 = mag.getLastColor(Magazine.Slot.SECOND);
-        Magazine.DetectedColor c3 = mag.getLastColor(Magazine.Slot.THIRD);
+    private void markSlotColor(Slot slot, DetectedColor color) {
+        DetectedColor c1 = mag.getLastColor(Slot.FIRST);
+        DetectedColor c2 = mag.getLastColor(Slot.SECOND);
+        DetectedColor c3 = mag.getLastColor(Slot.THIRD);
         switch (slot) {
             case FIRST:  c1 = color; break;
             case SECOND: c2 = color; break;

@@ -38,8 +38,8 @@ public class TestColorSensor extends OpMode {
         float H=hsv[0], S=hsv[1], V=hsv[2];
 
 
-        if (V < 0.23) telemetry.addLine("UNKNOWN");
-        else if (173.0 < H && H < 187.0) telemetry.addLine("PURPLE");
+        if (V <= 0.23) telemetry.addLine("UNKNOWN");
+        else if (173.0 < H && H < 210) telemetry.addLine("PURPLE");
         else if (152.0 < H && H < 164.0) telemetry.addLine("GREEN");
 
 

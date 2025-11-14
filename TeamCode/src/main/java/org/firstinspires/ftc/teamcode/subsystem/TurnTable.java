@@ -296,10 +296,10 @@ public class TurnTable {
 
     private static double shootingPosOf(Slot s) {
         switch (s) {
-            case FIRST:  return SHOOT_SLOT1;
-            case SECOND: return SHOOT_SLOT2;
-            case THIRD:  return SHOOT_SLOT3;
-            default:     return SHOOT_SLOT1;
+            case FIRST:  return SLOT1_SHOOT;
+            case SECOND: return SLOT2_SHOOT;
+            case THIRD:  return SLOT3_SHOOT;
+            default:     return SLOT1_SHOOT;
         }
     }
 

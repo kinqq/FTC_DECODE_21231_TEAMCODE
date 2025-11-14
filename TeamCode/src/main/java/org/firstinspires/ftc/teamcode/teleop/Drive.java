@@ -12,19 +12,21 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.subsystem.TurnTable;
-import static org.firstinspires.ftc.teamcode.subsystem.TurnTable.*;
+import org.firstinspires.ftc.teamcode.subsystem.Magazine;
+import static org.firstinspires.ftc.teamcode.subsystem.Magazine.*;
 
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.AllianceColor;
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.Slot;
 
 @TeleOp(name = "Drive")
 @Configurable
 public class Drive extends OpMode {
     private GoBildaPinpointDriver odo;
     private DcMotorEx frontLeft, backLeft, frontRight, backRight, intake, launcher;
-    private TurnTable turn;
+    private Magazine mag;
     private Turret turret;
     private AllianceColor allianceColor = AllianceColor.RED;
     public static double power = 0;
@@ -56,7 +58,7 @@ public class Drive extends OpMode {
         launcher.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        turn = new TurnTable(hardwareMap);
+        mag = new Magazine(hardwareMap);
         turret = new Turret(hardwareMap);
 
         PanelsConfigurables.INSTANCE.refreshClass(Drive.class);
@@ -128,22 +130,21 @@ public class Drive extends OpMode {
         if (gamepad1.dpadLeftWasPressed()) power = 0;
         intake.setPower(power);
 
-        if (gamepad2.leftBumperWasPressed()) turn.nextSlot();
-        if (gamepad2.rightBumperWasPressed()) turn.nextSlot();
+
 
         if (gamepad2.xWasPressed()) launcher.setPower(launcher.getPower() == 1 ? 0 : 1);
-        if (gamepad2.aWasPressed()) turn.startLaunch(DetectedColor.GREEN);
-        if (gamepad2.bWasPressed()) turn.startLaunch(DetectedColor.PURPLE);
-        if (gamepad2.yWasPressed()) turn.startLaunchCurrent();
+        if (gamepad2.aWasPressed()) mag.startLaunch(DetectedColor.GREEN);
+        if (gamepad2.bWasPressed()) mag.startLaunch(DetectedColor.PURPLE);
+        if (gamepad2.yWasPressed()) mag.startLaunch(mag.getSlot());
 
-        turn.update();
+        mag.update();
 
         telemetry.addData("x", odo.getPosX(DistanceUnit.MM));
         telemetry.addData("y", odo.getPosY(DistanceUnit.MM));
         telemetry.addData("h", odo.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("slot1", turn.getLastColor(Slot.FIRST));
-        telemetry.addData("slot2", turn.getLastColor(Slot.SECOND));
-        telemetry.addData("slot3", turn.getLastColor(Slot.THIRD));
+        telemetry.addData("slot1", mag.getLastColor(Slot.FIRST));
+        telemetry.addData("slot2", mag.getLastColor(Slot.SECOND));
+        telemetry.addData("slot3", mag.getLastColor(Slot.THIRD));
         telemetry.addData("velocity", intake.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("intake power", power);
         telemetry.addData("target", turret.getTargetDeg());

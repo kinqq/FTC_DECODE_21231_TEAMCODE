@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.Magazine;
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.Slot;
 
 @Autonomous
 public class ThreeArtifactsBlue extends LinearOpMode {
@@ -40,7 +42,7 @@ public class ThreeArtifactsBlue extends LinearOpMode {
         turret = new Turret(hardwareMap);
         mag    = new Magazine(hardwareMap);
         mag.init();
-        mag.setColors(Magazine.DetectedColor.PURPLE, Magazine.DetectedColor.GREEN, Magazine.DetectedColor.PURPLE);
+        mag.setColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(28.0, 132.0, Math.toRadians(144)));
@@ -91,7 +93,7 @@ public class ThreeArtifactsBlue extends LinearOpMode {
 
                 case FIRE_1:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.FIRST)) {
+                        if (mag.tryStartLaunch(Slot.FIRST)) {
                             state = State.WAIT_FIRE_1;
                             stateTimer.reset();
                         }
@@ -108,7 +110,7 @@ public class ThreeArtifactsBlue extends LinearOpMode {
 
                 case FIRE_2:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.SECOND)) {
+                        if (mag.tryStartLaunch(Slot.SECOND)) {
                             state = State.WAIT_FIRE_2;
                             stateTimer.reset();
                         }
@@ -124,7 +126,7 @@ public class ThreeArtifactsBlue extends LinearOpMode {
 
                 case FIRE_3:
                     if (!mag.isBusy()) {
-                        if (mag.tryStartLaunch(Magazine.Slot.THIRD)) {
+                        if (mag.tryStartLaunch(Slot.THIRD)) {
                             state = State.WAIT_FIRE_3;
                             stateTimer.reset();
                         }

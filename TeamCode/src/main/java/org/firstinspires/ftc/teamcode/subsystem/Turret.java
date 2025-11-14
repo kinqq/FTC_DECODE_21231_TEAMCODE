@@ -111,7 +111,7 @@ public class Turret {
 
     public void activateLauncher() {
         this.launchMotor.setPower(1.0);
-        this.launchMotor.setVelocity(200, AngleUnit.DEGREES);
+        this.launchMotor.setVelocity(1900);
     }
 
     public void deactivateLauncher() {

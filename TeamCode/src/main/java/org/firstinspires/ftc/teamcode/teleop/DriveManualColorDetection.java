@@ -20,6 +20,8 @@ import static org.firstinspires.ftc.teamcode.subsystem.Magazine.*;
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.AllianceColor;
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.Slot;
 
 @TeleOp(name = "Drive Manual Color Detection")
 @Configurable

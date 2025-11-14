@@ -1,17 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import android.graphics.Color;
-
 import java.util.EnumMap;
 
 import static org.firstinspires.ftc.teamcode.util.Constants.*;
+
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.Slot;
 
 /**
  * This is basically just a turntable class without color sensing.
@@ -20,13 +20,6 @@ import static org.firstinspires.ftc.teamcode.util.Constants.*;
 public class Magazine {
     private static final String TURN_SERVO_NAME   = "turntable";
     private static final String HAMMER_SERVO_NAME = "hammer";
-    // ===== 슬롯 =====
-    public enum Slot { FIRST, SECOND, THIRD }
-
-    // ===== 감지 색상 =====
-    public enum DetectedColor { PURPLE, GREEN, UNKNOWN }
-
-
     private static final double SLOT1_SENSE_POS = 0.32;
     private static final double SLOT2_SENSE_POS = 0.67;
     private static final double SLOT3_SENSE_POS = 1.00;
@@ -164,6 +157,8 @@ public class Magazine {
 
 
     public void update() {
+
+
         switch (state) {
             case IDLE:
                 break;
@@ -255,10 +250,10 @@ public class Magazine {
 
     private static double shootingPosOf(Slot s) {
         switch (s) {
-            case FIRST:  return SHOOT_SLOT1;
-            case SECOND: return SHOOT_SLOT2;
-            case THIRD:  return SHOOT_SLOT3;
-            default:     return SHOOT_SLOT1;
+            case FIRST:  return SLOT1_SHOOT;
+            case SECOND: return SLOT2_SHOOT;
+            case THIRD:  return SLOT3_SHOOT;
+            default:     return SLOT1_SHOOT;
         }
     }
 

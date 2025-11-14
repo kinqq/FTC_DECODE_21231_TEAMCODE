@@ -1,18 +1,24 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
 
 public class TurretCommands {
+    Turret turret;
+
+    public TurretCommands(HardwareMap hwMap) {
+        turret = new Turret(hwMap);
+    }
 
     /** Move turret to a specific absolute angle */
-    public static class SetTarget extends CommandBase {
-        private final Turret turret;
+    public class SetTarget extends CommandBase {
         private final double targetDeg;
 
-        public SetTarget(Turret turret, double targetDeg) {
-            this.turret = turret;
+        public SetTarget(double targetDeg) {
             this.targetDeg = targetDeg;
         }
 
@@ -36,14 +42,13 @@ public class TurretCommands {
             if (interrupted) turret.stop();
         }
     }
+    public CommandBase setTarget(double targetDeg) { return new SetTarget(targetDeg); }
 
     /** Increment turret by delta angle */
-    public static class AdjustTarget extends CommandBase {
-        private final Turret turret;
+    public class AdjustTarget extends CommandBase {
         private final double deltaDeg;
 
-        public AdjustTarget(Turret turret, double deltaDeg) {
-            this.turret = turret;
+        public AdjustTarget(double deltaDeg) {
             this.deltaDeg = deltaDeg;
         }
 
@@ -67,13 +72,10 @@ public class TurretCommands {
             if (interrupted) turret.stop();
         }
     }
+    public CommandBase AdjustTarget(double deltaDeg) { return new AdjustTarget(deltaDeg); }
 
     /** Reset turret to zero position */
-    public static class Zero extends CommandBase {
-        private final Turret turret;
-        public Zero(Turret turret) {
-            this.turret = turret;
-        }
+    public class Zero extends CommandBase {
         @Override
         public void initialize() {
             turret.zeroHere();
@@ -83,13 +85,13 @@ public class TurretCommands {
             return true;
         }
     }
+    public CommandBase zero() { return new Zero(); }
+
 
     /** Set launch angle (20–50 degrees) */
-    public static class SetLaunchAngle extends CommandBase {
-        private final Turret turret;
+    public class SetLaunchAngle extends CommandBase {
         private final double angle;
-        public SetLaunchAngle(Turret turret, double angle) {
-            this.turret = turret;
+        public SetLaunchAngle(double angle) {
             this.angle = angle;
         }
         @Override
@@ -101,29 +103,27 @@ public class TurretCommands {
             return true;
         }
     }
+    public CommandBase setLaunchAngle(double angle) { return new SetLaunchAngle(angle); }
+
 
     /** Turn on launcher motor */
-    public static class ActivateLauncher extends CommandBase {
-        private final Turret turret;
-        public ActivateLauncher(Turret turret) {
-            this.turret = turret;
-        }
+    public class ActivateLauncher extends CommandBase {
+        ElapsedTime timer;
         @Override
         public void initialize() {
             turret.activateLauncher();
+            timer = new ElapsedTime();
+            timer.reset();
         }
         @Override
         public boolean isFinished() {
-            return true;
+            return turret.launchMotor.getVelocity() > 1850 || timer.seconds() > 3;
         }
     }
+    public CommandBase activateLauncher() { return new ActivateLauncher(); }
 
     /** Turn off launcher motor */
-    public static class DeactivateLauncher extends CommandBase {
-        private final Turret turret;
-        public DeactivateLauncher(Turret turret) {
-            this.turret = turret;
-        }
+    public class DeactivateLauncher extends CommandBase {
         @Override
         public void initialize() {
             turret.deactivateLauncher();
@@ -133,13 +133,10 @@ public class TurretCommands {
             return true;
         }
     }
+    public CommandBase deactivateLauncher() { return new DeactivateLauncher(); }
 
     /** Toggle launcher state */
-    public static class ToggleLauncher extends CommandBase {
-        private final Turret turret;
-        public ToggleLauncher(Turret turret) {
-            this.turret = turret;
-        }
+    public class ToggleLauncher extends CommandBase {
         @Override
         public void initialize() {
             turret.toggleLauncher();
@@ -149,4 +146,5 @@ public class TurretCommands {
             return true;
         }
     }
+    public CommandBase toggleLauncher() { return new ToggleLauncher(); }
 }
