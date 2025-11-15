@@ -127,7 +127,9 @@ public class Tuning extends SelectableOpMode {
  */
 class LocalizationTest extends OpMode {
     @Override
-    public void init() {}
+    public void init() {
+        follower.setPose(new Pose(72, 72, Math.PI / 2));
+    }
 
     /** This initializes the PoseUpdater, the mecanum drive motors, and the Panels telemetry. */
     @Override
@@ -528,7 +530,7 @@ class LateralVelocityTuner extends OpMode {
  */
 class ForwardZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 76.220;
+    public static double VELOCITY = 70;
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -632,7 +634,7 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
  */
 class LateralZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 54.9453;
+    public static double VELOCITY = 45;
     private double previousVelocity;
     private long previousTimeNano;
     private boolean stopping;
@@ -1189,10 +1191,10 @@ class Drawing {
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
-        "", "#3F51B5", 0.0
+        "", "#3F51B5", 1.0
     );
     private static final Style historyLook = new Style(
-        "", "#4CAF50", 0.0
+        "", "#4CAF50", 1.0
     );
 
     /**

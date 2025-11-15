@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
@@ -8,7 +9,7 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.teamcode.util.Constants;
 import org.firstinspires.ftc.teamcode.util.Slot;
-import org.firstinspires.ftc.teamcode.util.DetectedColor;  // ★ 색 enum 위치에 맞게 수정
+import org.firstinspires.ftc.teamcode.util.DetectedColor;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.Map;
 public class IndexerCommands {
     public ServoImplEx indexer, hammer;
     PwmRange fullPwm = new PwmRange(500, 2500);
-    double SEC_PER_ROTATION = 0.66;
+    double SEC_PER_ROTATION = 0.8325;
 
     private final Map<Slot, DetectedColor> slotColors = new EnumMap<>(Slot.class);
 
@@ -27,43 +28,73 @@ public class IndexerCommands {
         indexer.setPwmRange(fullPwm);
         hammer.setPwmRange(fullPwm);
 
-        // ★ 초기값: 전부 UNKNOWN
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.UNKNOWN);
         }
     }
 
-    // --------------------------------------------------
-    // 슬롯 컬러 저장/조회/초기화 메서드
-    // --------------------------------------------------
+    public class SetSlotColor extends CommandBase {
+        Slot slot;
+        DetectedColor color;
+        public SetSlotColor(Slot slot, DetectedColor color) {
+            this.slot = slot;
+            this.color = color;
+        }
 
-    /** 해당 슬롯에 감지된 컬러를 저장 */
-    public void setSlotColor(Slot slot, DetectedColor color) {
-        if (slot == null || color == null) return;
-        slotColors.put(slot, color);
+        @Override
+        public void initialize() {
+            if (slot == null || color == null) return;
+            slotColors.put(slot, color);
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
     }
 
-    /** 해당 슬롯에 저장된 컬러를 가져오기 (없으면 UNKNOWN) */
+    public class SetSlotColors extends CommandBase {
+        DetectedColor c1, c2, c3;
+        public SetSlotColors(DetectedColor c1, DetectedColor c2, DetectedColor c3) {
+            this.c1 = c1;
+            this.c2 = c2;
+            this.c3 = c3;
+        }
+
+        @Override
+        public void initialize() {
+            new SetSlotColor(Slot.FIRST, c1).initialize();
+            new SetSlotColor(Slot.SECOND, c2).initialize();
+            new SetSlotColor(Slot.THIRD, c3).initialize();
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
+    }
+
+
     public DetectedColor getSlotColor(Slot slot) {
         if (slot == null) return DetectedColor.UNKNOWN;
         DetectedColor c = slotColors.get(slot);
         return (c != null) ? c : DetectedColor.UNKNOWN;
     }
 
-    /** 모든 슬롯 컬러를 UNKNOWN으로 리셋 */
+
     public void clearAllSlotColors() {
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.UNKNOWN);
         }
     }
 
-    /** 특정 슬롯 컬러만 UNKNOWN으로 리셋 */
+
     public void clearSlotColor(Slot slot) {
         if (slot == null) return;
         slotColors.put(slot, DetectedColor.UNKNOWN);
     }
 
-    /** 특정 색을 가진 슬롯(들) 중 첫 번째 슬롯 반환 (없으면 null) */
+
     public Slot findFirstSlotWithColor(DetectedColor color) {
         if (color == null) return null;
         for (Slot s : Slot.values()) {
@@ -74,9 +105,6 @@ public class IndexerCommands {
         return null;
     }
 
-    // --------------------------------------------------
-    // 아래부터는 기존 커맨드들 (원래 코드 그대로)
-    // --------------------------------------------------
 
     public class SpinToIntake extends CommandBase {
         private Slot slot;
@@ -134,7 +162,7 @@ public class IndexerCommands {
 
         @Override
         public boolean isFinished() {
-            return timer.seconds() > estimatedSeconds;
+            return timer.seconds() > estimatedSeconds || timer.seconds() > 2;
         }
     }
 
@@ -147,7 +175,7 @@ public class IndexerCommands {
             double position = Constants.HAMMER_FIRE;
 
             double change = Math.abs(position - hammer.getPosition());
-            estimatedSeconds = change * SEC_PER_ROTATION;
+            estimatedSeconds = change * SEC_PER_ROTATION + 0.1;
 
             hammer.setPosition(position);
 

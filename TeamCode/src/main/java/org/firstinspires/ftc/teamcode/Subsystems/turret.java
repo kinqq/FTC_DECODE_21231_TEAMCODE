@@ -54,7 +54,7 @@ public class turret {
 
     /** Main control loop */
     public void update() {
-        pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        pid.setPID(ConstantsPIDF.p, ConstantsPIDF.i, ConstantsPIDF.d);
 
         double measuredMotorDeg = getMotorAngleDeg();
         double measuredMotorTick = measuredMotorDeg * TICKS_PER_REV / 360.0;

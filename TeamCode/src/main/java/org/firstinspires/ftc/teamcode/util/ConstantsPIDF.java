@@ -9,6 +9,5 @@ import dev.frozenmilk.sinister.loading.Pinned;
 public class ConstantsPIDF {
     public static double p = 0.02;
     public static double i = 0.01;
-    public static double d = 1e-4;
-    public static double f = 0;
+    public static double d = 0.0005;
 }

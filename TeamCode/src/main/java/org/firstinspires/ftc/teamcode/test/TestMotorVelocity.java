@@ -20,7 +20,7 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @Configurable
 public class TestMotorVelocity extends OpMode {
     private DcMotorEx motor;
-    public static String motorName = "intake";
+    public static String motorName = "launcher";
 
     // Adjustable target position (encoder ticks)
     public static double targetPower = 0;
@@ -50,7 +50,7 @@ public class TestMotorVelocity extends OpMode {
 
         // Telemetry feedback
         telemetry.addData("Target Power", targetPower);
-        telemetry.addData("Current", motor.getVelocity(AngleUnit.DEGREES));
+        telemetry.addData("Current", motor.getVelocity());
         telemetry.update();
     }
 

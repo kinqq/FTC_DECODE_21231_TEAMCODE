@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -12,35 +13,32 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.CommandBase;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelDeadlineGroup;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystem.Magazine;
+import static org.firstinspires.ftc.teamcode.util.Constants.*;
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
+import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
+import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.util.MotifUtil;
 import org.firstinspires.ftc.teamcode.util.Slot;
-
-import java.util.function.BooleanSupplier;
 
 @Autonomous(name = "SixArtifactsRed (Command)")
 public class SixArtifactsRedCmd extends CommandOpMode {
-
-    // ---------- Tunables ----------
     private static final double TURRET_TOL_DEG = 2.0;
-    private static final double PATH_TIMEOUT_S = 4.0;
-    private static final double SETTLE_S       = 1.5;         // dwell between actions
-    private static final double INTAKE_POWER   = 1.0;
+    private static final double SETTLE_S = 0.5;
+    private static final double INTAKE_POWER = 1.0;
 
-    // ---------- HW / Subsystems ----------
+
     private Turret turret;
-    private TurretCommands turretCmd;
-    private Magazine mag;
+    private TurretCommands turretCmds;
+    private IndexerCommands indexerCmds;
     private DcMotorEx intake;
     private Follower follower;
     private Paths paths;
@@ -91,238 +89,146 @@ public class SixArtifactsRedCmd extends CommandOpMode {
         }
     }
 
-    // ---------- Small utility commands ----------
-    /** Wait until condition is true OR timeout seconds elapse (timeout<=0 -> no timeout). */
-    private static class WaitUntil extends CommandBase {
-        private final BooleanSupplier condition;
-        private final long timeoutMs;
-        private long start;
-
-        public WaitUntil(BooleanSupplier condition) {
-            this(condition, 0);
-        }
-        public WaitUntil(BooleanSupplier condition, double timeoutSec) {
-            this.condition = condition;
-            this.timeoutMs = timeoutSec > 0 ? (long) (timeoutSec * 1000) : 0;
-        }
-        @Override public void initialize() { start = System.currentTimeMillis(); }
-        @Override public boolean isFinished() {
-            if (condition.getAsBoolean()) return true;
-            if (timeoutMs > 0 && System.currentTimeMillis() - start >= timeoutMs) return true;
-            return false;
-        }
-    }
-
-    /** Intake ON/OFF commands */
     private class IntakeOn extends CommandBase {
         private final double p;
         public IntakeOn(double p) { this.p = p; }
-        @Override public void initialize() { intake.setPower(p); }
+        @Override public void execute() { intake.setPower(p); }
         @Override public boolean isFinished() { return true; }
     }
+
     private class IntakeOff extends CommandBase {
-        @Override public void initialize() { intake.setPower(0.0); }
+        @Override public void execute() { intake.setPower(0.0); }
         @Override public boolean isFinished() { return true; }
     }
 
-    /** Magazine: set active slot if idle */
-    private class MagSetSlot extends CommandBase {
-        private final Slot slot;
-        public MagSetSlot(Slot slot) { this.slot = slot; }
-        @Override public void initialize() {
-            if (!mag.isBusy()) mag.setSlot(slot);
-        }
-        @Override public boolean isFinished() { return true; }
+    private CommandBase shoot(Slot slot) {
+        Telemetry telemetry = PanelsTelemetry.INSTANCE.getFtcTelemetry();
+        telemetry.addLine("Shooting slot " + slot);
+        telemetry.update();
+
+        return new SequentialCommandGroup(
+            new ParallelCommandGroup(
+                indexerCmds.new SpinToShoot(slot),
+                turretCmds.activateLauncher()
+            ),
+            indexerCmds.new HammerUp(),
+            indexerCmds.new HammerDown(),
+            indexerCmds.new SpinToIntake(slot)
+        );
     }
 
-    /** Magazine: start launch for a slot (non-blocking), then wait-until-done + settle */
-    private class MagLaunch extends SequentialCommandGroup {
-        public MagLaunch(Slot slot) {
-            super(
-                new InstantCommand(() -> { if (!mag.isBusy()) mag.tryStartLaunch(slot); }),
-                new WaitUntil(() -> !mag.isBusy()),
-                new WaitCommand((long)(SETTLE_S * 1000))
-            );
-        }
+    private CommandBase shootColor(DetectedColor color) {
+        Slot slot = indexerCmds.findFirstSlotWithColor(color);
+        return shoot(slot);
     }
 
-    /** Mark a single slot’s color without changing others (Instant). */
-    private class MagMarkColor extends CommandBase {
-        private final Slot slot;
-        private final DetectedColor color;
-        public MagMarkColor(Slot slot, DetectedColor color) {
-            this.slot  = slot;
-            this.color = color;
-        }
-        @Override public void initialize() {
-            DetectedColor c1 = mag.getLastColor(Slot.FIRST);
-            DetectedColor c2 = mag.getLastColor(Slot.SECOND);
-            DetectedColor c3 = mag.getLastColor(Slot.THIRD);
-            switch (slot) {
-                case FIRST:  c1 = color; break;
-                case SECOND: c2 = color; break;
-                case THIRD:  c3 = color; break;
-            }
-            mag.setColors(c1, c2, c3);
-        }
-        @Override public boolean isFinished() { return true; }
+    private CommandBase shootMotif(LimelightCommands.Motif motif) {
+        DetectedColor[] colors = MotifUtil.motifToColors(motif);
+        return new SequentialCommandGroup(
+            shootColor(colors[0]),
+            shootColor(colors[1]),
+            shootColor(colors[2])
+        );
     }
 
-    private class MagMarkColors extends CommandBase {
-        private final DetectedColor color1, color2, color3;
-        public MagMarkColors(DetectedColor color1, DetectedColor color2, DetectedColor color3) {
-            this.color1 = color1;
-            this.color2 = color2;
-            this.color3 = color3;
-        }
-        @Override public void initialize() {
-            mag.setColors(color1, color2, color3);
-        }
-        @Override public boolean isFinished() { return true; }
-    }
-
-    // ---------- OpMode lifecycle ----------
     @Override
     public void initialize() {
         // Subsystems
         turret = new Turret(hardwareMap);
-        turretCmd = new TurretCommands(hardwareMap);
-        mag    = new Magazine(hardwareMap);
-        mag.init();
-        mag.setColors(DetectedColor.UNKNOWN, DetectedColor.UNKNOWN, DetectedColor.UNKNOWN);
+        turretCmds = new TurretCommands(hardwareMap);
+        indexerCmds = new IndexerCommands(hardwareMap);
 
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setPower(0);
+
+        indexerCmds.indexer.setPosition(SLOT1_HOLD);
+        indexerCmds.hammer.setPosition(HAMMER_REST);
 
         // Pedro follower + paths
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(116.0, 132.0, Math.toRadians(36)));
         paths = new Paths(follower);
 
-        // --- TELEMETRY BEFORE START ---
-        telemetry.addLine("SixArtifactsRed (Command) ready");
-        telemetry.update();
-
-        // ---------- DEFINE THE FULL AUTO SEQUENCE ----------
-        // Helpers
-        Runnable turretUpdate = () -> turret.update();
-
-        // Condition helpers
-        BooleanSupplier path1Done = () -> !follower.isBusy();
-        BooleanSupplier turretPrimed = () -> Math.abs(turret.getErrorDeg()) <= TURRET_TOL_DEG;
-
         // 1) Volley #1: Path1 + prime concurrently, then 3 shots
         SequentialCommandGroup volley1 =
             new SequentialCommandGroup(
-                // Activate & prime turret immediately (launcher on, angle, target)
-                turretCmd.activateLauncher(),
-                turretCmd.setLaunchAngle(40),
-                turretCmd.setTarget(-6),
-
-                // intake on as we go
-                new IntakeOn(INTAKE_POWER),
-
                 // Run path1 while waiting UNTIL (path done && turret within tol), then settle
-                new ParallelDeadlineGroup(
-                    new SequentialCommandGroup(
-                        new WaitUntil(() -> path1Done.getAsBoolean() && turretPrimed.getAsBoolean(), PATH_TIMEOUT_S),
-                        new WaitCommand((long)(SETTLE_S * 1000))
-                    ),
-                    new FollowPathCommand(follower, paths.Path1, true),
-                    new RunCommand(turretUpdate) // keep PID updated while waiting
+                new ParallelCommandGroup(
+                    turretCmds.activateLauncher(),
+                    turretCmds.setLaunchAngle(40),
+                    turretCmds.setTarget(-20),
+                    new IntakeOn(INTAKE_POWER),
+                    new FollowPathCommand(follower, paths.Path1, true)
                 ),
 
                 // 3 launches (FIRST, SECOND, THIRD)
-                new MagLaunch(Slot.FIRST),
-                new MagLaunch(Slot.SECOND),
-                new MagLaunch(Slot.THIRD)
+                shoot(Slot.FIRST),
+                shoot(Slot.SECOND),
+                shoot(Slot.THIRD)
             );
 
         // 2) Path2: deactivate, set slot1, intake ON (already on but idempotent)
         SequentialCommandGroup collect2 =
             new SequentialCommandGroup(
-                new ParallelDeadlineGroup(
-                    new SequentialCommandGroup(
-                        new WaitUntil(() -> !follower.isBusy(), PATH_TIMEOUT_S),
-                        new WaitCommand((long)(SETTLE_S * 1000))
-                    ),
+                new ParallelCommandGroup(
                     new FollowPathCommand(follower, paths.Path2, true),
-                    turretCmd.deactivateLauncher(),
-                    new MagSetSlot(Slot.FIRST),
-                    new IntakeOn(INTAKE_POWER),
-                    new RunCommand(turretUpdate)
+                    turretCmds.deactivateLauncher(),
+                    indexerCmds.spinToIntake(Slot.FIRST),
+                    new IntakeOn(INTAKE_POWER)
                 )
             );
 
         // 3) Path3: after small dwell, set slot2, mark slot1=PURPLE
         SequentialCommandGroup collect3 =
             new SequentialCommandGroup(
-                new ParallelDeadlineGroup(
-                    new SequentialCommandGroup(
-                        new WaitCommand((long)(SETTLE_S * 1000)), // short dwell
-                        new WaitUntil(() -> !follower.isBusy())
-                    ),
+                new ParallelCommandGroup(
+                    new WaitCommand((long)(SETTLE_S * 1000)),
                     new FollowPathCommand(follower, paths.Path3, true),
-                    new MagSetSlot(Slot.SECOND),
-                    new RunCommand(turretUpdate)
+                    indexerCmds.spinToIntake(Slot.SECOND)
                 )
             );
 
         // 4) Path4: dwell, set slot3, mark slot2=PURPLE
         SequentialCommandGroup collect4 =
             new SequentialCommandGroup(
-                new ParallelDeadlineGroup(
-                    new SequentialCommandGroup(
-                        new WaitCommand((long)(SETTLE_S * 1000)),
-                        new WaitUntil(() -> !follower.isBusy())
-                    ),
+                new ParallelCommandGroup(
+                    new WaitCommand((long)(SETTLE_S * 1000)),
                     new FollowPathCommand(follower, paths.Path4, true),
-                    new MagSetSlot(Slot.THIRD),
-                    new RunCommand(turretUpdate)
+                    indexerCmds.spinToIntake(Slot.THIRD)
                 )
             );
 
         // 5) Path5: mark slot3=GREEN
         SequentialCommandGroup collect5 =
             new SequentialCommandGroup(
-                new ParallelDeadlineGroup(
-                    new SequentialCommandGroup(
-                        new WaitUntil(() -> !follower.isBusy()),
-                        new WaitCommand((long)(SETTLE_S * 1000))
-                    ),
-                    new FollowPathCommand(follower, paths.Path5, true),
-                    new RunCommand(turretUpdate)
+                new ParallelCommandGroup(
+                    new WaitCommand((long)(SETTLE_S * 1000)),
+                    new FollowPathCommand(follower, paths.Path5, true)
                 )
             );
 
         // 6) Path6 (return) & prime volley #2, then fire A/B/C
         SequentialCommandGroup volley2 =
             new SequentialCommandGroup(
-                new MagMarkColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
+                indexerCmds.new SetSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
                 // prime while driving Path6
-                new ParallelDeadlineGroup(
+                new ParallelCommandGroup(
                     new SequentialCommandGroup(
-                        new WaitUntil(() -> !follower.isBusy() && turretPrimed.getAsBoolean(), PATH_TIMEOUT_S),
-                        new WaitCommand((long)(SETTLE_S * 1000)),
-                        new IntakeOff() // stop intake before firing
+                        turretCmds.activateLauncher(),
+                        turretCmds.setLaunchAngle(40),
+                        turretCmds.setTarget(-4)
                     ),
-                    new SequentialCommandGroup(
-                        turretCmd.activateLauncher(),
-                        turretCmd.setLaunchAngle(40),
-                        turretCmd.setTarget(-4)
-                    ),
-                    new FollowPathCommand(follower, paths.Path6, true),
-                    new RunCommand(turretUpdate)
+                    new FollowPathCommand(follower, paths.Path6, true)
                 ),
 
                 // deterministic A/B/C = FIRST/SECOND/THIRD
-                new MagLaunch(Slot.FIRST),
-                new MagLaunch(Slot.SECOND),
-                new MagLaunch(Slot.THIRD),
+                shoot(Slot.FIRST),
+                shoot(Slot.SECOND),
+                shoot(Slot.THIRD),
 
                 // done
-                turretCmd.deactivateLauncher()
+                turretCmds.deactivateLauncher()
             );
 
         // ---------- Schedule full auto ----------
@@ -336,6 +242,10 @@ public class SixArtifactsRedCmd extends CommandOpMode {
                 volley2
             )
         );
+
+        // --- TELEMETRY BEFORE START ---
+        telemetry.addLine("SixArtifactsRed (Command) ready");
+        telemetry.update();
     }
 
     @Override
@@ -348,7 +258,6 @@ public class SixArtifactsRedCmd extends CommandOpMode {
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
         telemetry.addData("Heading", follower.getPose().getHeading());
-        telemetry.addData("Mag busy", mag.isBusy());
         telemetry.addData("Turret err", "%.1f", turret.getErrorDeg());
         telemetry.update();
     }
