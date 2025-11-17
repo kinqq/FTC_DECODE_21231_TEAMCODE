@@ -117,11 +117,10 @@ public class DriveMeet1 extends CommandOpMode {
         if (gamepad1.dpadDownWasPressed()) indexerCmds.new HammerDown().initialize();
 
         telemetry.addData("Alliance (g1x, g1b)", allianceColor);
-        telemetry.addData("LaunchAngle", "%.1f", launchAngleDeg);
+        telemetry.addData("Start Pose", follower.getPose());
         telemetry.addData("CurrentSlot", currentSlot);
         telemetry.addData("Motif", motif);
         telemetry.update();
-        return;
     }
 
     @Override
@@ -304,14 +303,6 @@ public class DriveMeet1 extends CommandOpMode {
             case THIRD:  return Slot.FIRST;
             default:     return Slot.FIRST;
         }
-    }
-
-    private CommandBase spinToShootSlot(Slot slotToShoot) {
-        return new SequentialCommandGroup(
-            new InstantCommand(() -> indexerBusy = true),
-            indexerCmds.new SpinToShoot(slotToShoot),
-            new InstantCommand(() -> indexerBusy = false)
-        );
     }
 
     private CommandBase spinToIntakeAndUpdate(Slot nextSlot) {

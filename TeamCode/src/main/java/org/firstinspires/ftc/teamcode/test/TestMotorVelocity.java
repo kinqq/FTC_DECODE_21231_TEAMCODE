@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.test;
 
-import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -8,9 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.teleop.Drive;
 
 import dev.frozenmilk.sinister.loading.Pinned;
 
@@ -32,8 +28,6 @@ public class TestMotorVelocity extends OpMode {
         // Reset encoder and configure motor
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        PanelsConfigurables.INSTANCE.refreshClass(Drive.class);
 
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
