@@ -18,10 +18,6 @@ import java.util.concurrent.TimeUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
-
-
-
 @TeleOp(name = "Not so Basic Drive")
 @Configurable
 public class testTeleop extends OpMode
