@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.util.AllianceColor;
 
-@Autonomous(name = "NineArtifactsRed (Command)")
-public class NineArtifactsRedCmd extends NineArtifactsBaseCmd {
+@Autonomous(name = "NineArtifactsBlue (Command)")
+public class NineArtifactsBlueCmd extends NineArtifactsBaseCmd {
     @Override
     protected AllianceColor getAllianceColor() {
-        return AllianceColor.RED;
+        return AllianceColor.BLUE;
     }
 }

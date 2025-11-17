@@ -56,8 +56,8 @@ public class DriveMeet1 extends CommandOpMode {
     private LimelightCommands.Motif motif = LimelightCommands.Motif.UNKNOWN;
 
     private NormalizedColorSensor cs;
-    private float[] hHistory = new float[10];
-    private float[] vHistory = new float[10];
+    private float[] hHistory = new float[20];
+    private float[] vHistory = new float[20];
     private int colorIdx = 0;
     private int colorCount = 0;
 
@@ -105,30 +105,29 @@ public class DriveMeet1 extends CommandOpMode {
         telemetry.update();
     }
 
+    public void initialize_loop() {
+        if (gamepad1.xWasPressed()) allianceColor = AllianceColor.BLUE;
+        if (gamepad1.bWasPressed()) allianceColor = AllianceColor.RED;
+
+        if (gamepad1.startWasPressed()) {
+            follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+        }
+        if (gamepad1.backWasPressed()) turretCmds.zeroHere();
+
+        if (gamepad1.dpadUpWasPressed()) indexerCmds.new HammerUp().initialize();
+        if (gamepad1.dpadDownWasPressed()) indexerCmds.new HammerDown().initialize();
+
+        telemetry.addData("Alliance (g1x, g1b)", allianceColor);
+        telemetry.addData("LaunchAngle", "%.1f", launchAngleDeg);
+        telemetry.addData("CurrentSlot", currentSlot);
+        telemetry.addData("Motif", motif);
+        telemetry.update();
+        return;
+    }
+
     @Override
     public void run() {
         super.run();
-
-        // init_loop()
-        if (!isStarted()) {
-            if (gamepad1.xWasPressed()) allianceColor = AllianceColor.BLUE;
-            if (gamepad1.bWasPressed()) allianceColor = AllianceColor.RED;
-
-            if (gamepad1.startWasPressed()) {
-                follower.setPose(new Pose(72, 72, Math.toRadians(90)));
-            }
-            if (gamepad1.backWasPressed()) turretCmds.zeroHere();
-
-            if (gamepad1.dpadUpWasPressed()) indexerCmds.new HammerUp().initialize();
-            if (gamepad1.dpadDownWasPressed()) indexerCmds.new HammerDown().initialize();
-
-            telemetry.addData("Alliance (g1x, g1b)", allianceColor);
-            telemetry.addData("LaunchAngle", "%.1f", launchAngleDeg);
-            telemetry.addData("CurrentSlot", currentSlot);
-            telemetry.addData("Motif", motif);
-            telemetry.update();
-            return;
-        }
 
         // start()
         if (!started) {
@@ -143,7 +142,7 @@ public class DriveMeet1 extends CommandOpMode {
         follower.update();
 
         follower.setTeleOpDrive(
-            -gamepad1.left_stick_y,
+            gamepad1.left_stick_y * (allianceColor == AllianceColor.RED ? -1 : 1),
             gamepad1.left_stick_x * (allianceColor == AllianceColor.RED ? -1 : 1),
             -gamepad1.right_stick_x,
             isRobotCentric
@@ -178,12 +177,14 @@ public class DriveMeet1 extends CommandOpMode {
             if (step.isFinished()) { step.end(false); }
         }
 
+
         if (gamepad2.left_stick_x != 0) {
             CommandBase c = turretCmds.AdjustTarget(gamepad2.left_stick_x / 2);
             c.initialize(); c.execute(); if (c.isFinished()) c.end(false);
         }
         if (gamepad2.startWasPressed()) {
             indexerCmds.clearAllSlotColors();
+            schedule(indexerCmds.spinToIntake(Slot.FIRST));;
         }
 
         if (gamepad2.dpadUpWasPressed()) {
@@ -206,7 +207,12 @@ public class DriveMeet1 extends CommandOpMode {
         if (gamepad2.bWasPressed()) scheduleShootColor(DetectedColor.PURPLE);
 
         if (gamepad2.yWasPressed() && !indexerBusy) {
-            schedule(shootMotifFromDetection(launchPower));
+//            schedule(shootMotifFromDetection(1.0));
+            schedule(new SequentialCommandGroup(
+                shoot(Slot.FIRST, 1.0),
+                shoot(Slot.SECOND, 1.0),
+                shoot(Slot.THIRD, 1.0)
+            ));
         }
 
         if (gamepad2.rightBumperWasPressed() && !indexerBusy) {
@@ -227,8 +233,8 @@ public class DriveMeet1 extends CommandOpMode {
 
         hHistory[colorIdx] = H;
         vHistory[colorIdx] = V;
-        colorIdx = (colorIdx + 1) % 10;
-        if (colorCount < 10) colorCount++;
+        colorIdx = (colorIdx + 1) % 20;
+        if (colorCount < 20) colorCount++;
 
         float hAvg = 0f;
         float vAvg = 0f;
@@ -242,9 +248,9 @@ public class DriveMeet1 extends CommandOpMode {
         AvgDetectedColor currentDetected;
         if (vAvg <= 0.23f) {
             currentDetected = AvgDetectedColor.NONE;
-        } else if (165.0f < hAvg && hAvg < 210.0f) {
+        } else if (158.0f < hAvg && hAvg < 210.0f && vAvg < 0.3) {
             currentDetected = AvgDetectedColor.PURPLE;
-        } else if (152.0f < hAvg && hAvg < 164.0f) {
+        } else if (140.0f < hAvg && hAvg < 170.0f && vAvg > 0.28) {
             currentDetected = AvgDetectedColor.GREEN;
         } else {
             currentDetected = AvgDetectedColor.NONE;
