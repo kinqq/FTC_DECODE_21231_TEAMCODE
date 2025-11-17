@@ -9,7 +9,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -20,14 +19,14 @@ import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
-import org.firstinspires.ftc.teamcode.util.AllianceColor;
+import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-import static org.firstinspires.ftc.teamcode.util.Constants.*;
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
 
-import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
 import org.firstinspires.ftc.teamcode.util.MotifUtil;
-import org.firstinspires.ftc.teamcode.util.Slot;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import static org.firstinspires.ftc.teamcode.util.Constants.HAMMER_REST;
-import static org.firstinspires.ftc.teamcode.util.Constants.SLOT1_HOLD;
+import static org.firstinspires.ftc.teamcode.constant.Constants.HAMMER_REST;
+import static org.firstinspires.ftc.teamcode.constant.Constants.SLOT1_HOLD;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -21,11 +21,11 @@ import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
-import org.firstinspires.ftc.teamcode.util.AllianceColor;
-import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.AllianceColor;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
 import org.firstinspires.ftc.teamcode.util.MotifUtil;
-import org.firstinspires.ftc.teamcode.util.Slot;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 
 public abstract class NineArtifactsBaseCmd extends CommandOpMode {
     protected static final double INTAKE_POWER = 1.0;

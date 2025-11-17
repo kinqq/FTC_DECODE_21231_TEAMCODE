@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 public class MotifUtil {

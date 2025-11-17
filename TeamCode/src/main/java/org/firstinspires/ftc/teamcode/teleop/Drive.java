@@ -13,13 +13,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.subsystem.Magazine;
-import static org.firstinspires.ftc.teamcode.subsystem.Magazine.*;
 
 import org.firstinspires.ftc.teamcode.subsystem.Turret;
-import org.firstinspires.ftc.teamcode.util.Constants;
-import org.firstinspires.ftc.teamcode.util.AllianceColor;
-import org.firstinspires.ftc.teamcode.util.DetectedColor;
-import org.firstinspires.ftc.teamcode.util.Slot;
+import org.firstinspires.ftc.teamcode.constant.Constants;
+import org.firstinspires.ftc.teamcode.constant.AllianceColor;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 
 @TeleOp(name = "Drive")
 @Configurable

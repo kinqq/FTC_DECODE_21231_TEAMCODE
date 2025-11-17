@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.test;
 
-import static org.firstinspires.ftc.teamcode.util.ConstantsServo.STATIC_COMP;
-import static org.firstinspires.ftc.teamcode.util.ConstantsServo.kD_VEL;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.STATIC_COMP;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kD_VEL;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.arcrobotics.ftclib.controller.PIDController;
 
-import org.firstinspires.ftc.teamcode.util.ConstantsServo;
+import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 import org.firstinspires.ftc.teamcode.util.ContinuousAbsoluteTracker;
 
 import java.util.Locale;

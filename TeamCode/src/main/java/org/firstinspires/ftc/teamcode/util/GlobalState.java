@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.util;
 
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands.Motif;
 
 public class GlobalState {

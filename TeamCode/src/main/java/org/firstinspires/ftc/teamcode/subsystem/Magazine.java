@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.util.Range;
 
 import java.util.EnumMap;
 
-import static org.firstinspires.ftc.teamcode.util.Constants.*;
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
 
-import org.firstinspires.ftc.teamcode.util.DetectedColor;
-import org.firstinspires.ftc.teamcode.util.Slot;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 
 /**
  * This is basically just a turntable class without color sensing.

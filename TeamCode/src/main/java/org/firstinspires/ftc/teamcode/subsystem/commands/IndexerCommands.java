@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.util.Constants;
-import org.firstinspires.ftc.teamcode.util.Slot;
-import org.firstinspires.ftc.teamcode.util.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Constants;
+import org.firstinspires.ftc.teamcode.constant.Slot;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 
 import java.util.EnumMap;
 import java.util.Map;
