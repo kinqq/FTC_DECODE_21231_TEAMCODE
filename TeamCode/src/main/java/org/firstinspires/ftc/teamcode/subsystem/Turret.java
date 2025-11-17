@@ -6,17 +6,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import com.seattlesolvers.solverslib.command.Command;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.util.ConstantsPIDF;
-import org.firstinspires.ftc.teamcode.util.ConstantsServo;
-
-import dev.nextftc.core.commands.utility.LambdaCommand;
+import org.firstinspires.ftc.teamcode.constant.ConstantsPIDF;
+import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 
 public class Turret {
     public DcMotorEx turretMotor, launchMotor;

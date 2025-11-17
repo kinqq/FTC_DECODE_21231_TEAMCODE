@@ -3,20 +3,13 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import com.seattlesolvers.solverslib.command.Command;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.util.ConstantsPIDF;
-import org.firstinspires.ftc.teamcode.util.ConstantsServo;
-
-import dev.nextftc.core.commands.utility.LambdaCommand;
+import org.firstinspires.ftc.teamcode.constant.ConstantsPIDF;
 
 public class turret {
     public DcMotorEx turretMotor;
@@ -54,7 +47,7 @@ public class turret {
 
     /** Main control loop */
     public void update() {
-        pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        pid.setPID(ConstantsPIDF.p, ConstantsPIDF.i, ConstantsPIDF.d);
 
         double measuredMotorDeg = getMotorAngleDeg();
         double measuredMotorTick = measuredMotorDeg * TICKS_PER_REV / 360.0;

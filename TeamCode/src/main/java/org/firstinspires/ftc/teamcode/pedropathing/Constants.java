@@ -22,13 +22,13 @@ import dev.frozenmilk.sinister.loading.Pinned;
 public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-        .mass(11.2)
-        .forwardZeroPowerAcceleration(-63.06831377305596)
-        .lateralZeroPowerAcceleration(-91.68048771463215)
-        .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.001, 0.04))
-        .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.04))
-        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.00001, 0.6, 0.03))
-        .centripetalScaling(0.001);
+        .mass(12.2)
+        .forwardZeroPowerAcceleration(-52.31008506587686)
+        .lateralZeroPowerAcceleration(-86.6952747252473)
+        .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.02, 0.03))
+        .headingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.2, 0.03))
+        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.005, 0.8, 0.03))
+        .centripetalScaling(0.0008);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -42,8 +42,9 @@ public class Constants {
         .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
         .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
         .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-        .xVelocity(76.220)
-        .yVelocity(54.9453);
+        .xVelocity(72.64601339505414)
+        .yVelocity(52.427703136534205)
+        .useBrakeModeInTeleOp(true);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
         .forwardPodY(-1.8897637795)

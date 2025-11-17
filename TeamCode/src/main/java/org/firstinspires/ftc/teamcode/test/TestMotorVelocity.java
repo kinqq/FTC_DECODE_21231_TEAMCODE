@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.test;
 
-import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -8,9 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.teleop.Drive;
 
 import dev.frozenmilk.sinister.loading.Pinned;
 
@@ -20,7 +16,7 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @Configurable
 public class TestMotorVelocity extends OpMode {
     private DcMotorEx motor;
-    public static String motorName = "intake";
+    public static String motorName = "launcher";
 
     // Adjustable target position (encoder ticks)
     public static double targetPower = 0;
@@ -32,8 +28,6 @@ public class TestMotorVelocity extends OpMode {
         // Reset encoder and configure motor
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        PanelsConfigurables.INSTANCE.refreshClass(Drive.class);
 
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
@@ -50,7 +44,7 @@ public class TestMotorVelocity extends OpMode {
 
         // Telemetry feedback
         telemetry.addData("Target Power", targetPower);
-        telemetry.addData("Current", motor.getVelocity(AngleUnit.DEGREES));
+        telemetry.addData("Current", motor.getVelocity());
         telemetry.update();
     }
 

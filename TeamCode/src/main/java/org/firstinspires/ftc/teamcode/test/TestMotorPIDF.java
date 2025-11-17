@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.test;
 
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,6 +19,8 @@ public class TestMotorPIDF extends OpMode {
     private DcMotorEx motor;
     private PIDFController controller = new PIDFController(0,0,0,0);
 
+    public static String motorName = "turret";
+
     // Tunable PIDF coefficients
     public static double p = 0.02;
     public static double i = 0.01;
@@ -28,7 +32,7 @@ public class TestMotorPIDF extends OpMode {
 
     @Override
     public void init() {
-        motor = hardwareMap.get(DcMotorEx.class, "intake");
+        motor = hardwareMap.get(DcMotorEx.class, motorName);
 
         // Reset encoder and configure motor
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -36,6 +40,8 @@ public class TestMotorPIDF extends OpMode {
 
         // Apply initial PIDF coefficients
         controller.setPIDF(p, i, d, f);
+
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
         telemetry.addLine("Initialized");
         telemetry.update();
