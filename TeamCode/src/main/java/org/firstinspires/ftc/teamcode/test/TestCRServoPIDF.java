@@ -1,87 +1,72 @@
 package org.firstinspires.ftc.teamcode.test;
 
-import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.STATIC_COMP;
-import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kD_VEL;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kP;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kI;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kD;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 import com.arcrobotics.ftclib.controller.PIDController;
 
-import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
-import org.firstinspires.ftc.teamcode.util.ContinuousAbsoluteTracker;
 
-import java.util.Locale;
-
-@TeleOp(name = "TestServoPIDF", group = "Test")
+@TeleOp(group = "Test")
 @Configurable
-@Disabled
 public class TestCRServoPIDF extends OpMode {
+    public static String servoName = "turntable";
+    public static String encoderName = "encoderDigital";
 
-    // --- Hardware Names ---
-    public static String servoName  = "turret";
-    public static String analogName = "analog";
+    public static double TICKS_PER_REV = 16000.0;
 
-    public static double wrapRangeDeg = 360.0;
-
-    // --- Control Steps ---
-    public static double stepLarge = 252.5;
+    public static double stepLarge = 180;
     public static double stepMed   = 45.0;
     public static double stepFine  = 10.0;
-    private static final double STATIC_ANGLE_THRESH = 1.0;
 
-    // --- Prediction Settings ---
-    private static final double LATENCY_SEC = 0.06;
-    private static final double MAX_PREDICT_DEG = 10.0;
-
-    // --- Objects ---
     private CRServo crServo;
-    private AnalogInput analog;
-    private ContinuousAbsoluteTracker tracker;
+    private DcMotorEx encoder;
     private PIDController pid;
 
-    // --- Runtime ---
     public static double targetDeg = 0.0;
     private double lastCmd = 0.0;
-    private final ElapsedTime loopTimer = new ElapsedTime();
 
     @Override
     public void init() {
         crServo = hardwareMap.get(CRServo.class, servoName);
-        analog  = hardwareMap.get(AnalogInput.class, analogName);
+        encoder = hardwareMap.get(DcMotorEx.class, encoderName);
 
-        tracker = new ContinuousAbsoluteTracker(analog, wrapRangeDeg);
-        pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        encoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        encoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+
+        pid = new PIDController(kP, kI, kD);
         crServo.setPower(0);
-        loopTimer.reset();
     }
 
     @Override
     public void init_loop() {
-        tracker.updateAbsolute();
-        telemetry.addData("Position", tracker.getEstimatedPosition());
-        telemetry.addData("Target", tracker.getTotalAngleDeg());
+        double measuredDeg = ticksToDeg(getEncoderTicks());
+        telemetry.addData("Target", "%.2f deg", targetDeg);
+        telemetry.addData("Measured", "%.2f deg", measuredDeg);
         telemetry.update();
     }
 
     @Override
     public void start() {
-        tracker.updateAbsolute();
-        targetDeg = tracker.getTotalAngleDeg();
+        encoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        encoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        targetDeg = 0.0;
     }
 
     @Override
     public void loop() {
-        // --- Update PID gains (live-tunable) ---
-        pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        pid.setPID(kP, kI, kD);
 
-        // --- Gamepad Input (Setpoint Adjustments) ---
         if (gamepad1.rightBumperWasPressed()) targetDeg += stepLarge;
         if (gamepad1.leftBumperWasPressed())  targetDeg -= stepLarge;
         if (gamepad1.aWasPressed())           targetDeg += stepMed;
@@ -90,59 +75,36 @@ public class TestCRServoPIDF extends OpMode {
         if (gamepad1.dpadDownWasPressed())    targetDeg -= stepFine;
 
         if (gamepad1.xWasPressed()) {
-            tracker.rebaseAbsolute(0.0);
+            encoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            encoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
             targetDeg = 0.0;
             pid.reset();
         }
 
-        // --- Sensor & Prediction ---
-        tracker.updateAbsolute();
-        double measuredDeg = tracker.getTotalAngleDeg();
-        double velDps = tracker.getEstimatedVelocityDps();
-        double errMeasured = targetDeg - measuredDeg;
+        double targetTicks = targetDeg / 360 * TICKS_PER_REV;
+        double pidOut = pid.calculate(getEncoderTicks(), targetTicks);
 
-        // latency compensation (simple linear prediction)
-        double predictedDeg = measuredDeg + velDps * LATENCY_SEC;
-        predictedDeg = measuredDeg + Range.clip(predictedDeg - measuredDeg, -MAX_PREDICT_DEG, MAX_PREDICT_DEG);
+        lastCmd = Range.clip(pidOut, -1.0, 1.0);
+        crServo.setPower(Math.copySign(Math.sqrt(Math.abs(lastCmd)), lastCmd));
 
-        // --- PID Calculation ---
-        double pidOut = pid.calculate(predictedDeg, targetDeg);
-
-        // velocity-based damping (acts like "soft brake")
-        double velDamping = -kD_VEL * velDps;
-        double out = pidOut + velDamping;
-        double rawOut = out;
-
-        // static friction compensation
-        if (Math.abs(out) > 0 && Math.abs(out) < STATIC_COMP && Math.abs(errMeasured) > STATIC_ANGLE_THRESH) {
-            out = Math.signum(out) * STATIC_COMP;
-        }
-
-        // --- Output Power ---
-        lastCmd = Range.clip(out, -1.0, 1.0);
-        crServo.setPower(lastCmd);
-
-        // --- Telemetry ---
-        telemetry.addData("kP/kI/kD", String.format(Locale.US, "%.4f / %.4f / %.4f",
-            ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD));
-        telemetry.addData("Target", "%.2f deg", targetDeg);
-        telemetry.addData("Predicted", "%.2f deg", predictedDeg);
-        telemetry.addData("Measured", "%.2f deg", measuredDeg);
-        telemetry.addData("Err", "%.2f deg", (targetDeg - predictedDeg));
-        telemetry.addData("Vel", "%.2f dps", velDps);
-        telemetry.addData("PIDout", "%.4f", pidOut);
-        telemetry.addData("VelDamp", "%.4f", velDamping);
-        telemetry.addData("RawOut", "%.4f", rawOut);
-        telemetry.addData("Cmd", "%.4f", lastCmd);
-        telemetry.addData("Analog V", "%.3f V", tracker.getVoltage());
-        telemetry.addData("Est Pos (0..1)", "%.3f", tracker.getEstimatedPosition());
+        telemetry.addData("kP/kI/kD", "%.4f / %.4f / %.4f", kP, kI, kD);
+        telemetry.addData("Target", "%.2f ticks", targetTicks);
+        telemetry.addData("Measured", "%.2f ticks", getEncoderTicks());
+        telemetry.addData("Err", "%.2f ticks", (targetTicks - getEncoderTicks()));
+        telemetry.addData("Cmd", "%.3f", lastCmd);
         telemetry.update();
-
-        loopTimer.reset();
     }
 
     @Override
     public void stop() {
         crServo.setPower(0);
+    }
+
+    private double getEncoderTicks() {
+        return encoder.getCurrentPosition();
+    }
+
+    private double ticksToDeg(double ticks) {
+        return (ticks / TICKS_PER_REV) * 360.0;
     }
 }
