@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 
-@Autonomous(name = "NineArtifactsBlue (Command)")
+@Autonomous(name = "NineArtifactsBlue (Command)", preselectTeleOp = "DriveMeet1")
 public class NineArtifactsBlueCmd extends NineArtifactsBaseCmd {
     @Override
     protected AllianceColor getAllianceColor() {

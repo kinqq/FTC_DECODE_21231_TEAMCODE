@@ -182,7 +182,7 @@ public class DriveMeet1 extends CommandOpMode {
         }
         if (gamepad2.startWasPressed()) {
             indexerCmds.clearAllSlotColors();
-            schedule(indexerCmds.spinToIntake(Slot.FIRST));;
+            schedule(indexerCmds.spinToIntake(Slot.FIRST));
         }
 
         if (gamepad2.dpadUpWasPressed()) {
