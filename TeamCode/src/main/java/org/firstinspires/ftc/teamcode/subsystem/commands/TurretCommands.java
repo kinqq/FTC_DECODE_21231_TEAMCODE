@@ -238,8 +238,8 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            if (!started) return false;
-            return launchMotor.getVelocity() > 1900 * power - 40 || timer.seconds() > 3.0;
+            //if (!started) return false;
+            return launchMotor.getVelocity() > 1800 * power - 40 || timer.seconds() > 3.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

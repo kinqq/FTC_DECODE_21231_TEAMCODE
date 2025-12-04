@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import org.firstinspires.ftc.teamcode.Subsystems.*;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.bylazar.configurables.annotations.Configurable;
 
+import org.firstinspires.ftc.teamcode.Subsystems.Old.colorSensor;
+import org.firstinspires.ftc.teamcode.Subsystems.Old.magazine;
+import org.firstinspires.ftc.teamcode.Subsystems.Old.powerMotors;
+import org.firstinspires.ftc.teamcode.Subsystems.Old.turret;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.Constants;
 
@@ -22,7 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 public class testTeleop extends OpMode
 {
-    public turret turret;
+    public org.firstinspires.ftc.teamcode.Subsystems.Old.turret turret;
     private AllianceColor allianceColor;
     double start; 
 
@@ -43,9 +45,7 @@ public class testTeleop extends OpMode
     @Override
     public void init()
     {
-        powerMotors.init(hardwareMap); 
-        colorSensor.init(hardwareMap); 
-        magazine.init(hardwareMap); 
+        colorSensor.init(hardwareMap);
 
         runtime.reset();
         opModeIsActive = true;
@@ -55,19 +55,24 @@ public class testTeleop extends OpMode
     public void init_loop()
     {
         if (gamepad1.xWasPressed()) allianceColor = AllianceColor.BLUE;
-        if (gamepad1.bWasPressed()) allianceColor = AllianceColor.BLUE;
+        if (gamepad1.bWasPressed()) allianceColor = AllianceColor.RED;
+
+        telemetry.addData("ALLIANCE", allianceColor);
     }
 
     @Override
     public void start() {
-        start = runtime.now(TimeUnit.SECONDS);
+        powerMotors.init(hardwareMap);
+        magazine.init(hardwareMap);
 
-        powerMotors.odo.setPosX(1767.2864, DistanceUnit.MM);
-        powerMotors.odo.setPosY(451.228, DistanceUnit.MM);
+        start = runtime.seconds();
+
+        powerMotors.odo.setPosX(0, DistanceUnit.MM);
+        powerMotors.odo.setPosY(0, DistanceUnit.MM);
 
         turret = new turret(hardwareMap);
         turret.zeroHere();
-        turret.setLaunchAngle(45);
+        turret.setLaunchAngle(25);
     }
 
     
@@ -80,7 +85,7 @@ public class testTeleop extends OpMode
                 gamepad1.right_stick_x
         );
 
-        if (runtime.now(TimeUnit.SECONDS) - start > 0.05) {
+        if (runtime.seconds() - start > 0.05) {
             magazine.updatePosition();
             start = runtime.now(TimeUnit.SECONDS);
         }
@@ -162,8 +167,6 @@ public class testTeleop extends OpMode
     @Override
     public void stop()
     {
-        turret.zeroHere();
-        turret.update();
         opModeIsActive = false;
     }
 

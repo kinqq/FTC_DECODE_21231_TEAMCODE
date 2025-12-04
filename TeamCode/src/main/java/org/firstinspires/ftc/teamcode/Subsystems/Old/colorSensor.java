@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Subsystems;
+package org.firstinspires.ftc.teamcode.Subsystems.Old;
 
 import android.graphics.Color;
 
@@ -16,7 +16,7 @@ public class colorSensor
     //Initialize the color sensors
     public static void init(HardwareMap hwMap)
     {
-        bob = hwMap.get(RevColorSensorV3.class, "bob"); //Set bob to "bob"
+        bob = hwMap.get(RevColorSensorV3.class, "color"); //Set bob to "bob"
         gary = hwMap.get(RevColorSensorV3.class, "gary"); //Set gary to "gary"
         joe = hwMap.get(RevColorSensorV3.class, "joe"); //Set joe to "joe"
 
@@ -41,10 +41,12 @@ public class colorSensor
         float[] hsv = new float[3];
         Color.RGBToHSV((int)(rc * 255f), (int)(gc * 255f), (int)(bc * 255f), hsv);
 
+
+
         //Separate the HSV values
-        H = hsv[0];
-        S = hsv[1];
-        V = hsv[2];
+        H = (float) (hsv[0] / color.getLightDetected());
+        S = (float) (hsv[1] / color.getLightDetected());
+        V = (float) (hsv[2] / color.getLightDetected());
 
         if (bob_gary_joe == 1) {
             if (H < 172 && S > 0.51) return 1; //When the conditions are met for green return 1
@@ -53,7 +55,7 @@ public class colorSensor
                 //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
             else return 0;
         } else if (bob_gary_joe == 0) {
-            if (H < 165 && S >= 0.4) return 1; //When the conditions are met for green return 1
+            if (H < 165 && S >= 0.45) return 1; //When the conditions are met for green return 1
             else if (H > 180 && S <= 0.5)
                 return 2; //When the conditions are met for purple return 2
                 //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0

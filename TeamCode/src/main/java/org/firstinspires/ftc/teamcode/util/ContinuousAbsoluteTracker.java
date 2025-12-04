@@ -60,7 +60,7 @@ public class ContinuousAbsoluteTracker {
         lastWrappedDeg = wrapped;
     }
 
-    /** Rebase current absolute angle to newBaseDeg (e.g., zeroHere -> 0). */
+    /** Rebase current absolute angle to newBaseDeg (e.test., zeroHere -> 0). */
     public void rebaseAbsolute(double newBaseDeg) {
         updateAbsolute();
         double current = getTotalAngleDeg();

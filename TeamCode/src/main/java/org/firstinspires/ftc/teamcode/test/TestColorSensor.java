@@ -44,6 +44,6 @@ public class TestColorSensor extends OpMode {
 
 
         telemetry.addData("HSV", "H=%.1f  S=%.2f  V=%.2f", H, S, V);
-        telemetry.addData("RGB", "r=%.3f g=%.3f b=%.3f", r, g, b);
+        telemetry.addData("RGB", "r=%.3f test=%.3f b=%.3f", r, g, b);
     }
 }

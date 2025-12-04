@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.test;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Subsystems.colorSensor;
+import org.firstinspires.ftc.teamcode.Subsystems.Old.colorSensor;
 
 
 @TeleOp(name="ColorTest", group="Linear OpMode")
@@ -24,10 +22,10 @@ public class colorTest extends LinearOpMode
     @Override
     public void runOpMode() {
         colorSensor.init(hardwareMap);
-        bob = hardwareMap.get(RevColorSensorV3.class, "bob");
+        bob = hardwareMap.get(RevColorSensorV3.class, "color");
         gary = hardwareMap.get(RevColorSensorV3.class, "gary");
         joe = hardwareMap.get(RevColorSensorV3.class, "joe");
-        servo = hardwareMap.get(Servo.class, "MG");
+        servo = hardwareMap.get(Servo.class, "turntable");
 
         waitForStart();
 

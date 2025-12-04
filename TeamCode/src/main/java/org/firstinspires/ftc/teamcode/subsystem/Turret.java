@@ -9,19 +9,21 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.constant.ConstantsPIDF;
 import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 
-public class Turret {
+public class Turret extends SubsystemBase {
     public DcMotorEx turretMotor, launchMotor;
     private ServoImplEx launchAngle;
     private PIDController pid;
 
     // mechanical parameters
     private static final double MOTOR_TO_TURRET_GEAR_RATIO = 5.6111111111;
-    private static final double TICKS_PER_REV = 537.7; // e.g. GoBilda 5202-0002-0007 motor (edit if different)
+    private static final double TICKS_PER_REV = 537.7; // e.test. GoBilda 5202-0002-0007 motor (edit if different)
 
     // state
     private double targetTurretDeg = 0.0;
