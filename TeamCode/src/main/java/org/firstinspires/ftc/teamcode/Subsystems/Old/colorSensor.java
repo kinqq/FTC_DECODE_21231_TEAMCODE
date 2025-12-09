@@ -44,28 +44,22 @@ public class colorSensor
 
 
         //Separate the HSV values
-        H = (float) (hsv[0] / color.getLightDetected());
-        S = (float) (hsv[1] / color.getLightDetected());
-        V = (float) (hsv[2] / color.getLightDetected());
+        H = (float) (hsv[0]);
+        S = (float) (hsv[1]);
+        V = (float) (hsv[2]);
 
-        if (bob_gary_joe == 1) {
-            if (H < 172 && S > 0.51) return 1; //When the conditions are met for green return 1
-            else if (H > 185 && S <= 0.49)
-                return 2; //When the conditions are met for purple return 2
-                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+         if (bob_gary_joe == 0) {
+            if (H < 163 && H > 153 && S > 0.57 && S < 0.9) return 1;
+            else if (H > 197 && H < 238 && S > 0.30 && S < 0.5) return 2;
             else return 0;
-        } else if (bob_gary_joe == 0) {
-            if (H < 165 && S >= 0.45) return 1; //When the conditions are met for green return 1
-            else if (H > 180 && S <= 0.5)
-                return 2; //When the conditions are met for purple return 2
-                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
-            else return 0;
-        } else if (bob_gary_joe == 2) {
-            if (H <= 165 && S > 0.52) return 1; //When the conditions are met for green return 1
-            else if (H >= 170 && S <= 0.5)
-                return 2; //When the conditions are met for purple return 2
-                //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
-            else return 0;
+         } else if (bob_gary_joe == 1) {
+             if (H < 167 && H > 150 && S > 0.5 && S < 0.73) return 1;
+             else if (H > 168 && H < 220 && S > 0.2 && S < 0.53) return 2;
+             else return 0;
+         } else if (bob_gary_joe == 2) {
+             if (H < 160 && H > 143 && S > 0.5 && S < 0.66) return 1;
+             else if (H > 163 && H < 200 && S > 0.27 && S < 0.46) return 2;
+             else return 0;
         } else return -2;
     }
 

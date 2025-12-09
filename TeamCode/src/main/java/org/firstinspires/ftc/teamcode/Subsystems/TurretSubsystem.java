@@ -22,16 +22,21 @@ public class TurretSubsystem
     private DcMotorEx motor;
     private GoBildaPinpointDriver odo;
     private ServoImplEx launchAngle;
+    private DcMotorEx launcher;
 
     private DcMotorEx encoder;
 
     private AnalogInput encoderAnalog;
+
+    private double angle;
+    private double vel;
 
     public TurretSubsystem(HardwareMap hwMap)
     {
         motor = hwMap.get(DcMotorEx.class, "turret");
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
+        launcher = hwMap.get(DcMotorEx.class, "launcher");
 
         launchAngle.setDirection(Servo.Direction.REVERSE);
         launchAngle.scaleRange(0.63, 0.97);
@@ -49,7 +54,7 @@ public class TurretSubsystem
     {
         odo.update();
 
-        launchAngle.setPosition(0.25);
+        launchAngle.setPosition(angle);
 
         double goalX = 900;
         double distX = -goalX - odo.getPosX(DistanceUnit.MM);
@@ -69,5 +74,30 @@ public class TurretSubsystem
         motor.setTargetPosition(fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setPower(1);
+    }
+
+    public void zero() {
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+    public void setLaunchAngle(double angle) {
+        this.angle = angle;
+    }
+
+    public void setLaunchVel(double vel) {
+        this.vel = vel;
+    }
+
+    public class spinUp() extends CommandBase{
+        launcher.setPower(1);
+        launcher.setVelocity(vel);
+    }
+
+    public void spinDown() {
+        launcher.setPower(0);
+    }
+
+    public boolean motorToSpeed() {
+        return launcher.getVelocity() <= vel + 100 && launcher.getVelocity() >= vel - 100;
     }
 }

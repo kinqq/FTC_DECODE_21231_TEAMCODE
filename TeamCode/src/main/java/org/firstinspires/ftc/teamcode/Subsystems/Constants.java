@@ -8,11 +8,7 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @Pinned
 public class Constants
 {
-    public static double SERVO_P = 0.0006;
+    public static double SERVO_P = 0.001;
     public static double SERVO_I = 0;
-    public static double SERVO_D = 0.0000055;
-
-    public static double HOME_P = 0.0009;
-    public static double HOME_I = 0;
-    public static double HOME_D = 0.0007;
+    public static double SERVO_D = 0.0000238;
 }

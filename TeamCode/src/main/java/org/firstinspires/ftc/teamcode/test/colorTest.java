@@ -25,90 +25,106 @@ public class colorTest extends LinearOpMode
         bob = hardwareMap.get(RevColorSensorV3.class, "color");
         gary = hardwareMap.get(RevColorSensorV3.class, "gary");
         joe = hardwareMap.get(RevColorSensorV3.class, "joe");
-        servo = hardwareMap.get(Servo.class, "turntable");
+
+        double peakD = -1000;
+        double lowD = 1000;
+
+        double peakH = -10000;
+        double lowH = 10000;
+
+        double peakS = -10000;
+        double lowS = 10000;
+
+        double peakV = -10000;
+        double lowV = 10000;
+
+        RevColorSensorV3 color = bob;
+        String monitoring = "BOB";
+        int monitoringIndex = 0;
 
         waitForStart();
 
-        double bobP = 0, bobL = 1000, joeP = 0, joeL = 1000, garyP = 0, garyL = 1000;
-        double pos = 0;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            if (gamepad1.leftBumperWasPressed())
+            if (gamepad1.xWasPressed())
             {
-                pos += 0.4;
+                color = bob;
+                monitoring = "BOB";
+                monitoringIndex = 0;
+                peakD = -10000;
+                lowD = 10000;
+                peakH = -10000;
+                lowH = 10000;
+                peakS = -10000;
+                lowS = 10000;
+                peakV = -10000;
+                lowV = 10000;
             }
-            if (gamepad1.rightBumperWasPressed())
+            if (gamepad1.yWasPressed())
             {
-                pos -= 0.4;
+                color = gary;
+                monitoring = "GARY";
+                monitoringIndex = 1;
+                peakD = -1000;
+                lowD = 1000;
+                peakH = -10000;
+                lowH = 10000;
+                peakS = -10000;
+                lowS = 10000;
+                peakV = -10000;
+                lowV = 10000;
             }
-
-            if (gamepad1.aWasPressed()) pos += 0.1;
             if (gamepad1.bWasPressed())
             {
-                bobP = 0;
-                bobL = 1000;
-                joeP = 0;
-                joeL = 1000;
-                garyP = 0;
-                garyL = 1000;
+                color = joe;
+                monitoring = "JOE";
+                monitoringIndex = 2;
+                peakD = -1000;
+                lowD = 1000;
+                peakH = -10000;
+                lowH = 10000;
+                peakS = -10000;
+                lowS = 10000;
+                peakV = -10000;
+                lowV = 10000;
             }
 
-            if (pos > 0.8) pos = 0;
-            if (pos < 0) pos = 0.8;
+            if (gamepad1.backWasPressed())
+            {
+                peakD = -1000;
+                lowD = 1000;
+                peakH = -10000;
+                lowH = 10000;
+                peakS = -10000;
+                lowS = 10000;
+                peakV = -10000;
+                lowV = 10000;
+            }
 
-            servo.setPosition(pos);
-
-
-            telemetry.addLine("JOE:");
-            telemetry.addData("Joe Detected", colorSensor.colorDetect(colorSensor.joe, 2));
+            telemetry.addData("Monitoring", monitoring);
+            telemetry.addData("DETECTED COLOR", colorSensor.colorDetect(color, monitoringIndex));
             telemetry.addData("H", colorSensor.H);
+            telemetry.addData(" Peak H", peakH);
+            telemetry.addData(" Low H", lowH);
             telemetry.addData("S", colorSensor.S);
+            telemetry.addData(" Peak S", peakS);
+            telemetry.addData(" Low S", lowS);
             telemetry.addData("V", colorSensor.V);
-            telemetry.addLine();
-
-            telemetry.addLine("BOB:");
-            telemetry.addData("Bob Detected", colorSensor.colorDetect(colorSensor.bob, 0));
-            telemetry.addData("H", colorSensor.H);
-            telemetry.addData("S", colorSensor.S);
-            telemetry.addData("V", colorSensor.V);
-
-            telemetry.addLine("GARY:");
-            telemetry.addData("Gary Detected", colorSensor.colorDetect(colorSensor.gary, 1));
-            telemetry.addData("H", colorSensor.H);
-            telemetry.addData("S", colorSensor.S);
-            telemetry.addData("V", colorSensor.V);
-
-            telemetry.addLine();
-            telemetry.addData("Distance", bob.getDistance(DistanceUnit.MM));
-            if (bob.getDistance(DistanceUnit.MM) > bobP) bobP = bob.getDistance(DistanceUnit.MM);
-            if (bob.getDistance(DistanceUnit.MM) < bobL) bobL = bob.getDistance(DistanceUnit.MM);
-            telemetry.addData("Bob Peak", bobP);
-            telemetry.addData("Bob Low", bobL);
-
-            telemetry.addData("Distance", gary.getDistance(DistanceUnit.MM));
-            if (gary.getDistance(DistanceUnit.MM) > garyP) garyP = gary.getDistance(DistanceUnit.MM);
-            if (gary.getDistance(DistanceUnit.MM) < garyL) garyL = gary.getDistance(DistanceUnit.MM);
-            telemetry.addData("Gary Peak", garyP);
-            telemetry.addData("G Low", garyL);
-
-            telemetry.addData("Distance", joe.getDistance(DistanceUnit.MM));
-            if (joe.getDistance(DistanceUnit.MM) > joeP) joeP = joe.getDistance(DistanceUnit.MM);
-            if (joe.getDistance(DistanceUnit.MM) < joeL) joeL = joe.getDistance(DistanceUnit.MM);
-            telemetry.addData("J Peak", joeP);
-            telemetry.addData("J Low", joeL);
-
-            telemetry.addLine();
-            telemetry.addData("Servo pos", pos);
+            telemetry.addData(" Peak V", peakV);
+            telemetry.addData(" Low V", lowV);
+            telemetry.addData("Dist", color.getDistance(DistanceUnit.MM));
+            telemetry.addData(" Peak D", peakD);
+            telemetry.addData(" Low D", lowD);
             telemetry.update();
-        }
-    }
 
-
-    private static void waitSeconds(double seconds) {
-        try {
-            Thread.sleep((long)(seconds * 1000));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            if (colorSensor.H > peakH) peakH = colorSensor.H;
+            if (colorSensor.H < lowH) lowH = colorSensor.H;
+            if (colorSensor.S > peakS) peakS = colorSensor.S;
+            if (colorSensor.S < lowS) lowS = colorSensor.S;
+            if (colorSensor.V > peakV) peakV = colorSensor.V;
+            if (colorSensor.V < lowV) lowV = colorSensor.V;
+            if (color.getDistance(DistanceUnit.MM) > peakD) peakD = color.getDistance(DistanceUnit.MM);
+            if (color.getDistance(DistanceUnit.MM) < lowD) lowD = color.getDistance(DistanceUnit.MM);
         }
     }
 }

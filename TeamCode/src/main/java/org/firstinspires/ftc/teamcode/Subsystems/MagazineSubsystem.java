@@ -29,128 +29,47 @@ public class MagazineSubsystem {
         encoder = hwMap.get(DcMotorEx.class, "encoderDigital");
     }
 
-    public void initialize() {
-        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        offsetDeg = getAnalogDeg() + 30; // add 30 to compensate for servo offset
-        slot = Slot.FIRST;
-
-        setSlotHold();
-    }
-
     // Update
     public void update() {
         pid.setPID(Constants.SERVO_P, Constants.SERVO_I, Constants.SERVO_D);
 
         int currentWorldTicks =
-            encoder.getCurrentPosition() + (int) Math.round(offsetDeg * TICKS_PER_DEG);
-        int targetWorldTicks = (int) Math.round(targetDeg * TICKS_PER_DEG);
+            encoder.getCurrentPosition();
+        int targetWorldTicks = (int) Math.round(targetDeg);//(int) Math.round(targetDeg * TICKS_PER_DEG);
 
         double output = pid.calculate(currentWorldTicks, targetWorldTicks);
         magazine.setPower(Range.clip(output, -1.0, 1.0));
     }
 
-    //
-    // Public API
-    //
-
-    public void setSlotHold() {
-        setHoldTargetForCurrentSlot();
-    }
-
-    public void setSlotHold(Slot slot) {
-        setSlot(slot);
-        setSlotHold();
-    }
-
-    public void setSlotLaunch() {
-        setLaunchTargetForCurrentSlot();
-    }
-
-    public void setSlotLaunch(Slot slot) {
-        setSlot(slot);
-        setSlotLaunch();
-    }
-
     public void nextSlot() {
         switch (slot) {
-            case FIRST:  setSlotHold(Slot.SECOND); break;
-            case SECOND: setSlotHold(Slot.THIRD);  break;
-            case THIRD:  setSlotHold(Slot.FIRST);  break;
+            case FIRST: slot = Slot.SECOND; break;
+            case SECOND: slot = Slot.THIRD; break;
+            case THIRD: slot = Slot.FIRST; break;
         }
+        targetDeg += 1333;
     }
 
     public void prevSlot() {
         switch (slot) {
-            case FIRST:  setSlotHold(Slot.THIRD);  break;
-            case SECOND: setSlotHold(Slot.FIRST);  break;
-            case THIRD:  setSlotHold(Slot.SECOND); break;
+            case FIRST: slot = Slot.THIRD; break;
+            case SECOND: slot = Slot.FIRST; break;
+            case THIRD: slot = Slot.SECOND; break;
         }
+        targetDeg -= 1333;
     }
 
-    public double getTargetDeg() {
-        return targetDeg;
-    }
-
-    public double getEncoderDeg() {
-        return encoder.getCurrentPosition() / TICKS_PER_DEG;
-    }
-
-    public double getAnalogDeg() {
-        return (analog.getVoltage() / 3.3) * 360.0;
-    }
-
-    public double getPower() {
-        return magazine.getPower();
-    }
-
-    //
-    // Internal Math
-    //
-
-    private void setSlot(Slot slot) {
+    public void setSlot(Slot slot) {
         this.slot = slot;
     }
 
-    private double holdDegForSlot(Slot s) {
-        switch (s) {
-            case FIRST:  return 0.0;
-            case SECOND: return 120.0;
-            case THIRD:  return 240.0;
-        }
-        return 0.0;
+    public Slot getSlot() {
+        return this.slot;
     }
 
-    private double launchDegForSlot(Slot s) {
-        switch (s) {
-            case FIRST:  return 180.0;
-            case SECOND: return 300.0;
-            case THIRD:  return 60.0;
-        }
-        return 180.0;
+    public int getTarget() {
+        return (int) targetDeg;
     }
 
-    private double getCurrentWorldDeg() {
-        double ticks = encoder.getCurrentPosition();
-        return ticks / TICKS_PER_DEG + offsetDeg;
-    }
 
-    // choose the closest 0/120/240 (+ n*360) to current angle
-    private void setHoldTargetForCurrentSlot() {
-        double current = getCurrentWorldDeg();
-        double base = holdDegForSlot(slot);
-
-        double k = Math.round((current - base) / 360.0);
-        targetDeg = base + 360.0 * k;
-    }
-
-    // same as above but for launch angles (180/300/60)
-    private void setLaunchTargetForCurrentSlot() {
-        double current = getCurrentWorldDeg();
-        double base = launchDegForSlot(slot);
-
-        double k = Math.round((current - base) / 360.0);
-        targetDeg = base + 360.0 * k;
-    }
 }

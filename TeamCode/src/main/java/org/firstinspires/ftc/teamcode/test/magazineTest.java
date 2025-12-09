@@ -16,7 +16,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.teleop.DriveMeet1;
 
 
 @TeleOp(name="MagazineTest", group="Test")
@@ -31,7 +30,7 @@ public class magazineTest extends LinearOpMode
         AnalogInput analog = hardwareMap.get(AnalogInput.class, "encoder");
         DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "encoderDigital");
 
-        PanelsConfigurables.INSTANCE.refreshClass(DriveMeet1.class);
+        PanelsConfigurables.INSTANCE.refreshClass(magazineTest.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
         encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

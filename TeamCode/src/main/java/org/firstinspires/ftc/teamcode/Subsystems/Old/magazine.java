@@ -185,7 +185,7 @@ public class magazine
 
             for (int i = 0; i < 3; i++)
             {
-                specialServoPosition = find(testTeleop.mosaic[i] - 1);
+                //specialServoPosition = find(testTeleop.mosaic[i] - 1);
                 magazine.setPosition(specialServoPosition);
 
                 while (powerMotors.launcher.getVelocity() < 1850);
