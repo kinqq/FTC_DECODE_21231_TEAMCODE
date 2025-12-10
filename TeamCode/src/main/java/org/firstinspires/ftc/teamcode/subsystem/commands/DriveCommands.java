@@ -147,6 +147,9 @@ public class DriveCommands {
         public void initialize() {
             intake.setPower(0.3);
         }
+
+        @Override
+        public boolean isFinished() {return true;}
     }
 
 }

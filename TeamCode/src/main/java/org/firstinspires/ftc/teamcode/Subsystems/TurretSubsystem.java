@@ -11,11 +11,17 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.teleop.DriveMeet1;
+import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
+
+import dev.nextftc.core.commands.Command;
 
 public class TurretSubsystem
 {
@@ -28,8 +34,9 @@ public class TurretSubsystem
 
     private AnalogInput encoderAnalog;
 
-    private double angle;
-    private double vel;
+    private double angle = 0.25;
+    private double vel = 1900;
+    private double offset = 0;
 
     public TurretSubsystem(HardwareMap hwMap)
     {
@@ -38,6 +45,7 @@ public class TurretSubsystem
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
         launcher = hwMap.get(DcMotorEx.class, "launcher");
 
+        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
         launchAngle.setDirection(Servo.Direction.REVERSE);
         launchAngle.scaleRange(0.63, 0.97);
 
@@ -52,17 +60,20 @@ public class TurretSubsystem
 
     public void update()
     {
+        AllianceColor alliance = DriveMeet2.alliance;
+
         odo.update();
 
         launchAngle.setPosition(angle);
 
         double goalX = 900;
+        if (alliance == AllianceColor.BLUE) goalX *= -1;
         double distX = -goalX - odo.getPosX(DistanceUnit.MM);
         double goalY = 1700;
         double distY = goalY - odo.getPosY(DistanceUnit.MM);
         double distFromGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
-        double deg = Math.toDegrees(Math.atan2(distX, distY));
+        double deg = Math.toDegrees(Math.atan2(distX, distY)) + offset;
         deg -= odo.getHeading(AngleUnit.DEGREES);
         deg = Range.clip(deg, -190, 80);
         double target = Range.clip(deg - 10, -190, 80);
@@ -78,26 +89,61 @@ public class TurretSubsystem
 
     public void zero() {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void setLaunchAngle(double angle) {
         this.angle = angle;
+    }
+    public void launchAngleUp() {angle += 0.05;}
+    public void launchAngleDown() {angle -= 0.05;}
+
+    public double getLaunchAngle() {
+        return angle;
     }
 
     public void setLaunchVel(double vel) {
         this.vel = vel;
     }
 
-    public class spinUp() extends CommandBase{
-        launcher.setPower(1);
-        launcher.setVelocity(vel);
+    public void setOffset(double offset) {
+        this.offset = offset;
+    }
+    public void upOffset() {offset += 5;}
+    public void downOffset() {offset -= 5;}
+
+    public double getOffset() {
+        return offset;
     }
 
-    public void spinDown() {
-        launcher.setPower(0);
+    public class spinUp extends CommandBase {
+        ElapsedTime timer = new ElapsedTime();
+
+        public spinUp() {timer.reset();}
+
+        @Override
+        public void initialize() {
+            launcher.setPower(1);
+            launcher.setVelocity(vel);
+        }
+
+        public boolean isFinished() {return motorToSpeed() || timer.seconds() > 5;}
+    }
+
+    public class spinDown extends CommandBase {
+        public spinDown() {}
+
+        @Override
+        public void initialize() {
+            launcher.setPower(0);
+        }
+
+        @Override
+        public boolean isFinished() {return true;}
     }
 
     public boolean motorToSpeed() {
-        return launcher.getVelocity() <= vel + 100 && launcher.getVelocity() >= vel - 100;
+        return launcher.getVelocity() <= vel + 250 && launcher.getVelocity() >= vel - 250;
     }
 }

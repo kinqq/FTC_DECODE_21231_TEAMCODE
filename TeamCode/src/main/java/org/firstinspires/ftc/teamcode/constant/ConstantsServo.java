@@ -7,7 +7,7 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @Configurable
 @Pinned
 public class ConstantsServo {
-    public static double kP = 0.0005;
+    public static double kP = 0.00008;
     public static double kI = 0.00;
-    public static double kD = 0.08;
+    public static double kD = 0.00008;
 }

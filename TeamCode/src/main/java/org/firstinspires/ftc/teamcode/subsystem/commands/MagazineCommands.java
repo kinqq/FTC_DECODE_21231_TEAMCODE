@@ -71,11 +71,24 @@ public class MagazineCommands {
         int targetWorldTicks = target;
 
         double output = pid.calculate(currentWorldTicks, targetWorldTicks);
+        int sign;
+        if (output > 0)
+        {
+            sign = 1;
+        }
+        else
+        {
+            sign = -1;
+            output *= -1;
+        }
+        output = Math.sqrt(output);
+        output *= sign;
+
         indexer.setPower(Range.clip(output, -1.0, 1.0));
     }
 
     public boolean updateDone() {
-        return encoder.getCurrentPosition() <= target + 100 && encoder.getCurrentPosition() >= target - 100;
+        return encoder.getCurrentPosition() <= target + 250 && encoder.getCurrentPosition() >= target - 250;
     }
 
     public class zero extends CommandBase{
@@ -85,8 +98,6 @@ public class MagazineCommands {
         @Override
         public void initialize() {
             encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
             target = 0;
         }
 
@@ -120,12 +131,16 @@ public class MagazineCommands {
         public boolean isFinished() {return true;}
     }
 
-    public class setSlot extends CommandBase {
-
+    public class setSlot extends CommandBase
+    {
+        ElapsedTime timer = new ElapsedTime();
+        boolean zero = false;
         Slot slot;
+        boolean shoot;
 
-        public setSlot(Slot slot) {
+        public setSlot(Slot slot, boolean shoot) {
             this.slot = slot;
+            this.shoot = shoot;
         }
 
 
@@ -134,11 +149,17 @@ public class MagazineCommands {
                 case SECOND: target += 1333; break;
                 case THIRD: target -= 1333; break;
             }
+            timer.reset();
+        }
+
+        @Override
+        public void execute() {
+            if (updateDone() && !zero) {zero = true; timer.reset();}
         }
 
         @Override
         public boolean isFinished() {
-            return ;
+            return (updateDone() && zero && timer.seconds() > 0.5) || timer.seconds() > 2;
         }
     }
 
@@ -148,22 +169,11 @@ public class MagazineCommands {
         slotColors.replace(Slot.THIRD, DetectedColor.UNKNOWN);
     }
 
-    public class SpinToIntake extends CommandBase{
-        Slot slot;
-        public SpinToIntake(Slot slot) {this.slot = slot;}
-
-        @Override
-        public void initialize() {
-            new setSlot(slot);
-
-        }
-    }
-
     public class switchMode extends CommandBase {
 
         @Override
         public void initialize() {
-            target -= 667;
+            target += 2000;
             final Map<Slot, DetectedColor> slotColorsOld = new EnumMap<>(Slot.class);
             slotColorsOld.put(Slot.FIRST, slotColors.get(Slot.FIRST));
             slotColorsOld.put(Slot.SECOND, slotColors.get(Slot.SECOND));
@@ -174,7 +184,7 @@ public class MagazineCommands {
             slotColors.replace(Slot.THIRD, slotColorsOld.get(Slot.SECOND));
         }
 
-        public boolean isFinished() {return true;}
+        public boolean isFinished() {return updateDone();}
 
     }
 
@@ -187,6 +197,7 @@ public class MagazineCommands {
             timer.reset();
         }
 
+        @Override
         public boolean isFinished() {
             return timer.seconds() > 2;
         }
@@ -201,6 +212,7 @@ public class MagazineCommands {
             timer.reset();
         }
 
+        @Override
         public boolean isFinished() {
             return timer.seconds() > 2;
         }
@@ -286,6 +298,9 @@ public class MagazineCommands {
 
     public int getTarget() {
         return target;
+    }
+    public int getPos() {
+        return encoder.getCurrentPosition();
     }
 
     public void stop() {indexer.setPower(0);}
