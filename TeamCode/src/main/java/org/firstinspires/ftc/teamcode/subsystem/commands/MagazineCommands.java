@@ -40,7 +40,7 @@ public class MagazineCommands {
     PwmRange fullPwm = new PwmRange(500, 2500);
     double SEC_PER_ROTATION = 0.8325;
 
-    private int target;
+    private int target = 0;
 
     private final Map<Slot, DetectedColor> slotColors = new EnumMap<>(Slot.class);
 
@@ -88,7 +88,7 @@ public class MagazineCommands {
     }
 
     public boolean updateDone() {
-        return encoder.getCurrentPosition() <= target + 250 && encoder.getCurrentPosition() >= target - 250;
+        return Math.abs(target - encoder.getCurrentPosition()) < 200;
     }
 
     public class zero extends CommandBase{
@@ -145,9 +145,24 @@ public class MagazineCommands {
 
 
         public void initialize() {
+            final Map<Slot, DetectedColor> slotColorsOld = new EnumMap<>(Slot.class);
+            slotColorsOld.put(Slot.FIRST, slotColors.get(Slot.FIRST));
+            slotColorsOld.put(Slot.SECOND, slotColors.get(Slot.SECOND));
+            slotColorsOld.put(Slot.THIRD, slotColors.get(Slot.THIRD));
+
             switch (slot) {
-                case SECOND: target += 1333; break;
-                case THIRD: target -= 1333; break;
+                case SECOND:
+                    target += 1333;
+                    slotColors.replace(Slot.FIRST, slotColorsOld.get(Slot.SECOND));
+                    slotColors.replace(Slot.SECOND, slotColorsOld.get(Slot.THIRD));
+                    slotColors.replace(Slot.THIRD, slotColorsOld.get(Slot.FIRST));
+                    break;
+                case THIRD:
+                    target -= 1333;
+                    slotColors.replace(Slot.FIRST, slotColorsOld.get(Slot.THIRD));
+                    slotColors.replace(Slot.SECOND, slotColorsOld.get(Slot.FIRST));
+                    slotColors.replace(Slot.THIRD, slotColorsOld.get(Slot.SECOND));
+                    break;
             }
             timer.reset();
         }
@@ -163,6 +178,18 @@ public class MagazineCommands {
         }
     }
 
+    public class clearFirst extends CommandBase {
+        @Override
+        public void initialize() {
+            slotColors.replace(Slot.FIRST, DetectedColor.UNKNOWN);
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
+    }
+
     public void clearAllSlotColors () {
         slotColors.replace(Slot.FIRST, DetectedColor.UNKNOWN);
         slotColors.replace(Slot.SECOND, DetectedColor.UNKNOWN);
@@ -170,10 +197,11 @@ public class MagazineCommands {
     }
 
     public class switchMode extends CommandBase {
+        ElapsedTime timer = new ElapsedTime();
 
         @Override
         public void initialize() {
-            target += 2000;
+            target += 667;
             final Map<Slot, DetectedColor> slotColorsOld = new EnumMap<>(Slot.class);
             slotColorsOld.put(Slot.FIRST, slotColors.get(Slot.FIRST));
             slotColorsOld.put(Slot.SECOND, slotColors.get(Slot.SECOND));
@@ -182,6 +210,8 @@ public class MagazineCommands {
             slotColors.replace(Slot.FIRST, slotColorsOld.get(Slot.THIRD));
             slotColors.replace(Slot.SECOND, slotColorsOld.get(Slot.FIRST));
             slotColors.replace(Slot.THIRD, slotColorsOld.get(Slot.SECOND));
+
+            timer.reset();
         }
 
         public boolean isFinished() {return updateDone();}
@@ -193,13 +223,13 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.7);
+            hammer.setPosition(0.8);
             timer.reset();
         }
 
         @Override
         public boolean isFinished() {
-            return timer.seconds() > 2;
+            return timer.seconds() > 0.1;
         }
     }
 
@@ -214,7 +244,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return timer.seconds() > 2;
+            return timer.seconds() > 0.1;
         }
     }
 
@@ -246,23 +276,23 @@ public class MagazineCommands {
             float V = hsv[2];
 
             if (bob_gary_joe == 1) {
-                if (H < 167 && H > 150 && S > 0.5 && S < 0.73)
+                if (H < 169 && H > 148 && S > 0.53 && S < 0.77)
                     slotColors.replace(Slot.THIRD, DetectedColor.GREEN);
-                else if (H > 168 && H < 220 && S > 0.2 && S < 0.53)
+                else if (H > 179 && H < 223 && S > 0.33 && S < 0.48)
                     slotColors.replace(Slot.THIRD, DetectedColor.PURPLE);
                 else
                     slotColors.replace(Slot.THIRD, DetectedColor.UNKNOWN);
             } else if (bob_gary_joe == 0) {
-                if (H < 163 && H > 153 && S > 0.57 && S < 0.9)
+                if (H < 160 && H > 148 && S > 0.49 && S < 0.7)
                     slotColors.replace(Slot.FIRST, DetectedColor.GREEN);
-                else if (H > 197 && H < 238 && S > 0.30 && S < 0.5)
+                else if (H > 170 && H < 240 && S > 0.23 && S < 0.35)
                     slotColors.replace(Slot.FIRST, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 else
                     slotColors.replace(Slot.FIRST, DetectedColor.UNKNOWN);
             } else if (bob_gary_joe == 2) {
-                if (H < 160 && H > 143 && S > 0.5 && S < 0.66)
+                if (H < 154 && H > 145 && S > 0.55 && S < 0.62)
                     slotColors.replace(Slot.SECOND, DetectedColor.GREEN);
-                else if (H > 163 && H < 200 && S > 0.27 && S < 0.46)
+                else if (H > 155 && H < 205 && S > 0.28 && S < 0.51)
                     slotColors.replace(Slot.SECOND, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 else
                     slotColors.replace(Slot.SECOND, DetectedColor.UNKNOWN);

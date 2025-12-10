@@ -34,9 +34,9 @@ public class TurretSubsystem
 
     private AnalogInput encoderAnalog;
 
-    private double angle = 0.25;
+    private double angle = 0.18;
     private double vel = 1900;
-    private double offset = 0;
+    private double offset = -5;
 
     public TurretSubsystem(HardwareMap hwMap)
     {
@@ -47,7 +47,7 @@ public class TurretSubsystem
 
         launcher.setDirection(DcMotorSimple.Direction.REVERSE);
         launchAngle.setDirection(Servo.Direction.REVERSE);
-        launchAngle.scaleRange(0.63, 0.97);
+        launchAngle.scaleRange(0, .62);
 
         odo.setOffsets(-48, -182.5, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -89,8 +89,6 @@ public class TurretSubsystem
 
     public void zero() {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void setLaunchAngle(double angle) {
@@ -144,6 +142,6 @@ public class TurretSubsystem
     }
 
     public boolean motorToSpeed() {
-        return launcher.getVelocity() <= vel + 250 && launcher.getVelocity() >= vel - 250;
+        return launcher.getVelocity() <= vel + 250 && launcher.getVelocity() >= vel - 50;
     }
 }

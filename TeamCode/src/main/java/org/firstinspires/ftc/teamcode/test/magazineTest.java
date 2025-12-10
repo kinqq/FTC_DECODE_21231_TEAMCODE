@@ -22,14 +22,14 @@ import com.qualcomm.robotcore.util.Range;
 @Configurable
 public class magazineTest extends LinearOpMode
 {
-    private double servoPos = 0.5;
+    private double servoPos = 0;
 
     @Override
     public void runOpMode() {
         ServoImplEx mg = hardwareMap.get(ServoImplEx.class, "launchAngle");
 
         mg.setDirection(Servo.Direction.REVERSE);
-        mg.scaleRange(0.62, 1);
+        mg.scaleRange(0, .62);
 
         AnalogInput analog = hardwareMap.get(AnalogInput.class, "encoder");
         DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "encoderDigital");
@@ -41,22 +41,21 @@ public class magazineTest extends LinearOpMode
 
         waitForStart();
 
-        double pos = 0;
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             double voltage = analog.getVoltage();
             double angleDeg = (voltage / 3.3) * 360.0;
 
-            if (gamepad1.aWasPressed()) pos += 0.01;
-            if (gamepad1.bWasPressed()) pos -= 0.01;
+            if (gamepad1.aWasPressed()) servoPos += 0.01;
+            if (gamepad1.bWasPressed()) servoPos -= 0.01;
 
-            pos = Range.clip(pos, 0, 1);
+            servoPos = Range.clip(servoPos, 0, 1);
 
-            mg.setPosition(pos);
+            mg.setPosition(servoPos);
             telemetry.addData("Encoder", angleDeg);
             telemetry.addData("Encoder Dig", encoder.getCurrentPosition());
-            telemetry.addData("POS", mg.getPosition());
+            telemetry.addData("POS", servoPos);
             telemetry.update();
 
         }

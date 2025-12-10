@@ -31,6 +31,7 @@ public class DriveMeet2 extends CommandOpMode
     public static AllianceColor alliance = AllianceColor.RED;
     private boolean autoAim = true;
     private boolean odoDrive = true;
+    private boolean launching = false;
     private DetectedColor[] mosaic = new DetectedColor[3];
 
     @Override
@@ -42,7 +43,7 @@ public class DriveMeet2 extends CommandOpMode
 
         indexerCmds.new zero().initialize();
 
-        turretCmds.setLaunchAngle(0.25);
+        turretCmds.setLaunchAngle(0.13);
         turretCmds.setLaunchVel(1900);
     }
 
@@ -80,24 +81,39 @@ public class DriveMeet2 extends CommandOpMode
     }
 
     private ElapsedTime findTimer = new ElapsedTime();
+
+
     private boolean started = false;
     @Override
     public void run() {
         super.run();
-        if (!started) driveCmds.new intakeOn().initialize(); started = true;
+        if (!started) {driveCmds.new intakeOn().initialize(); started = true; findTimer.reset();}
 
+        if (alliance == AllianceColor.BLUE) {
+            if (odoDrive)
+                driveCmds.odoDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            else
+                driveCmds.basicDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x);
+        }
+        if (alliance == AllianceColor.RED) {
+            if (odoDrive)
+                driveCmds.odoDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            else
+                driveCmds.basicDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, -gamepad1.right_stick_x);
+        }
 
-        if (odoDrive) driveCmds.odoDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
-        else driveCmds.basicDrive(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+        if (!launching)
+        {
+            indexerCmds.new index(1).initialize();
+            //indexerCmds.new index(2).initialize();
+            //indexerCmds.new index(3).initialize();
+        }
 
         indexerCmds.update();
-        indexerCmds.new index(1).initialize();
-        indexerCmds.new index(2).initialize();
-        indexerCmds.new index(3).initialize();
 
-        if (indexerCmds.updateDone())
+        if (indexerCmds.updateDone() && !launching)
         {
-        find(DetectedColor.UNKNOWN);
+            find(DetectedColor.UNKNOWN);
         }
 
         if (gamepad1.backWasPressed()) {turretCmds.zero(); indexerCmds.new zero().initialize();}
@@ -112,6 +128,12 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad2.yWasPressed() && indexerCmds.updateDone())
         {
             schedule(new SequentialCommandGroup(
+                    new CommandBase() {
+                        @Override
+                        public void initialize() {launching = true;}
+                        @Override
+                        public boolean isFinished() {return true;}
+                    },
                     indexerCmds.new switchMode(),
                     driveCmds.new intakeIdle(),
                     shoot(Slot.FIRST),
@@ -119,7 +141,13 @@ public class DriveMeet2 extends CommandOpMode
                     shoot(Slot.SECOND),
                     indexerCmds.new switchMode(),
                     driveCmds.new intakeOn(),
-                    turretCmds.new spinDown()
+                    turretCmds.new spinDown(),
+                    new CommandBase() {
+                        @Override
+                        public void initialize() {launching = false;}
+                        @Override
+                        public boolean isFinished() {return true;}
+                    }
             ));
         }
 
@@ -134,33 +162,59 @@ public class DriveMeet2 extends CommandOpMode
 
     }
 
-    private void find(DetectedColor color) {
+    private Slot find(DetectedColor color) {
         switch (color) {
             case GREEN:
                 if (indexerCmds.getSlot(Slot.FIRST) == DetectedColor.GREEN)
-                    indexerCmds.new setSlot(Slot.FIRST,false).initialize();
-                if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.GREEN)
-                    indexerCmds.new setSlot(Slot.SECOND,false).initialize();
-                if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.PURPLE)
-                    indexerCmds.new setSlot(Slot.THIRD,false).initialize();
+                {
+                    //indexerCmds.new setSlot(Slot.FIRST, false).initialize();
+                    return Slot.FIRST;
+                }
+                if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.GREEN) {
+                    //indexerCmds.new setSlot(Slot.SECOND, false).initialize();
+                    return Slot.SECOND;
+                }
+                if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.PURPLE) {
+                    //indexerCmds.new setSlot(Slot.THIRD, false).initialize();
+                    return Slot.THIRD;
+                }
                 break;
             case PURPLE:
                 if (indexerCmds.getSlot(Slot.FIRST) == DetectedColor.PURPLE)
-                    indexerCmds.new setSlot(Slot.FIRST,false).initialize();
+                {
+                   // indexerCmds.new setSlot(Slot.FIRST,false).initialize();
+                    return Slot.FIRST;
+                }
                 if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.PURPLE)
-                    indexerCmds.new setSlot(Slot.SECOND,false).initialize();
+                {
+                  //  indexerCmds.new setSlot(Slot.SECOND,false).initialize();
+                    return Slot.SECOND;
+                }
                 if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.PURPLE)
+                {
                     indexerCmds.new setSlot(Slot.THIRD,false).initialize();
+                    return Slot.THIRD;
+                }
                 break;
             case UNKNOWN:
                 if (indexerCmds.getSlot(Slot.FIRST) == DetectedColor.UNKNOWN)
+                {
                     indexerCmds.new setSlot(Slot.FIRST,false).initialize();
+                    return Slot.FIRST;
+                }
                 else if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.UNKNOWN)
+                {
                     indexerCmds.new setSlot(Slot.SECOND,false).initialize();
+                    return Slot.SECOND;
+                }
                 else if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.UNKNOWN)
+                {
                     indexerCmds.new setSlot(Slot.THIRD,false).initialize();
+                    return Slot.THIRD;
+                }
                 break;
         }
+        return Slot.FIRST;
     }
 
     private CommandBase shoot(Slot slot) {
@@ -170,7 +224,8 @@ public class DriveMeet2 extends CommandOpMode
                         turretCmds.new spinUp()
                 ),
                 indexerCmds.new hammerUp(),
-                indexerCmds.new hammerDown()
+                indexerCmds.new hammerDown(),
+                indexerCmds.new clearFirst()
         );
     }
 
