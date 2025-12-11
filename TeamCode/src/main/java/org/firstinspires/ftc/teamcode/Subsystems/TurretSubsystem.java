@@ -75,8 +75,8 @@ public class TurretSubsystem
 
         double deg = Math.toDegrees(Math.atan2(distX, distY)) + offset;
         deg -= odo.getHeading(AngleUnit.DEGREES);
-        deg = Range.clip(deg, -190, 80);
-        double target = Range.clip(deg - 10, -190, 80);
+        deg = Range.clip(deg, -115, 215);
+        double target = deg;
         ;//Range.clip(deg - 10, -235, 85);
         target = target * 5.6111111111;
         int fTarget = (int) Math.round(target * 537.7 / 360.0);

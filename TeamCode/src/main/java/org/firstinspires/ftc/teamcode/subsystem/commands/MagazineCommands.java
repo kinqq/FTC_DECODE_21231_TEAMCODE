@@ -10,25 +10,24 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.controller.PIDController;
 
-import org.firstinspires.ftc.teamcode.Subsystems.Constants;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.*;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MagazineCommands {
     public CRServoImplEx indexer;
     public ServoImplEx hammer;
+
+    PIDController pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
     public final AnalogInput analog;
     public final DcMotorEx encoder;
@@ -65,7 +64,7 @@ public class MagazineCommands {
     }
 
     public void update() {
-        PIDController pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
         int currentWorldTicks = encoder.getCurrentPosition();
         int targetWorldTicks = target;
@@ -138,7 +137,7 @@ public class MagazineCommands {
         Slot slot;
         boolean shoot;
 
-        public setSlot(Slot slot, boolean shoot) {
+        public setSlot(Slot slot) {
             this.slot = slot;
             this.shoot = shoot;
         }

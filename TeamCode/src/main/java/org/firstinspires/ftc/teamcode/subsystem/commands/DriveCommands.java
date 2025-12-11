@@ -152,4 +152,13 @@ public class DriveCommands {
         public boolean isFinished() {return true;}
     }
 
+    public GoBildaPinpointDriver getOdo() {
+        return odo;
+    }
+
+    public void setOdo(double x, double y) {
+        odo.setPosX(x, DistanceUnit.MM);
+        odo.setPosY(y, DistanceUnit.MM);
+    }
+
 }
