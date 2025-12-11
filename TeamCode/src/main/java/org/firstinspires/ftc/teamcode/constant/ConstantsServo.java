@@ -5,7 +5,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import dev.frozenmilk.sinister.loading.Pinned;
 
 @Configurable
-//@Pinned
+@Pinned
 public class ConstantsServo {
     public static double kP = 0.00012;
     public static double kI = 0.005;
