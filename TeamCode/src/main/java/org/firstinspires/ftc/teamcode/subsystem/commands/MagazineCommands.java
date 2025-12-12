@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystem.commands;
 
 import android.graphics.Color;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
@@ -14,7 +15,6 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
-import com.seattlesolvers.solverslib.controller.PIDController;
 
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
@@ -29,7 +29,6 @@ public class MagazineCommands {
 
     PIDController pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
-    public final AnalogInput analog;
     public final DcMotorEx encoder;
 
     public RevColorSensorV3 bob;
@@ -47,7 +46,6 @@ public class MagazineCommands {
         indexer = hwMap.get(CRServoImplEx.class, "turntable");
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
-        analog = hwMap.get(AnalogInput.class, "encoder");
         encoder = hwMap.get(DcMotorEx.class, "encoderDigital");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
@@ -64,7 +62,7 @@ public class MagazineCommands {
     }
 
     public void update() {
-        pid = new PIDController(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
+        pid.setPID(ConstantsServo.kP, ConstantsServo.kI, ConstantsServo.kD);
 
         int currentWorldTicks = encoder.getCurrentPosition();
         int targetWorldTicks = target;
@@ -91,12 +89,14 @@ public class MagazineCommands {
     }
 
     public class zero extends CommandBase{
+        boolean reset;
 
-        public zero() {}
+        public zero() {reset = false;}
+        public zero(boolean reset) {this.reset = reset;}
 
         @Override
         public void initialize() {
-            encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (reset) encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             target = 0;
         }
 
@@ -331,6 +331,7 @@ public class MagazineCommands {
     public int getPos() {
         return encoder.getCurrentPosition();
     }
+
 
     public void stop() {indexer.setPower(0);}
 }

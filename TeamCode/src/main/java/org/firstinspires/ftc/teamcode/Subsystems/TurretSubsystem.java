@@ -38,6 +38,8 @@ public class TurretSubsystem
     private double vel = 1900;
     private double offset = -5;
 
+    private int target;
+
     public TurretSubsystem(HardwareMap hwMap)
     {
         motor = hwMap.get(DcMotorEx.class, "turret");
@@ -57,6 +59,7 @@ public class TurretSubsystem
         );
         odo.resetPosAndIMU();
     }
+
 
     public void update()
     {
@@ -81,6 +84,7 @@ public class TurretSubsystem
         target = target * 5.6111111111;
         int fTarget = (int) Math.round(target * 537.7 / 360.0);
 
+        this.target = fTarget;
 
         motor.setTargetPosition(fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -99,6 +103,14 @@ public class TurretSubsystem
 
     public double getLaunchAngle() {
         return angle;
+    }
+
+    public int getPos() {
+        return motor.getCurrentPosition();
+    }
+
+    public int getTarget() {
+        return target;
     }
 
     public void setLaunchVel(double vel) {
