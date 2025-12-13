@@ -85,7 +85,7 @@ public class MagazineCommands {
     }
 
     public boolean updateDone() {
-        return Math.abs(target - encoder.getCurrentPosition()) < 200;
+        return Math.abs(target - encoder.getCurrentPosition()) < 500;
     }
 
     public class zero extends CommandBase{

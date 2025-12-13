@@ -117,7 +117,7 @@ public class DriveMeet2 extends CommandOpMode
         //General Info Config
         if (gamepad1.bWasPressed()) alliance = AllianceColor.RED;
         if (gamepad1.xWasPressed()) alliance = AllianceColor.BLUE;
-        if (gamepad1.startWasPressed()) odoDrive = !odoDrive;
+        if (gamepad1.startWasPressed() && !gamepad1.a) odoDrive = !odoDrive;
         if (gamepad1.yWasPressed()) autoAim = !autoAim;
 
         //Turret Config
@@ -126,10 +126,24 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad1.dpadUpWasPressed()) turretCmds.launchAngleUp();
         if (gamepad1.dpadDownWasPressed()) turretCmds.launchAngleDown();
 
+        //Motif Config
+        if (gamepad2.yWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN};
+        if (gamepad2.xWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.GREEN};
+        if (gamepad2.bWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE};
+
         //Zero Config
         if (gamepad1.backWasPressed()) {
             turretCmds.zero();
             indexerCmds.new zero().initialize();
+            follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+            DisplayTimer.reset();
+        }
+        if (gamepad1.aWasPressed() && !gamepad1.start) {
+            turretCmds.zero();
+            indexerCmds.new zero(true).initialize();
             follower.setPose(new Pose(72, 72, Math.toRadians(90)));
             DisplayTimer.reset();
         }
@@ -139,37 +153,42 @@ public class DriveMeet2 extends CommandOpMode
 
         //General Telemetry
         telemetry.addLine("General Information");
-        telemetry.addData(" Alliance", alliance);
-        telemetry.addData(" Use Odometry Drive", odoDrive);
-        telemetry.addData(" Use Auto Aim", autoAim);
+        telemetry.addData("     Alliance", alliance);
+        telemetry.addData("     Use Odometry Drive", odoDrive);
+        telemetry.addData("     Use Auto Aim", autoAim);
+        telemetry.addData("     Motif", motifTranslated[0] + ", " + motifTranslated[1] + ", " +  motifTranslated[2]);
+        telemetry.addLine("     Y = PPG, X = GPP, B = PGP");
         telemetry.addLine();
 
         telemetry.addLine("Indexer Data");
-        telemetry.addData(" Current Position", indexerCmds.getPos());
-        telemetry.addData(" Target", indexerCmds.getTarget());
+        telemetry.addData("     Current Position", indexerCmds.getPos());
+        telemetry.addData("     Target", indexerCmds.getTarget());
         telemetry.addLine();
-        telemetry.addData(" Active Slot", indexerCmds.getSlot(Slot.FIRST));
-        telemetry.addData(" Top Left", indexerCmds.getSlot(Slot.THIRD));
-        telemetry.addData(" Top Right", indexerCmds.getSlot(Slot.SECOND));
+        telemetry.addData("     Active Slot", indexerCmds.getSlot(Slot.FIRST));
+        telemetry.addData("     Top Left", indexerCmds.getSlot(Slot.THIRD));
+        telemetry.addData("     Top Right", indexerCmds.getSlot(Slot.SECOND));
         telemetry.addLine();
-        telemetry.addData(" Indexer P", ConstantsServo.kP);
-        telemetry.addData(" Indexer I", ConstantsServo.kI);
-        telemetry.addData(" Indexer D", ConstantsServo.kD);
+        telemetry.addData("     Indexer P", ConstantsServo.kP);
+        telemetry.addData("     Indexer I", ConstantsServo.kI);
+        telemetry.addData("     Indexer D", ConstantsServo.kD);
         telemetry.addLine();
 
         telemetry.addLine("Turret Data");
-        telemetry.addData(" Current Position", turretCmds.getPos());
-        telemetry.addData(" Target", turretCmds.getTarget());
-        telemetry.addData(" Offset", turretCmds.getOffset());
+        telemetry.addData("     Current Position", turretCmds.getPos());
+        telemetry.addData("     Target", turretCmds.getTarget());
+        telemetry.addData("     Offset", turretCmds.getOffset());
         telemetry.addLine();
-        telemetry.addData(" Launch Angle", turretCmds.getLaunchAngle());
+        telemetry.addData("     Launch Angle", turretCmds.getLaunchAngle());
         telemetry.addLine();
-
 
         telemetry.addLine("Odometry Data");
-        telemetry.addData(" Odo X", driveCmds.getOdo().getPosX(DistanceUnit.MM));
-        telemetry.addData(" Odo Y", driveCmds.getOdo().getPosY(DistanceUnit.MM));
-        telemetry.addData(" Heading", driveCmds.getOdo().getHeading(AngleUnit.DEGREES));
+        telemetry.addData("     Odo X", driveCmds.getOdo().getPosX(DistanceUnit.MM));
+        telemetry.addData("     Odo Y", driveCmds.getOdo().getPosY(DistanceUnit.MM));
+        telemetry.addData("     Odo Heading", driveCmds.getOdo().getHeading(AngleUnit.DEGREES));
+        telemetry.addLine();
+        telemetry.addData("     Follower X", follower.getPose().getX());
+        telemetry.addData("     Follower Y", follower.getPose().getX());
+        telemetry.addData("     Follower Heading", follower.getPose().getHeading());
 
         telemetry.update();
     }
@@ -207,8 +226,8 @@ public class DriveMeet2 extends CommandOpMode
         }
         if (alliance == AllianceColor.RED) {
             follower.setTeleOpDrive(
-                    -gamepad1.left_stick_x,
-                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    -gamepad1.left_stick_y,
                     -gamepad1.right_stick_x,
                     !odoDrive
             );
@@ -228,7 +247,13 @@ public class DriveMeet2 extends CommandOpMode
         //Gamepad One
         if (gamepad1.backWasPressed()) {turretCmds.zero(); indexerCmds.new zero().initialize();}
         if (gamepad1.startWasPressed() && !gamepad1.a) odoDrive = !odoDrive;
-        if (gamepad1.yWasPressed()) autoAim = !autoAim;
+        if (gamepad1.aWasPressed() && !gamepad1.start) autoAim = !autoAim;
+        if (gamepad1.yWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN};
+        if (gamepad1.xWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.GREEN};
+        if (gamepad1.bWasPressed())
+            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE};
 
         //Gamepad Two
         if (gamepad2.dpadLeftWasPressed()) turretCmds.upOffset();
@@ -237,38 +262,44 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad2.dpadDownWasPressed()) turretCmds.launchAngleDown();
 
 
+        //General Telemetry
         telemetry.addLine("General Information");
-        telemetry.addData(" Alliance", alliance);
-        telemetry.addData(" Use Odometry Drive", odoDrive);
-        telemetry.addData(" Use Auto Aim", autoAim);
+        telemetry.addData("     Alliance", alliance);
+        telemetry.addData("     Use Odometry Drive", odoDrive);
+        telemetry.addData("     Use Auto Aim", autoAim);
+        telemetry.addData("     Motif", motifTranslated[0] + ", " + motifTranslated[1] + ", " +  motifTranslated[2]);
+        telemetry.addLine("     Y = PPG, X = GPP, B = PGP");
         telemetry.addLine();
 
         telemetry.addLine("Indexer Data");
-        telemetry.addData(" Current Position", indexerCmds.getPos());
-        telemetry.addData(" Target", indexerCmds.getTarget());
+        telemetry.addData("     Current Position", indexerCmds.getPos());
+        telemetry.addData("     Target", indexerCmds.getTarget());
         telemetry.addLine();
-        telemetry.addData(" Active Slot", indexerCmds.getSlot(Slot.FIRST));
-        telemetry.addData(" Top Left", indexerCmds.getSlot(Slot.THIRD));
-        telemetry.addData(" Top Right", indexerCmds.getSlot(Slot.SECOND));
+        telemetry.addData("     Active Slot", indexerCmds.getSlot(Slot.FIRST));
+        telemetry.addData("     Top Left", indexerCmds.getSlot(Slot.THIRD));
+        telemetry.addData("     Top Right", indexerCmds.getSlot(Slot.SECOND));
         telemetry.addLine();
-        telemetry.addData(" Indexer P", ConstantsServo.kP);
-        telemetry.addData(" Indexer I", ConstantsServo.kI);
-        telemetry.addData(" Indexer D", ConstantsServo.kD);
+        telemetry.addData("     Indexer P", ConstantsServo.kP);
+        telemetry.addData("     Indexer I", ConstantsServo.kI);
+        telemetry.addData("     Indexer D", ConstantsServo.kD);
         telemetry.addLine();
 
         telemetry.addLine("Turret Data");
-        telemetry.addData(" Current Position", turretCmds.getPos());
-        telemetry.addData(" Target", turretCmds.getTarget());
-        telemetry.addData(" Offset", turretCmds.getOffset());
+        telemetry.addData("     Current Position", turretCmds.getPos());
+        telemetry.addData("     Target", turretCmds.getTarget());
+        telemetry.addData("     Offset", turretCmds.getOffset());
         telemetry.addLine();
-        telemetry.addData(" Launch Angle", turretCmds.getLaunchAngle());
+        telemetry.addData("     Launch Angle", turretCmds.getLaunchAngle());
         telemetry.addLine();
-
 
         telemetry.addLine("Odometry Data");
-        telemetry.addData(" Odo X", driveCmds.getOdo().getPosX(DistanceUnit.MM));
-        telemetry.addData(" Odo Y", driveCmds.getOdo().getPosY(DistanceUnit.MM));
-        telemetry.addData(" Heading", driveCmds.getOdo().getHeading(AngleUnit.DEGREES));
+        telemetry.addData("     Odo X", driveCmds.getOdo().getPosX(DistanceUnit.MM));
+        telemetry.addData("     Odo Y", driveCmds.getOdo().getPosY(DistanceUnit.MM));
+        telemetry.addData("     Odo Heading", driveCmds.getOdo().getHeading(AngleUnit.DEGREES));
+        telemetry.addLine();
+        telemetry.addData("     Follower X", follower.getPose().getX());
+        telemetry.addData("     Follower Y", follower.getPose().getX());
+        telemetry.addData("     Follower Heading", follower.getPose().getHeading());
 
         telemetry.update();
     }
