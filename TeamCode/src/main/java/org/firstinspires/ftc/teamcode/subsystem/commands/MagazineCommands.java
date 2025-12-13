@@ -68,18 +68,7 @@ public class MagazineCommands {
         int targetWorldTicks = target;
 
         double output = pid.calculate(currentWorldTicks, targetWorldTicks);
-        int sign;
-        if (output > 0)
-        {
-            sign = 1;
-        }
-        else
-        {
-            sign = -1;
-            output *= -1;
-        }
-        output = Math.sqrt(output);
-        output *= sign;
+        output = Math.signum(output) * Math.sqrt(Math.abs(output));
 
         indexer.setPower(Range.clip(output, -1.0, 1.0));
     }

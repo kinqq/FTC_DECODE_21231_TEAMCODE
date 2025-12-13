@@ -194,6 +194,7 @@ public class DriveMeet2 extends CommandOpMode
     }
 
     private boolean started = false;
+
     @Override
     public void run() {
         //Run On Start Only
@@ -219,7 +220,7 @@ public class DriveMeet2 extends CommandOpMode
         if (alliance == AllianceColor.BLUE) {
             follower.setTeleOpDrive(
                     gamepad1.left_stick_x,
-                    gamepad1.left_stick_y,
+                    -gamepad1.left_stick_y,
                     -gamepad1.right_stick_x,
                     !odoDrive
             );

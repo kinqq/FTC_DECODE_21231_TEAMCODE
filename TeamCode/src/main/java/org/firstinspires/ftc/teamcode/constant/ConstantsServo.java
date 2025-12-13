@@ -10,4 +10,5 @@ public class ConstantsServo {
     public static double kP = 0.0001;
     public static double kI = 0.005;
     public static double kD = 0.000006;
+    public static double targetDeg = 0; // for testing
 }
