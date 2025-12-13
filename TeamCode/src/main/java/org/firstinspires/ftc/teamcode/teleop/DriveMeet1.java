@@ -130,7 +130,7 @@ public class DriveMeet1 extends CommandOpMode {
         // start()
         if (!started) {
             turretCmds.setLaunchAngle(launchAngleDeg).execute();
-            indexerCmds.indexer.setPosition(SLOT1_HOLD);
+//            indexerCmds.indexer.setPosition(SLOT1_HOLD);
             indexerCmds.hammer.setPosition(HAMMER_REST);
             intakePower = 1.0;
             follower.startTeleopDrive();

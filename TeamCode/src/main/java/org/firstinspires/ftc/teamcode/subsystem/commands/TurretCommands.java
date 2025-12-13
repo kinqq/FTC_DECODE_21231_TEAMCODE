@@ -45,8 +45,6 @@ public class TurretCommands {
         targetTurretDeg = getAngleDeg();
     }
 
-    // --- 내부 계산 함수들 ---
-
     private double getMotorAngleDeg() {
         return turretMotor.getCurrentPosition() * (360.0 / TICKS_PER_REV);
     }
@@ -59,7 +57,7 @@ public class TurretCommands {
         return targetTurretDeg - getAngleDeg();
     }
 
-    /** targetTurretDeg / offset을 이용해 모터 RUN_TO_POSITION 세팅 */
+
     private void updateMotorTarget() {
         double turretDeg = Range.clip(targetTurretDeg + offset, -90, 135);
 
@@ -70,8 +68,6 @@ public class TurretCommands {
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(TURRET_POWER);
     }
-
-    // --- 퍼블릭 API ---
 
     public void setTargetDeg(double turretDeg) {
         targetTurretDeg = turretDeg;
@@ -93,7 +89,8 @@ public class TurretCommands {
 
     public void setLaunchAngleDeg(double angleDeg) {
         angle = Range.clip(angleDeg, 15, 60);
-        double pos = -0.0025581395 * angle + 0.968372093;
+
+        double pos = -0.0086666667 * angle + 0.87;
         launchAngle.setPosition(Range.clip(pos, 0.0, 1.0));
     }
 
@@ -103,7 +100,7 @@ public class TurretCommands {
         launchMotor.setVelocity(velocity);
     }
     public void activateLauncherRaw() {
-        activateLauncherRaw(1900);
+        activateLauncherRaw(1800);
     }
 
     public void deactivateLauncherRaw() {
@@ -122,7 +119,6 @@ public class TurretCommands {
 
     // --- Commands ---
 
-    /** 특정 각도로 이동시키는 Command: execute 첫 루프에서만 setTargetDeg 적용 */
     public class SetTarget extends CommandBase {
         private final double targetDeg;
         private boolean started = false;
@@ -156,7 +152,7 @@ public class TurretCommands {
     }
     public CommandBase setTarget(double targetDeg) { return new SetTarget(targetDeg); }
 
-    /** 현재 target에서 상대적으로 이동 (execute 첫 루프에서만 adjust) */
+
     public class AdjustTarget extends CommandBase {
         private final double deltaDeg;
         private boolean started = false;
@@ -230,7 +226,7 @@ public class TurretCommands {
         @Override
         public void execute() {
             if (!started) {
-                activateLauncherRaw(1900 * power);
+                activateLauncherRaw(1800 * power);
                 timer.reset();
                 started = true;
             }
@@ -238,8 +234,7 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            //if (!started) return false;
-            return launchMotor.getVelocity() > 1800 * power - 40 || timer.seconds() > 3.0;
+            return Math.abs(launchMotor.getVelocity() - 1800 * power) < 40 || timer.seconds() > 3.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

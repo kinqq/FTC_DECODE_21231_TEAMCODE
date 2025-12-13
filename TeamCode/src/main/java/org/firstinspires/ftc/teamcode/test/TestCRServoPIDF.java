@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.test;
 import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kP;
 import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kI;
 import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.kD;
+import static org.firstinspires.ftc.teamcode.constant.ConstantsServo.targetDeg;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
@@ -21,7 +22,7 @@ public class TestCRServoPIDF extends OpMode {
     public static String servoName = "turntable";
     public static String encoderName = "encoderDigital";
 
-    public static double TICKS_PER_REV = 16000.0;
+    public static double TICKS_PER_REV = 4000.0;
 
     public static double stepLarge = 180;
     public static double stepMed   = 45.0;
@@ -30,8 +31,6 @@ public class TestCRServoPIDF extends OpMode {
     private CRServo crServo;
     private DcMotorEx encoder;
     private PIDController pid;
-
-    public static double targetDeg = 0.0;
     private double lastCmd = 0.0;
 
     @Override
@@ -85,7 +84,7 @@ public class TestCRServoPIDF extends OpMode {
         double pidOut = pid.calculate(getEncoderTicks(), targetTicks);
 
         lastCmd = Range.clip(pidOut, -1.0, 1.0);
-        crServo.setPower(Math.copySign(Math.sqrt(Math.abs(lastCmd)), lastCmd));
+        crServo.setPower(Math.signum(lastCmd) * Math.sqrt(Math.abs(lastCmd)));
 
         telemetry.addData("kP/kI/kD", "%.4f / %.4f / %.4f", kP, kI, kD);
         telemetry.addData("Target", "%.2f ticks", targetTicks);

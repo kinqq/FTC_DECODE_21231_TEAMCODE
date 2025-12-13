@@ -26,7 +26,7 @@ public class Constants {
         .forwardZeroPowerAcceleration(-52.31008506587686)
         .lateralZeroPowerAcceleration(-86.6952747252473)
         .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.02, 0.03))
-        .headingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.2, 0.03))
+        .headingPIDFCoefficients(new PIDFCoefficients(2, 0, 0.2, 0.03))
         .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.005, 0.8, 0.03))
         .centripetalScaling(0.0008);
 
@@ -42,7 +42,7 @@ public class Constants {
         .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
         .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
         .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-        .xVelocity(72.64601339505414)
+        .xVelocity(74.07514533095473)
         .yVelocity(52.427703136534205)
         .useBrakeModeInTeleOp(true);
 
