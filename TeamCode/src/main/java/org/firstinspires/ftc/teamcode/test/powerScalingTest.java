@@ -15,12 +15,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class powerScalingTest extends OpMode
 {
    public DcMotorEx motor;
+   public DcMotorEx motor1;
    double motorPower = 0;
 
     @Override
     public void init()
     {
-        motor = hardwareMap.get(DcMotorEx.class, "LA");
+        motor = hardwareMap.get(DcMotorEx.class, "launcher");
+        motor1 = hardwareMap.get(DcMotorEx.class, "launcher1");
+
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void loop()
@@ -35,10 +39,10 @@ public class powerScalingTest extends OpMode
         if (gamepad1.leftBumperWasPressed()) motorPower -= 0.1;
 
         motor.setPower(motorPower);
-        telemetry.addData("Motor Power (Variable)", motorPower);
-        telemetry.addData("Motor Power (Real)", motor.getVelocity());
-        telemetry.addData("TEST", Math.pow(motorPower, 1.434403) - 0.1);
-        telemetry.addData("TEST1", motor.getVelocity() / 1960 < Math.pow(motorPower, 1.434403) - 0.1);
+        motor1.setPower(motorPower);
+
+        telemetry.addData("Motor Power:", motorPower);
+        telemetry.addData("Motor V", motor1.getVelocity());
         telemetry.update();
 
     }

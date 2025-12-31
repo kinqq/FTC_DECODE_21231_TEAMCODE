@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -13,41 +14,43 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import dev.nextftc.core.commands.Command;
 
 public class DriveCommands {
-    public static GoBildaPinpointDriver odo; //Odo pod
+   // public static GoBildaPinpointDriver odo; //Odo pod
 
-    public static DcMotor frontLeftDrive; //Front left driving motor
-    public static DcMotor backLeftDrive; //Back left driving motor
-    public static DcMotor frontRightDrive; //Front right driving motor
-    public static DcMotor backRightDrive;
-    public static DcMotorEx intake; //Intake motor
+    public DcMotorEx frontLeftDrive; //Front left driving motor
+    public DcMotorEx backLeftDrive; //Back left driving motor
+    public DcMotorEx frontRightDrive; //Front right driving motor
+    public DcMotorEx backRightDrive;
+    public DcMotorEx intake; //Intake motor
 
 
 
     public DriveCommands(HardwareMap hwMap) {
-        frontLeftDrive = hwMap.get(DcMotor.class, "leftFront"); //Init frontLeftDrive
-        frontRightDrive = hwMap.get(DcMotor.class, "rightFront"); //Init frontRightDrive
-        backLeftDrive = hwMap.get(DcMotor.class, "leftBack"); //Init backLeftDrive
-        backRightDrive = hwMap.get(DcMotor.class, "rightBack"); //Init backRightDrive
+        frontLeftDrive = hwMap.get(DcMotorEx.class, "leftFront"); //Init frontLeftDrive
+        frontRightDrive = hwMap.get(DcMotorEx.class, "rightFront"); //Init frontRightDrive
+        backLeftDrive = hwMap.get(DcMotorEx.class, "leftBack"); //Init backLeftDrive
+        backRightDrive = hwMap.get(DcMotorEx.class, "rightBack"); //Init backRightDrive
         intake = hwMap.get(DcMotorEx.class, "intake"); //Init intake
 
-        odo = hwMap.get(GoBildaPinpointDriver.class, "odo"); //Init odometry
+        //odo = hwMap.get(GoBildaPinpointDriver.class, "odo"); //Init odometry
+
 
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
+
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         //Initialization for odometry
-        odo.setOffsets(-48, -182.5, DistanceUnit.MM);
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.REVERSED
-        );
-        odo.resetPosAndIMU();
+//        odo.setOffsets(-48, -182.5, DistanceUnit.MM);
+//        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+//        odo.setEncoderDirections(
+//                GoBildaPinpointDriver.EncoderDirection.REVERSED,
+//                GoBildaPinpointDriver.EncoderDirection.REVERSED
+//        );
+//        odo.resetPosAndIMU();
 
         frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
@@ -98,28 +101,28 @@ public class DriveCommands {
         backLeftDrive.setPower(backLeftPower);
         backRightDrive.setPower(backRightPower);
 
-        odo.update();
+//        odo.update();
     }
 
     //Basic drive script using odometry for field centric drive
     public void odoDrive(double x, double y, double rx)
     {
-        odo.update();
-        double heading = -odo.getHeading(AngleUnit.RADIANS);
+//        odo.update();
+//        double heading = -odo.getHeading(AngleUnit.RADIANS);
 
-        double xSpeed = x * Math.cos(heading) - y * Math.sin(heading);
-        double ySpeed = x * Math.sin(heading) + y * Math.cos(heading);
+//        double xSpeed = x * Math.cos(heading) - y * Math.sin(heading);
+//        double ySpeed = x * Math.sin(heading) + y * Math.cos(heading);
 
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        double frontLeftPower = (ySpeed + xSpeed + rx) / denominator;
-        double backLeftPower = (ySpeed - xSpeed + rx) / denominator;
-        double frontRightPower = (ySpeed - xSpeed - rx) / denominator;
-        double backRightPower = (ySpeed + xSpeed - rx) / denominator;
+//        double frontLeftPower = (ySpeed + xSpeed + rx) / denominator;
+//        double backLeftPower = (ySpeed - xSpeed + rx) / denominator;
+//        double frontRightPower = (ySpeed - xSpeed - rx) / denominator;
+//        double backRightPower = (ySpeed + xSpeed - rx) / denominator;
 
-        frontLeftDrive.setPower(frontLeftPower);
-        backLeftDrive.setPower(backLeftPower);
-        frontRightDrive.setPower(frontRightPower);
-        backRightDrive.setPower(backRightPower);
+//        frontLeftDrive.setPower(frontLeftPower);
+//        backLeftDrive.setPower(backLeftPower);
+//        frontRightDrive.setPower(frontRightPower);
+//        backRightDrive.setPower(backRightPower);
     }
 
     public class intakeOff extends CommandBase
@@ -136,6 +139,7 @@ public class DriveCommands {
     {
         @Override
         public void initialize(){
+            intake.setDirection(DcMotorSimple.Direction.REVERSE);
             intake.setPower(1);
         }
 
@@ -152,13 +156,13 @@ public class DriveCommands {
         public boolean isFinished() {return true;}
     }
 
-    public GoBildaPinpointDriver getOdo() {
-        return odo;
-    }
+//    public GoBildaPinpointDriver getOdo() {
+//        return odo;
+//    }
 
-    public void setOdo(double x, double y) {
-        odo.setPosX(x, DistanceUnit.MM);
-        odo.setPosY(y, DistanceUnit.MM);
-    }
+//    public void setOdo(double x, double y) {
+//        odo.setPosX(x, DistanceUnit.MM);
+//        odo.setPosY(y, DistanceUnit.MM);
+//    }
 
 }

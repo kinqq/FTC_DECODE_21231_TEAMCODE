@@ -122,7 +122,7 @@ public class Paths {
             .build();
 
         Pose p8s = new Pose(92.000, 61.000);
-        Pose p8e = new Pose(104.000, 61.000);
+        Pose p8e = new Pose(102.000, 61.000);
         if (!red) { p8s = mirrorPoseX(p8s); p8e = mirrorPoseX(p8e); }
         Path8 = follower
             .pathBuilder()
@@ -130,8 +130,8 @@ public class Paths {
             .setTangentHeadingInterpolation()
             .build();
 
-        Pose p9s = new Pose(104.000, 61.000);
-        Pose p9e = new Pose(110.000, 61.000);
+        Pose p9s = new Pose(102.000, 61.000);
+        Pose p9e = new Pose(107.000, 61.000);
         if (!red) { p9s = mirrorPoseX(p9s); p9e = mirrorPoseX(p9e); }
         Path9 = follower
             .pathBuilder()
@@ -139,8 +139,8 @@ public class Paths {
             .setTangentHeadingInterpolation()
             .build();
 
-        Pose p10s = new Pose(110.000, 61.000);
-        Pose p10e = new Pose(120, 61.000);
+        Pose p10s = new Pose(107.000, 61.000);
+        Pose p10e = new Pose(126, 61.000);
         if (!red) { p10s = mirrorPoseX(p10s); p10e = mirrorPoseX(p10e); }
         Path10 = follower
             .pathBuilder()
@@ -150,7 +150,7 @@ public class Paths {
 
         SecondRowBall1 = new Pose(108, 61);
         SecondRowBall2 = new Pose(112, 61);
-        SecondRowBall3 = new Pose(120, 61);
+        SecondRowBall3 = new Pose(126, 61);
 
         SecondRowIntakePath = follower
             .pathBuilder()
@@ -160,7 +160,7 @@ public class Paths {
             .setTangentHeadingInterpolation()
             .build();
 
-        Pose p11a = new Pose(120.000, 61.000);
+        Pose p11a = new Pose(126.000, 61.000);
         Pose p11b = new Pose(92.000, 61.000);
         Pose p11c = new Pose(94.000, 92.000);
         if (!red) { p11a = mirrorPoseX(p11a); p11b = mirrorPoseX(p11b); p11c = mirrorPoseX(p11c); }

@@ -10,16 +10,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class colorSensor
 {
     public static RevColorSensorV3 bob; //Intake Slot color sensor
-    public static RevColorSensorV3 gary; //Top Left color sensor
-    public static RevColorSensorV3 joe; //Top right color sensor
 
     //Initialize the color sensors
     public static void init(HardwareMap hwMap)
     {
         bob = hwMap.get(RevColorSensorV3.class, "color"); //Set bob to "bob"
-        gary = hwMap.get(RevColorSensorV3.class, "gary"); //Set gary to "gary"
-        joe = hwMap.get(RevColorSensorV3.class, "joe"); //Set joe to "joe"
-
        // bob.setGain(500); //Set the gain of bob to 500 for more accurate testing
     }
 
@@ -50,7 +45,7 @@ public class colorSensor
 
          if (bob_gary_joe == 0) {
             if (H < 160 && H > 148 && S > 0.49 && S < 0.7) return 1;
-            else if (H > 170 && H < 240 && S > 0.23 && S < 0.35) return 2;
+            else if (H > 160 && H < 193 && S > 0.35 && S < 0.45) return 2;
             else return 0;
          } else if (bob_gary_joe == 1) {
              if (H < 169 && H > 148 && S > 0.53 && S < 0.77) return 1;

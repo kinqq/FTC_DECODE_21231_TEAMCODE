@@ -14,17 +14,11 @@ import org.firstinspires.ftc.teamcode.Subsystems.Old.colorSensor;
 public class colorTest extends LinearOpMode
 {
     private RevColorSensorV3 bob = null;
-    private RevColorSensorV3 gary = null;
-    private RevColorSensorV3 joe = null;
-
-    private Servo servo = null;
 
     @Override
     public void runOpMode() {
         colorSensor.init(hardwareMap);
         bob = hardwareMap.get(RevColorSensorV3.class, "color");
-        gary = hardwareMap.get(RevColorSensorV3.class, "gary");
-        joe = hardwareMap.get(RevColorSensorV3.class, "joe");
 
         double peakD = -1000;
         double lowD = 1000;
@@ -53,34 +47,6 @@ public class colorTest extends LinearOpMode
                 monitoringIndex = 0;
                 peakD = -10000;
                 lowD = 10000;
-                peakH = -10000;
-                lowH = 10000;
-                peakS = -10000;
-                lowS = 10000;
-                peakV = -10000;
-                lowV = 10000;
-            }
-            if (gamepad1.yWasPressed())
-            {
-                color = gary;
-                monitoring = "GARY";
-                monitoringIndex = 1;
-                peakD = -1000;
-                lowD = 1000;
-                peakH = -10000;
-                lowH = 10000;
-                peakS = -10000;
-                lowS = 10000;
-                peakV = -10000;
-                lowV = 10000;
-            }
-            if (gamepad1.bWasPressed())
-            {
-                color = joe;
-                monitoring = "JOE";
-                monitoringIndex = 2;
-                peakD = -1000;
-                lowD = 1000;
                 peakH = -10000;
                 lowH = 10000;
                 peakS = -10000;

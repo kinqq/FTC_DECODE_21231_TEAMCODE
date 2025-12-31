@@ -29,6 +29,7 @@ public class TurretSubsystem
     private GoBildaPinpointDriver odo;
     private ServoImplEx launchAngle;
     private DcMotorEx launcher;
+    private DcMotorEx launcher1;
 
     private DcMotorEx encoder;
 
@@ -46,8 +47,12 @@ public class TurretSubsystem
         odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
         launcher = hwMap.get(DcMotorEx.class, "launcher");
+        launcher1 = hwMap.get(DcMotorEx.class, "launcher1");
 
-        launcher.setDirection(DcMotorSimple.Direction.REVERSE);
+        launcher.setDirection(DcMotorSimple.Direction.FORWARD);
+        launcher1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
         launchAngle.setDirection(Servo.Direction.REVERSE);
         launchAngle.scaleRange(0, .62);
 
@@ -80,7 +85,7 @@ public class TurretSubsystem
         deg -= odo.getHeading(AngleUnit.DEGREES);
         deg = Range.clip(deg, -115, 215);
         double target = deg;
-        ;//Range.clip(deg - 10, -235, 85);
+        Range.clip(deg - 10, -235, 85);
         target = target * 5.6111111111;
         int fTarget = (int) Math.round(target * 537.7 / 360.0);
 
@@ -93,13 +98,14 @@ public class TurretSubsystem
 
     public void zero() {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        odo.resetPosAndIMU();
     }
 
     public void setLaunchAngle(double angle) {
         this.angle = angle;
     }
-    public void launchAngleUp() {angle += 0.05;}
-    public void launchAngleDown() {angle -= 0.05;}
+    public void launchAngleUp() {angle += 0.01;}
+    public void launchAngleDown() {angle -= 0.01;}
 
     public double getLaunchAngle() {
         return angle;
@@ -127,6 +133,14 @@ public class TurretSubsystem
         return offset;
     }
 
+    public double getVel() {
+        return launcher1.getVelocity();
+    }
+
+    public double getExpectedVel() {
+        return vel;
+    }
+
     public class spinUp extends CommandBase {
         ElapsedTime timer = new ElapsedTime();
 
@@ -135,7 +149,8 @@ public class TurretSubsystem
         @Override
         public void initialize() {
             launcher.setPower(1);
-            launcher.setVelocity(vel);
+            launcher1.setPower(1);
+            launcher1.setVelocity(vel);
         }
 
         public boolean isFinished() {return motorToSpeed() || timer.seconds() > 5;}
@@ -147,6 +162,7 @@ public class TurretSubsystem
         @Override
         public void initialize() {
             launcher.setPower(0);
+            launcher1.setPower(0);
         }
 
         @Override
@@ -154,6 +170,6 @@ public class TurretSubsystem
     }
 
     public boolean motorToSpeed() {
-        return launcher.getVelocity() <= vel + 250 && launcher.getVelocity() >= vel - 50;
+        return Math.abs(-launcher.getVelocity() - vel) < 100;
     }
 }
