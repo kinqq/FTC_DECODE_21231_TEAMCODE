@@ -4,25 +4,17 @@ import android.graphics.Color;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
-import com.seattlesolvers.solverslib.hardware.motors.Motor;
-
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.*;
 
-import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -40,7 +32,6 @@ public class MagazineCommands {
 
     private double servoPos = 0;
     private int target = 0;
-    private double intakePower = 0;
 
     private Slot activeSlot = Slot.FIRST;
     private final Map<Slot, DetectedColor> slotColors = new EnumMap<>(Slot.class);
@@ -86,15 +77,8 @@ public class MagazineCommands {
         indexer1.setPosition(servoPos);
     }
 
-    public boolean updateDone(boolean keep) {
-        if (keep && Math.abs(target - encoder.getCurrentPosition()) < 150)
-        {
-            new hammerDown().initialize();
-            intake.setDirection(DcMotorSimple.Direction.REVERSE);
-            intake.setPower(1);
-        }
+    public boolean updateDone() {
         return Math.abs(target - encoder.getCurrentPosition()) < 150;
-
     }
 
     public class zero extends CommandBase{
@@ -143,21 +127,11 @@ public class MagazineCommands {
 
     public class setSlot extends CommandBase
     {
-        ElapsedTime timer = new ElapsedTime();
-        boolean time = false;
         Slot slot;
-        boolean keep;
-
-        public setSlot(Slot slot, boolean keep) {
-            this.slot = slot;
-            this.keep = keep;
-        }
 
         public setSlot(Slot slot) {
             this.slot = slot;
-            keep = false;
         }
-
 
         public void initialize() {
             double newPos = 0;
@@ -175,28 +149,12 @@ public class MagazineCommands {
                    update();
                     break;
             }
-            if (keep && newPos != servoPos)
-            {
-                new setHammer(0.48).initialize();
-                intakePower = intake.getPower();
-                intake.setDirection(DcMotorSimple.Direction.FORWARD);
-                intake.setPower(1);
-                time = true;
-            }
             servoPos = newPos;
-            timer.reset();
-        }
-
-        @Override
-        public void execute() {
-           if (time && timer.seconds() > 0.01) {
-               new setHammer(0.49).initialize();
-           }
         }
 
         @Override
         public boolean isFinished() {
-            return updateDone(keep);// && zero && timer.seconds() > 0.5) || timer.seconds() > 2;
+            return updateDone();
         }
     }
 
@@ -232,7 +190,7 @@ public class MagazineCommands {
         }
 
         public boolean isFinished() {
-            return updateDone(true);
+            return updateDone();
         }
 
     }
@@ -241,29 +199,8 @@ public class MagazineCommands {
         slotColors.replace(Slot.FIRST, override);
     }
 
-    public class setHammer extends CommandBase {
-        private ElapsedTime timer = new ElapsedTime();
-
-        double pos;
-
-        public setHammer(double pos) {
-            this.pos = pos;
-        }
-
-        @Override
-        public void initialize() {
-            hammer.setPosition(pos);
-            timer.reset();
-        }
-
-        @Override
-        public boolean isFinished() {
-            return timer.seconds() > 0.1;
-        }
-    }
-
     public class hammerUp extends CommandBase {
-        private ElapsedTime timer = new ElapsedTime();
+        private final ElapsedTime timer = new ElapsedTime();
 
         @Override
         public void initialize() {
@@ -278,7 +215,7 @@ public class MagazineCommands {
     }
 
     public class hammerDown extends CommandBase {
-        private ElapsedTime timer = new ElapsedTime();
+        private final ElapsedTime timer = new ElapsedTime();
 
         @Override
         public void initialize() {
@@ -319,8 +256,9 @@ public class MagazineCommands {
         boolean newBall = false;
 
         public index(int sensor) {
-            switch (sensor) {
-                case 1: color = bob; bob_gary_joe = 0; break;
+            if (sensor == 1) {
+                color = bob;
+                bob_gary_joe = 0;
             }
         }
 
@@ -378,7 +316,7 @@ public class MagazineCommands {
         }
 
         private float clamp01(float v) {
-            return v < 0f ? 0f : (v > 1f ? 1f : v);
+            return v < 0f ? 0f : (Math.min(v, 1f));
         }
     }
 

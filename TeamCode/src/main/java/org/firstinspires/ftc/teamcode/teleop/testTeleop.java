@@ -20,16 +20,15 @@ public class testTeleop extends OpMode
     private DcMotorEx motor3;
     private DcMotorEx motor4;
 
-    private MagazineCommands indexer;
-
     private int player = 0;
     private boolean eStop = false;
     private ElapsedTime eStopTimer = new ElapsedTime();
 
+    private ElapsedTime timer;
+    private boolean timing;
+
     @Override
     public void init() {
-        indexer = new MagazineCommands(hardwareMap);
-
         motor1 = hardwareMap.get(DcMotorEx.class, "leftFront");
         motor2 = hardwareMap.get(DcMotorEx.class, "leftBack");
         motor3 = hardwareMap.get(DcMotorEx.class, "rightFront");
@@ -37,9 +36,6 @@ public class testTeleop extends OpMode
 
         motor1.setDirection(DcMotorSimple.Direction.REVERSE);
         motor4.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        indexer.new zero(true);
-        indexer.new nextSlot();
 
         motor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -49,10 +45,11 @@ public class testTeleop extends OpMode
         eStopTimer.reset();
 
         telemetry.addLine("ROBOT READY");
+
+        timer.reset();
     }
 
     public void loop() {
-
        if (player == 1 && !eStop) {
            double x = gamepad1.left_stick_x;
            double y = -gamepad1.left_stick_y;
@@ -74,6 +71,11 @@ public class testTeleop extends OpMode
                backLeftPower /= max;
                backRightPower /= max;
            }
+
+           frontLeftPower *= 0.5;
+           frontRightPower *= 0.5;
+           backLeftPower *= 0.5;
+           backRightPower *= 0.5;
 
            motor1.setPower(frontLeftPower);
            motor3.setPower(frontRightPower);
@@ -113,7 +115,7 @@ public class testTeleop extends OpMode
            motor3.setPower(0);
            motor4.setPower(0);
        }
-       else if (eStop && eStopTimer.seconds() > 0.1)
+       else if (eStop && eStopTimer.seconds() > 0.25)
        {
            motor1.setDirection(DcMotorSimple.Direction.REVERSE);
            motor2.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -123,6 +125,7 @@ public class testTeleop extends OpMode
            motor3.setPower(0);
            motor2.setPower(0);
            motor4.setPower(0);
+           eStop = false;
        }
 
         if (gamepad2.aWasPressed())
@@ -134,14 +137,26 @@ public class testTeleop extends OpMode
         {
             eStop = true;
             player = 0;
-            motor1.setDirection(DcMotorSimple.Direction.FORWARD);
-            motor2.setDirection(DcMotorSimple.Direction.REVERSE);
-            motor3.setDirection(DcMotorSimple.Direction.REVERSE);
-            motor4.setDirection(DcMotorSimple.Direction.FORWARD);
-            motor1.setPower(1);
-            motor3.setPower(1);
-            motor2.setPower(1);
-            motor4.setPower(1);
+
+            int fLS = -1;
+            int fRS = -1;
+            int bLS = -1;
+            int bRS = -1;
+
+            double frontLeftPower = motor1.getPower();
+            double frontRightPower = motor2.getPower();
+            double backLeftPower = motor3.getPower();
+            double backRightPower = motor4.getPower();
+
+            if (frontLeftPower < 0) fLS = 1;
+            if (frontRightPower < 0) fRS = 1;
+            if (backLeftPower < 0) bLS = 1;
+            if (backRightPower < 0) bRS = 1;
+
+            motor1.setPower(fLS);
+            motor3.setPower(fRS);
+            motor2.setPower(bLS);
+            motor4.setPower(bRS);
             eStopTimer.reset();
         }
         if (gamepad2.startWasPressed()) terminateOpModeNow();
