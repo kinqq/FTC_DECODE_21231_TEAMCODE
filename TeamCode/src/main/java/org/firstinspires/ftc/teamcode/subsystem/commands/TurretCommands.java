@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -15,6 +16,7 @@ public class TurretCommands {
 
     public final DcMotorEx turretMotor;
     public final DcMotorEx launchMotor;
+    public final DcMotorEx launchMotor1;
     private final ServoImplEx launchAngle;
 
     private static final double MOTOR_TO_TURRET_GEAR_RATIO = 5.6111111111;
@@ -29,18 +31,23 @@ public class TurretCommands {
     public TurretCommands(HardwareMap hwMap) {
         turretMotor = hwMap.get(DcMotorEx.class, "turret");
         launchMotor = hwMap.get(DcMotorEx.class, "launcher");
+        launchMotor1 = hwMap.get(DcMotorEx.class, "launcher1");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
 
         launchAngle.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        launchAngle.setDirection(Servo.Direction.REVERSE);
 
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setPower(0);
 
-        launchMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        launchMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        launchMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setPower(0);
+        launchMotor1.setPower(0);
 
         targetTurretDeg = getAngleDeg();
     }
@@ -90,14 +97,17 @@ public class TurretCommands {
     public void setLaunchAngleDeg(double angleDeg) {
         angle = Range.clip(angleDeg, 15, 60);
 
-        double pos = -0.0086666667 * angle + 0.87;
+        double pos = angleDeg;
         launchAngle.setPosition(Range.clip(pos, 0.0, 1.0));
     }
 
     public void activateLauncherRaw(double velocity) {
-        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setPower(1.0);
+        launchMotor1.setPower(1);
         launchMotor.setVelocity(velocity);
+        launchMotor1.setVelocity(velocity);
+
     }
     public void activateLauncherRaw() {
         activateLauncherRaw(1800);
@@ -105,7 +115,10 @@ public class TurretCommands {
 
     public void deactivateLauncherRaw() {
         launchMotor.setPower(0.0);
+        launchMotor1.setPower(0);
         launchMotor.setVelocity(0);
+        launchMotor1.setVelocity(0);
+
     }
 
     public void toggleLauncherRaw() {
@@ -234,7 +247,7 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            return Math.abs(launchMotor.getVelocity() - 1800 * power) < 40 || timer.seconds() > 3.0;
+            return launchMotor1.getVelocity() >= 1800 * power && launchMotor1.getVelocity() <= (1800 * power + 100)|| timer.seconds() > 4.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

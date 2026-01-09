@@ -91,7 +91,7 @@ public class TurretSubsystem
 
         this.target = fTarget;
 
-        motor.setTargetPosition(fTarget);
+        motor.setTargetPosition(-fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setPower(1);
     }

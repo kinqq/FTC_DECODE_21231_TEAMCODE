@@ -22,8 +22,8 @@ public class Constants {
     public static double SLOT3_SHOOT = 0.24;
 
     // ===== 해머 동작 =====
-    public static double HAMMER_REST = 0.45;
-    public static double HAMMER_FIRE = 0.67;
+    public static double HAMMER_REST = 0.65;
+    public static double HAMMER_FIRE = 0.45;
 
     // ===== 타이밍 (필요시 조정) =====
     public static double SETTLE_MS = 500; // 슈팅 위치 도달 안정화

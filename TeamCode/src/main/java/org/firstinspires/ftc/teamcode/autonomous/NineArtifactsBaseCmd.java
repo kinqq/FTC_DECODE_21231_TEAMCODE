@@ -15,7 +15,6 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
@@ -36,6 +35,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
     protected Paths paths;
 
+
     protected abstract AllianceColor getAllianceColor();
 
     protected class IntakeOn extends CommandBase {
@@ -50,13 +50,13 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         @Override public boolean isFinished() { return true; }
     }
 
-    protected Slot[] pickSlotsForMotif(DetectedColor[] motifColors) {
-        DetectedColor[] slotColors = new DetectedColor[] {
-            indexerCmds.getSlot(Slot.FIRST),
-            indexerCmds.getSlot(Slot.SECOND),
-            indexerCmds.getSlot(Slot.THIRD)
+    private Slot[] pickSlotsForMotif(DetectedColor[] motifColors) {
+        DetectedColor[] slotColors = new DetectedColor[]{
+                indexerCmds.getSlot(Slot.FIRST),
+                indexerCmds.getSlot(Slot.SECOND),
+                indexerCmds.getSlot(Slot.THIRD)
         };
-        Slot[] slotEnum = new Slot[] { Slot.FIRST, Slot.SECOND, Slot.THIRD };
+        Slot[] slotEnum = new Slot[]{Slot.FIRST, Slot.SECOND, Slot.THIRD};
 
         Slot[] result = new Slot[3];
 
@@ -67,24 +67,31 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
             for (int j = 0; j < 3; j++) {
                 if (slotColors[j] == needed) {
                     chosen = slotEnum[j];
+
                     slotColors[j] = DetectedColor.UNKNOWN;
                     break;
                 }
             }
+
             result[i] = chosen;
         }
 
         return result;
     }
 
-    protected CommandBase shoot(Slot slot, double power) {
+    protected CommandBase shoot(Slot slot) {
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
                         indexerCmds.new setSlot(slot),
-                        turretCmds.new ActivateLauncher(power)
+                        turretCmds.activateLauncher(0.93)
                 ),
                 indexerCmds.new hammerUp(),
-                indexerCmds.new clearFirst()
+                indexerCmds.new clearFirst(),
+                new CommandBase() {
+                    final ElapsedTime timer = new ElapsedTime();
+                    @Override public void initialize() {timer.reset();}
+                    @Override public boolean isFinished() {return true;}//timer.seconds() > 2;}
+                }
         );
     }
 
@@ -94,31 +101,23 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
             @Override
             public void initialize() {
-                intake.setPower(1);
-                turretCmds.activateLauncherRaw(1900);
-
                 LimelightCommands.Motif motif = llCmds.getLastDetectedMotif();
-                DetectedColor[] colors = MotifUtil.motifToColors(motif);
+                DetectedColor[] motifTranslated = MotifUtil.motifToColors(motif);
 
-                if (colors == null || colors.length < 3) {
-                    inner = new InstantCommand(() -> {});
-                    inner.initialize();
-                    return;
-                }
+                Slot[] slots = pickSlotsForMotif(motifTranslated);
 
-                Slot[] slots = pickSlotsForMotif(colors);
-
-                CommandBase c0 = (slots[0] != null) ? shoot(slots[0], power) : new InstantCommand(() -> {});
-                CommandBase c1 = (slots[1] != null) ? shoot(slots[1], power) : new InstantCommand(() -> {});
-                CommandBase c2 = (slots[2] != null) ? shoot(slots[2], power) : new InstantCommand(() -> {});
+                CommandBase c0 = (slots[0] != null) ? shoot(slots[0]) : new InstantCommand(() -> {});
+                CommandBase c1 = (slots[1] != null) ? shoot(slots[1]) : new InstantCommand(() -> {});
+                CommandBase c2 = (slots[2] != null) ? shoot(slots[2]) : new InstantCommand(() -> {});
 
                 inner = new SequentialCommandGroup(
                         c0,
                         indexerCmds.new hammerDown(),
                         c1,
                         indexerCmds.new hammerDown(),
-                        c2
-                );
+                        c2,
+                        indexerCmds.new hammerDown()
+                        );
                 inner.initialize();
             }
 
@@ -153,7 +152,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         turretCmds.zeroHere();
         indexerCmds.update();
-        indexerCmds.hammer.setPosition(HAMMER_REST);
+        indexerCmds.hammer.setPosition(0.65);
 
         llCmds.start(0);
 
@@ -171,8 +170,8 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         double volleyTurretTargetDeg;
 
         if (alliance == AllianceColor.RED) {
-            preloadTurretTargetDeg = 38;
-            volleyTurretTargetDeg = -3;
+            preloadTurretTargetDeg = -35;
+            volleyTurretTargetDeg = -53;
         } else {
             preloadTurretTargetDeg = -38;
             volleyTurretTargetDeg = 3;
@@ -180,17 +179,19 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         SequentialCommandGroup shootPreload =
             new SequentialCommandGroup(
-                new ParallelCommandGroup(
+                    new ParallelCommandGroup(
+                            llCmds.waitForAnyMotif(),
+                            new FollowPathCommand(follower, paths.Path1, true),
+                            turretCmds.activateLauncher(0.93)
+                            ),
+                    new ParallelCommandGroup(
                     indexerCmds.new SetSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(0.95),
-                    turretCmds.setLaunchAngle(40),
+                    turretCmds.setLaunchAngle(0.22),
                     turretCmds.setTarget(preloadTurretTargetDeg),
                     indexerCmds.new setSlot(Slot.SECOND),
-                    new IntakeOn(INTAKE_POWER),
-                    new FollowPathCommand(follower, paths.Path1, true)
+                    new IntakeOn(INTAKE_POWER)
                 ),
-                llCmds.waitForAnyMotif(),
-                shootMotifFromDetection(0.95)
+                shootMotifFromDetection(0.893)
             );
 
         SequentialCommandGroup intakeFirstRow =
@@ -218,8 +219,8 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
                 new ParallelCommandGroup(
                     indexerCmds.new SetSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
                     turretCmds.activateLauncher(.88),
-                    turretCmds.setLaunchAngle(40),
-                    turretCmds.setTarget(volleyTurretTargetDeg),
+                    turretCmds.setLaunchAngle(0.22),
+                    turretCmds.setTarget(preloadTurretTargetDeg),
                     new FollowPathCommand(follower, paths.Path6, true)
                 ),
                 shootMotifFromDetection(.88)
@@ -250,8 +251,8 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
                 new ParallelCommandGroup(
                     new SequentialCommandGroup(
                         turretCmds.activateLauncher(.88),
-                        turretCmds.setLaunchAngle(40),
-                        turretCmds.setTarget(volleyTurretTargetDeg)
+                        turretCmds.setLaunchAngle(0.22),
+                        turretCmds.setTarget(preloadTurretTargetDeg)
                     ),
                     new FollowPathCommand(follower, paths.Path11, true)
                 ),
@@ -292,6 +293,9 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         telemetry.addData("Indexer Target", indexerCmds.getTarget());
         telemetry.addData("Motif Detected", llCmds.getLastDetectedMotif());
         telemetry.addData("Launch Vel.", turretCmds.launchMotor.getVelocity());
+        telemetry.addData("FIRST", indexerCmds.getSlot(Slot.FIRST));
+        telemetry.addData("SECOND", indexerCmds.getSlot(Slot.SECOND));
+        telemetry.addData("THIRD", indexerCmds.getSlot(Slot.THIRD));
         telemetry.update();
     }
 

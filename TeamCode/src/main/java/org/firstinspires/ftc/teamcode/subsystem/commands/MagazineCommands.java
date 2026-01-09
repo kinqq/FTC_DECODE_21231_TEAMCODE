@@ -204,7 +204,7 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.5);
+            hammer.setPosition(0.45);
             timer.reset();
         }
 
@@ -219,7 +219,7 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.7);
+            hammer.setPosition(0.65);
             timer.reset();
         }
 
@@ -230,12 +230,12 @@ public class MagazineCommands {
     }
 
     public class SetSlotColors extends CommandBase{
-       DetectedColor FIRST, SECOND, THIRD = DetectedColor.UNKNOWN;
+       DetectedColor FIRST, SECOND, THIRD;
 
         public SetSlotColors(DetectedColor FIRST, DetectedColor SECOND, DetectedColor THIRD) {
             this.FIRST = FIRST;
-            this.SECOND = FIRST;
-            this.THIRD = FIRST;
+            this.SECOND = SECOND;
+            this.THIRD = THIRD;
         }
 
         @Override
@@ -294,25 +294,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !newBall || timer.seconds() > 0;
-        }
-
-        private int slotToNum(Slot slot) {
-            switch (slot) {
-                case FIRST: return 1;
-                case SECOND: return 2;
-                case THIRD: return 3;
-            }
-            return -1;
-        }
-
-        private Slot numToSlot(int num) {
-            switch (num) {
-                case 1: return Slot.FIRST;
-                case 2: return Slot.SECOND;
-                case 3: return Slot.THIRD;
-            }
-            return Slot.FIRST;
+            return !newBall || timer.seconds() > 0.2;
         }
 
         private float clamp01(float v) {

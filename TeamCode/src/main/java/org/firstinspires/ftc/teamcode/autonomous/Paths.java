@@ -35,7 +35,7 @@ public class Paths {
         boolean red = (allianceColor == AllianceColor.RED);
 
         Pose p1s = new Pose(116.000, 132.000);
-        Pose p1e = new Pose(92.000, 86.000);
+        Pose p1e = new Pose(85.000, 86.000);
         if (!red) { p1s = mirrorPoseX(p1s); p1e = mirrorPoseX(p1e); }
         Path1 = follower
             .pathBuilder()
@@ -46,7 +46,7 @@ public class Paths {
             )
             .build();
 
-        Pose p2s = new Pose(92.000, 86.000);
+        Pose p2s = new Pose(85.000, 86.000);
         Pose p2e = new Pose(92.000, 85.000);
         if (!red) { p2s = mirrorPoseX(p2s); p2e = mirrorPoseX(p2e); }
         Path2 = follower
@@ -98,18 +98,18 @@ public class Paths {
             .build();
 
         Pose p6s = new Pose(120.000, 85.000);
-        Pose p6e = new Pose(94.000, 92.000);
+        Pose p6e = new Pose(85.000, 86.000);
         if (!red) { p6s = mirrorPoseX(p6s); p6e = mirrorPoseX(p6e); }
         Path6 = follower
             .pathBuilder()
             .addPath(new BezierLine(p6s, p6e))
             .setLinearHeadingInterpolation(
-                red ? Math.toRadians(0)  : mirrorHeading(Math.toRadians(0)),
-                red ? Math.toRadians(45) : mirrorHeading(Math.toRadians(45))
+                    red ? Math.toRadians(0) : mirrorHeading(Math.toRadians(36)),
+                    red ? Math.toRadians(90) : mirrorHeading(Math.toRadians(90))
             )
             .build();
 
-        Pose p7s = new Pose(94.000, 92.000);
+        Pose p7s = new Pose(85.000, 86.000);
         Pose p7e = new Pose(92.000, 61.000);
         if (!red) { p7s = mirrorPoseX(p7s); p7e = mirrorPoseX(p7e); }
         Path7 = follower
@@ -162,18 +162,18 @@ public class Paths {
 
         Pose p11a = new Pose(126.000, 61.000);
         Pose p11b = new Pose(92.000, 61.000);
-        Pose p11c = new Pose(94.000, 92.000);
+        Pose p11c = new Pose(85.000, 86.000);
         if (!red) { p11a = mirrorPoseX(p11a); p11b = mirrorPoseX(p11b); p11c = mirrorPoseX(p11c); }
         Path11 = follower
             .pathBuilder()
             .addPath(new BezierCurve(p11a, p11b, p11c))
             .setLinearHeadingInterpolation(
-                red ? Math.toRadians(0)  : mirrorHeading(Math.toRadians(0)),
-                red ? Math.toRadians(45) : mirrorHeading(Math.toRadians(45))
+                    red ? Math.toRadians(36) : mirrorHeading(Math.toRadians(36)),
+                    red ? Math.toRadians(90) : mirrorHeading(Math.toRadians(90))
             )
             .build();
 
-        Pose p12s = new Pose(94.000, 92.000);
+        Pose p12s = new Pose(85.000, 86.000);
         Pose p12e = new Pose(94.000, 80.000);
         if (!red) { p12s = mirrorPoseX(p12s); p12e = mirrorPoseX(p12e); }
         Path12 = follower

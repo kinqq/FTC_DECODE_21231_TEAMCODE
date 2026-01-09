@@ -12,7 +12,6 @@ import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
-
 import org.firstinspires.ftc.teamcode.Subsystems.*;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
@@ -60,7 +59,7 @@ public class DriveMeet2 extends CommandOpMode
 
         //Follower Init
         if (GlobalState.teleOpStartPose != null) {
-            follower.setStartingPose(GlobalState.teleOpStartPose);
+            follower.setStartingPose(new Pose(GlobalState.teleOpStartPose.getPose().getX(), GlobalState.teleOpStartPose.getPose().getY(), Math.toRadians(45)));
         } else {
             follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
         }

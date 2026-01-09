@@ -24,12 +24,11 @@ public class servoTest extends LinearOpMode
 
     @Override
     public void runOpMode() {
-        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "turntable");
-        ServoImplEx servo1 = hardwareMap.get(ServoImplEx.class, "turntable1");
-        DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "leftFront");
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "launchAngle");
+        //DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "leftFront");
 
-        servo.scaleRange(0.16, 0.54);
-        servo1.scaleRange(0.53, 0.92);
+        //servo.scaleRange(0.189, 0.5);
+        servo.setDirection(Servo.Direction.REVERSE);
 
         PanelsConfigurables.INSTANCE.refreshClass(servoTest.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
@@ -38,18 +37,16 @@ public class servoTest extends LinearOpMode
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            if (gamepad1.aWasPressed()) servoPos += 0.25;
-            if (gamepad1.bWasPressed()) servoPos = 0.5;
-            if (gamepad1.yWasPressed()) servoPos = 1;
-            if (gamepad1.xWasPressed()) servoPos = 0;
-            if (gamepad1.backWasPressed()) encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (gamepad1.aWasPressed()) servoPos += 0.1;
+            if (gamepad1.bWasPressed()) servoPos -= 0.1;
+            if (gamepad1.yWasPressed()) servoPos += 0.01;
+            if (gamepad1.xWasPressed()) servoPos -= 0.01;
 
             servoPos = Range.clip(servoPos, 0, 1);
             servo.setPosition(servoPos);
-            servo1.setPosition(servoPos);
 
             telemetry.addData("POS", servoPos);
-            telemetry.addData("REAL POS", encoder.getCurrentPosition());
+            telemetry.addData("REAL POS", servo.getPosition());
             telemetry.update();
 
         }
