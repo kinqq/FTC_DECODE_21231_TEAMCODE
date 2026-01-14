@@ -146,6 +146,18 @@ public class DriveCommands {
         public boolean isFinished() {return true;}
     }
 
+    public class toggleIntake extends CommandBase
+    {
+        @Override
+        public void initialize(){
+            intake.setDirection(DcMotorSimple.Direction.REVERSE);
+            if (intake.getPower() == 0) intake.setPower(1);
+            else intake.setPower(0);
+        }
+
+        public boolean isFinished() {return true;}
+    }
+
     public class intakeIdle extends CommandBase {
         @Override
         public void initialize() {
@@ -154,6 +166,38 @@ public class DriveCommands {
 
         @Override
         public boolean isFinished() {return true;}
+    }
+
+    public class intakeReverse extends CommandBase {
+        private final ElapsedTime timer = new ElapsedTime();
+
+        @Override
+        public void initialize() {
+            intake.setDirection(DcMotorSimple.Direction.FORWARD);
+            intake.setPower(1);
+            timer.reset();
+        }
+
+
+
+        @Override
+        public boolean isFinished() {return timer.seconds() > 0.2;}
+    }
+
+    public class intakeForward extends CommandBase {
+        private final ElapsedTime timer = new ElapsedTime();
+
+        @Override
+        public void initialize() {
+            intake.setDirection(DcMotorSimple.Direction.REVERSE);
+            intake.setPower(1);
+            timer.reset();
+        }
+
+
+
+        @Override
+        public boolean isFinished() {return timer.seconds() > 0.1;}
     }
 
 //    public GoBildaPinpointDriver getOdo() {

@@ -31,6 +31,7 @@ public class MagazineCommands {
     public RevColorSensorV3 bob;
 
     private double servoPos = 0;
+    private double oldPos = 0;
     private int target = 0;
 
     private Slot activeSlot = Slot.FIRST;
@@ -75,6 +76,7 @@ public class MagazineCommands {
 
         indexer.setPosition(servoPos);
         indexer1.setPosition(servoPos);
+
     }
 
     public boolean updateDone() {
@@ -93,7 +95,6 @@ public class MagazineCommands {
                 encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 encoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
-            target = 0;
             servoPos = 0;
         }
 
@@ -149,6 +150,7 @@ public class MagazineCommands {
                    update();
                     break;
             }
+            oldPos = servoPos;
             servoPos = newPos;
         }
 
@@ -157,6 +159,8 @@ public class MagazineCommands {
             return updateDone();
         }
     }
+
+    public void resetPos() {servoPos = oldPos;}
 
     public class clearFirst extends CommandBase {
         @Override
@@ -170,10 +174,34 @@ public class MagazineCommands {
         }
     }
 
+    public class clearSecond extends CommandBase {
+        @Override
+        public void initialize() {
+            slotColors.replace(Slot.SECOND, DetectedColor.UNKNOWN);
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
+    }
+
     public void clearAllSlotColors () {
         slotColors.replace(Slot.FIRST, DetectedColor.UNKNOWN);
         slotColors.replace(Slot.SECOND, DetectedColor.UNKNOWN);
         slotColors.replace(Slot.THIRD, DetectedColor.UNKNOWN);
+    }
+
+    public class clearAllSlotColors extends CommandBase {
+        @Override
+        public void initialize() {
+            clearAllSlotColors();
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
     }
 
     public class switchMode extends CommandBase {
@@ -228,6 +256,20 @@ public class MagazineCommands {
             return timer.seconds() > 0.1;
         }
     }
+    public class hammerAttack extends CommandBase {
+        private final ElapsedTime timer = new ElapsedTime();
+
+        @Override
+        public void initialize() {
+            hammer.setPosition(0.3);
+            timer.reset();
+        }
+
+        @Override
+        public boolean isFinished() {
+            return timer.seconds() > 0.1;
+        }
+    }
 
     public class SetSlotColors extends CommandBase{
        DetectedColor FIRST, SECOND, THIRD;
@@ -250,16 +292,12 @@ public class MagazineCommands {
 
     public class index extends CommandBase {
         RevColorSensorV3 color;
-        int bob_gary_joe;
 
         ElapsedTime timer = new ElapsedTime();
         boolean newBall = false;
 
-        public index(int sensor) {
-            if (sensor == 1) {
-                color = bob;
-                bob_gary_joe = 0;
-            }
+        public index() {
+            color = bob;
         }
 
         @Override
@@ -273,17 +311,18 @@ public class MagazineCommands {
 
             float[] hsv = new float[3];
             Color.RGBToHSV((int) (rc * 255f), (int) (gc * 255f), (int) (bc * 255f), hsv);
+
             float H = hsv[0];
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H < 160 && H > 148 && S > 0.49 && S < 0.7)
+            if (H < 169 && H > 154 && S > 0.40 && S < 0.53)
             {
                 slotColors.replace(activeSlot, DetectedColor.GREEN);
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 160 && H < 193 && S > 0.35 && S < 0.45)
+            else if (H > 192 && H < 215 && S > 0.28 && S < 0.4)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
@@ -294,11 +333,11 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !newBall || timer.seconds() > 0.2;
+            return !newBall || timer.seconds() > 0.1;
         }
 
         private float clamp01(float v) {
-            return v < 0f ? 0f : (Math.min(v, 1f));
+            return v < 0f ? 0f : (v > 1f ? 1f : v);
         }
     }
 

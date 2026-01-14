@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import static org.firstinspires.ftc.teamcode.constant.Constants.HAMMER_REST;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -83,7 +81,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
                         indexerCmds.new setSlot(slot),
-                        turretCmds.activateLauncher(0.93)
+                        turretCmds.activateLauncher(0.9225)
                 ),
                 indexerCmds.new hammerUp(),
                 indexerCmds.new clearFirst(),
@@ -187,7 +185,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
                     new ParallelCommandGroup(
                     indexerCmds.new SetSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
                     turretCmds.setLaunchAngle(0.22),
-                    turretCmds.setTarget(preloadTurretTargetDeg),
+                    turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg),
                     indexerCmds.new setSlot(Slot.SECOND),
                     new IntakeOn(INTAKE_POWER)
                 ),
@@ -220,7 +218,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
                     indexerCmds.new SetSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
                     turretCmds.activateLauncher(.88),
                     turretCmds.setLaunchAngle(0.22),
-                    turretCmds.setTarget(preloadTurretTargetDeg),
+                        turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg),
                     new FollowPathCommand(follower, paths.Path6, true)
                 ),
                 shootMotifFromDetection(.88)
@@ -252,7 +250,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
                     new SequentialCommandGroup(
                         turretCmds.activateLauncher(.88),
                         turretCmds.setLaunchAngle(0.22),
-                        turretCmds.setTarget(preloadTurretTargetDeg)
+                        turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg)
                     ),
                     new FollowPathCommand(follower, paths.Path11, true)
                 ),

@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class TurretCommands {
 
@@ -247,7 +246,7 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            return launchMotor1.getVelocity() >= 1800 * power && launchMotor1.getVelocity() <= (1800 * power + 100)|| timer.seconds() > 4.0;
+            return Math.abs(launchMotor1.getVelocity() - (1800 * power)) < 40 || timer.seconds() > 4.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

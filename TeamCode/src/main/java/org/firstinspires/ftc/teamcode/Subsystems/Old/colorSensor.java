@@ -29,14 +29,13 @@ public class colorSensor
 
         //Some weird math to normalize the RGBA even further
         float r = clamp01(rgba.red), g = clamp01(rgba.green), b = clamp01(rgba.blue);
-        float sum = r + g + b; if (sum < 1e-6f) sum = 1e-6f;
+        float sum = r + g + b;
+        if (sum < 1e-6f) sum = 1e-6f;
         float rc = r / sum, gc = g / sum, bc = b / sum;
 
         //Make the RGBA into HSV
         float[] hsv = new float[3];
         Color.RGBToHSV((int)(rc * 255f), (int)(gc * 255f), (int)(bc * 255f), hsv);
-
-
 
         //Separate the HSV values
         H = (float) (hsv[0]);
@@ -44,8 +43,8 @@ public class colorSensor
         V = (float) (hsv[2]);
 
          if (bob_gary_joe == 0) {
-            if (H < 160 && H > 148 && S > 0.49 && S < 0.7) return 1;
-            else if (H > 160 && H < 193 && S > 0.35 && S < 0.45) return 2;
+            if (H < 169 && H > 154 && S > 0.40 && S < 0.53) return 1;
+            else if (H > 192 && H < 215 && S > 0.28 && S < 0.4) return 2;
             else return 0;
          } else if (bob_gary_joe == 1) {
              if (H < 169 && H > 148 && S > 0.53 && S < 0.77) return 1;

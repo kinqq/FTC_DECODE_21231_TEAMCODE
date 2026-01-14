@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.draw;
+import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.drawOnlyCurrent;
+
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -12,7 +15,9 @@ import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+
 import org.firstinspires.ftc.teamcode.Subsystems.*;
+import org.firstinspires.ftc.teamcode.autonomous.Paths;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
@@ -32,6 +37,7 @@ public class DriveMeet2 extends CommandOpMode
     private TurretSubsystem turretCmds;
     private DriveCommands driveCmds;
     private Follower follower;
+    protected Paths paths;
 
     //General Info
     private boolean autoAim = true;
@@ -41,6 +47,22 @@ public class DriveMeet2 extends CommandOpMode
 
     private DetectedColor[] motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN};
 
+    private double power = 0.93;
+    private double angle = 0.13;
+    private int shotType = 3;
+    private int shotTypeBackUp = 3;
+
+    private final double CLOSE_POWER = 1;
+    private final double MED_POWER = 0.93;
+    private final double LONG_POWER = 0.93;
+    private final double FAR_POWER = 1.0;
+
+
+    private final double CLOSE_ANGLE = 0.19;
+    private final double MED_ANGLE = 0.24;
+    private final double LONG_ANGLE = 0.24;
+    private final double FAR_ANGLE = 0.19;
+
     @Override
     public void initialize()
     {
@@ -49,21 +71,24 @@ public class DriveMeet2 extends CommandOpMode
         turretCmds = new TurretSubsystem(hardwareMap);
         driveCmds = new DriveCommands(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
+        paths = new Paths(follower, alliance);
 
         //Indexer Init
-        indexerCmds.new zero().initialize();
 
         //Turret Init
-        turretCmds.setLaunchAngle(0.13);
+        turretCmds.setLaunchAngle(0.19);
         turretCmds.setLaunchVel(1900);
 
         //Follower Init
-        if (GlobalState.teleOpStartPose != null) {
-            follower.setStartingPose(new Pose(GlobalState.teleOpStartPose.getPose().getX(), GlobalState.teleOpStartPose.getPose().getY(), Math.toRadians(45)));
-        } else {
-            follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
-        }
-        follower.update();
+        follower.setPose(new Pose(72, 72, Math.PI / 2));
+
+        //if (GlobalState.teleOpStartPose != null) {
+          //  follower.setStartingPose(new Pose(GlobalState.teleOpStartPose.getPose().getX(), GlobalState.teleOpStartPose.getPose().getY(), Math.toRadians(45)));
+        //} else {
+        //follower.setStartingPose(new Pose(94, 80, 0.786));
+        //follower.setPose(new Pose(94, 80, 0.786));
+
+        //}
 
         //Gather Alliance Info
         if (GlobalState.alliance != null) {
@@ -104,9 +129,6 @@ public class DriveMeet2 extends CommandOpMode
             motifTranslated[2] = DetectedColor.PURPLE;
         }
 
-        indexerCmds.new hammerDown().initialize();
-        indexerCmds.update();
-
         //Enable Panels Telemetry
         PanelsConfigurables.INSTANCE.refreshClass(DriveMeet1.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
@@ -138,12 +160,10 @@ public class DriveMeet2 extends CommandOpMode
 
         //Zero Config
         if (gamepad1.backWasPressed()) {
-            indexerCmds.new zero().initialize();
             DisplayTimer.reset();
         }
         if (gamepad1.aWasPressed() && !gamepad1.start) {
             turretCmds.zero();
-            indexerCmds.new zero(true).initialize();
             DisplayTimer.reset();
         }
 
@@ -182,44 +202,59 @@ public class DriveMeet2 extends CommandOpMode
 
         telemetry.addLine("Odometry Data");
         telemetry.addData("     Follower X", follower.getPose().getX());
-        telemetry.addData("     Follower Y", follower.getPose().getX());
+        telemetry.addData("     Follower Y", follower.getPose().getY());
         telemetry.addData("     Follower Heading", follower.getPose().getHeading());
 
         telemetry.update();
+        follower.update();
+        drawOnlyCurrent();
     }
 
     private boolean started = false;
+    private boolean secondStart = false;
+    private final ElapsedTime startTimer = new ElapsedTime();
+
 
     @Override
     public void run() {
         //Run On Start Only
         if (!started) {
+            started = true;
+
             DisplayTimer = null;
             driveCmds.new intakeOn().initialize();
+            follower.update();
             follower.startTeleopDrive();
-            started = true;
+            indexerCmds.new zero(false).initialize();
+            indexerCmds.new hammerDown().initialize();
+            startTimer.reset();
+        }
+        if (startTimer.seconds() > 0.3 && !secondStart)
+        {
             indexerCmds.new zero(true).initialize();
+            secondStart = true;
         }
 
         //Run next scheduled command and update subsystems
         super.run();
         follower.update();
         indexerCmds.update();
-        turretCmds.update();;
+        turretCmds.update(power);
+        turretCmds.new setLaunchAngle(angle).initialize();
 
         follower.setTeleOpDrive(
-                gamepad1.left_stick_x * (alliance == AllianceColor.RED ? -1 : 1),
-                gamepad1.left_stick_y * (alliance == AllianceColor.RED ? -1 : 1),
+                -gamepad1.left_stick_y,
+                -gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
-                !odoDrive
+                true
         );
 
         //Index with bob and look for empty slot
-        if (!launching && indexerCmds.updateDone())
+        if (!launching && indexerCmds.updateDone() && secondStart)
         {
             schedule(
                     new SequentialCommandGroup(
-                            indexerCmds.new index(1),
+                            indexerCmds.new index(),
                             new CommandBase() {
                                 @Override public void initialize() {findUnknown();}
                                 @Override public boolean isFinished() {return true;}
@@ -228,37 +263,94 @@ public class DriveMeet2 extends CommandOpMode
             );
         }
 
-        //Handle Shooting
-        if (gamepad2.yWasPressed() && indexerCmds.updateDone()) shootBasic();
-        if (gamepad2.bWasPressed() && indexerCmds.updateDone()) shootMosaic();
+
+
+        //Handle Power
+        if (shotType == 1)
+        {
+            power = CLOSE_POWER;
+            angle = CLOSE_ANGLE;
+        }
+        if (shotType == 2)
+        {
+            power = MED_POWER;
+            angle = MED_ANGLE;
+        }
+        if (shotType == 3)
+        {
+            power = LONG_POWER;
+            angle = LONG_ANGLE;
+        }
 
         //Gamepad One
-        if (gamepad1.backWasPressed()) {indexerCmds.new zero().initialize();}
-        if (gamepad1.startWasPressed() && !gamepad1.a) odoDrive = !odoDrive;
-        if (gamepad1.aWasPressed() && !gamepad1.start) autoAim = !autoAim;
-        if (gamepad1.yWasPressed())
-            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN};
-        if (gamepad1.xWasPressed())
-            motifTranslated = new DetectedColor[] {DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.GREEN};
-        if (gamepad1.bWasPressed())
-            motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE};
+        if (gamepad1.backWasPressed()) {indexerCmds.clearAllSlotColors();}
+        if (gamepad1.startWasPressed() && !gamepad1.a) indexerCmds.new clearSecond().initialize();
+        if (gamepad1.aWasPressed() && !gamepad1.start) {}
+        if (gamepad1.bWasPressed()) {}
+        if (gamepad1.xWasPressed()) {}
+        if (gamepad1.yWasPressed()) {}
+        if (gamepad1.dpadUpWasPressed()) {}
+        if (gamepad1.dpadDownWasPressed()) {}
+        if (gamepad1.dpadLeftWasPressed()) {}
+        if (gamepad1.dpadRightWasPressed()) {}
+        if (gamepad1.leftStickButtonWasPressed()) {}
+        if (gamepad1.rightStickButtonWasPressed()) {}
+        if (gamepad1.leftBumperWasPressed()) indexerCmds.resetPos();
+        if (gamepad1.rightBumperWasPressed()) driveCmds.new toggleIntake().initialize();
 
         //Gamepad Two
+        if (gamepad2.backWasPressed())
+        {
+            schedule(new SequentialCommandGroup(
+                    driveCmds.new intakeReverse(),
+                    driveCmds.new intakeForward()
+            ));
+        }
+        if (gamepad2.startWasPressed()) {}
+        if (gamepad2.aWasPressed()) shotType = shotTypeBackUp;
+        if (gamepad2.bWasPressed())  schedule(shootMosaic());
+        if (gamepad2.yWasPressed()) shootBasic();
+        if (gamepad2.xWasPressed()) shotType = 0;
+        if (gamepad2.dpadUpWasPressed())
+        {
+            angle += 0.01;
+            angle = angle > 1 ? 1 : angle;
+        }
+        if (gamepad2.dpadDownWasPressed())
+        {
+            angle -= 0.01;
+            angle = angle < 0 ? 0 : angle;
+
+        }
         if (gamepad2.dpadLeftWasPressed()) turretCmds.upOffset();
         if (gamepad2.dpadRightWasPressed()) turretCmds.downOffset();
-        if (gamepad2.dpadUpWasPressed()) turretCmds.launchAngleUp();
-        if (gamepad2.dpadDownWasPressed()) turretCmds.launchAngleDown();
-        if (gamepad2.aWasPressed())
+        if (gamepad1.leftStickButtonWasPressed()) {}
+        if (gamepad1.rightStickButtonWasPressed()) {}
+        if (gamepad2.leftBumperWasReleased() && shotType == 0)
         {
-            indexerCmds.setActive(DetectedColor.GREEN);
-            findUnknown();
-        }
-        if (gamepad2.xWasPressed())
+            power -= 0.01;
+            power = power > 1 ? 1 : power;
+            power = power < 0 ? 0 : power;
+        } if (gamepad2.leftBumperWasPressed() && shotType != 0)
         {
-            indexerCmds.setActive(DetectedColor.PURPLE);
-            findUnknown();
+            shotType -= 1;
+            shotType = shotType < 1 ? 3 : shotType;
+            shotTypeBackUp = shotType;
         }
-        if (gamepad2.leftBumperWasPressed()) indexerCmds.clearAllSlotColors();
+        if (gamepad2.rightBumperWasReleased() && shotType == 0)
+        {
+            power += 0.01;
+            power = power > 1 ? 1 : power;
+            power = power < 0 ? 0 : power;
+        } else if (gamepad2.rightBumperWasPressed() && shotType != 0)
+        {
+            shotType += 1;
+            shotType = shotType > 3 ? 1 : shotType;
+            shotTypeBackUp = shotType;
+        }
+
+
+
 
         //General Telemetry
 
@@ -269,6 +361,13 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Use Odometry Drive", odoDrive);
         telemetry.addData("     Use Auto Aim", autoAim);
         telemetry.addData("     Motif", motifTranslated[0] + ", " + motifTranslated[1] + ", " +  motifTranslated[2]);
+        telemetry.addLine();
+        telemetry.addData("     Shot type", shotType);
+        telemetry.addData("To speed", turretCmds.motorToSpeed());
+        telemetry.addData("     Power", power);
+        telemetry.addData("     Flywheel velocity", turretCmds.getVel());
+        telemetry.addData("     Expected velocity", turretCmds.getExpectedVel());
+        telemetry.addLine();
         telemetry.addLine("     Y = PPG, X = GPP, B = PGP");
         telemetry.addLine();
 
@@ -291,42 +390,47 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Offset", turretCmds.getOffset());
         telemetry.addLine();
         telemetry.addData("     Launch Angle", turretCmds.getLaunchAngle());
-        telemetry.addData("     Flywheel velocity", -turretCmds.getVel());
-        telemetry.addData("     Expected velocity", turretCmds.getExpectedVel());
         telemetry.addLine();
 
         telemetry.addLine("Odometry Data");
-       telemetry.addData("Pose (mm, deg)", "x=%.1f  y=%.1f  h=%.1f",
-                follower.getPose().getX(), follower.getPose().getY(), 90 - Math.toDegrees(follower.getPose().getHeading()));
+        telemetry.addData("     Follower X", follower.getPose().getX());
+        telemetry.addData("     Follower Y", follower.getPose().getY());
+        telemetry.addData("     Follower Heading", follower.getPose().getHeading());
         telemetry.update();
+        draw();
     }
 
     private  void shootBasic()
     {
         schedule(new SequentialCommandGroup(
-                new CommandBase() {
-                    @Override public void initialize() {launching = true;}
-                    @Override public boolean isFinished() {return true;}
-                },
-                indexerCmds.new setSlot(Slot.FIRST),
-                turretCmds.new spinUp(),
-                driveCmds.new intakeOn(),
-                shoot(Slot.FIRST),
-                shoot(Slot.SECOND),
-                shoot(Slot.THIRD),
-                turretCmds.new spinDown(),
                 indexerCmds.new hammerDown(),
-                indexerCmds.new setSlot(Slot.FIRST),
-                new CommandBase() {
-                    @Override public void initialize() {launching = false;}
-                    @Override public boolean isFinished() {return true;}
-                }
+                new ParallelCommandGroup(
+                        new CommandBase() {
+                            @Override public void initialize() {launching = true;}
+                            @Override public boolean isFinished() {return true;}
+                        },
+                        indexerCmds.new setSlot(Slot.FIRST),
+                        turretCmds.new spinUp(),
+                        driveCmds.new intakeOn()
+                ),
+                indexerCmds.new hammerUp(),
+                indexerCmds.new setSlot(Slot.THIRD),
+                new ParallelCommandGroup(
+                        turretCmds.new spinDown(),
+                        indexerCmds.new hammerDown(),
+                        indexerCmds.new setSlot(Slot.FIRST),
+                        indexerCmds.new clearAllSlotColors(),
+                        new CommandBase() {
+                            @Override public void initialize() {launching = false;}
+                            @Override public boolean isFinished() {return true;}
+                        }
+                )
         ));
     }
 
-    private void shootMosaic()
+    private CommandBase shootMosaic()
     {
-        schedule(new SequentialCommandGroup(
+        return new SequentialCommandGroup(
                 new CommandBase() {
                     @Override public void initialize() {launching = true;}
                     @Override public boolean isFinished() {return true;}
@@ -377,7 +481,7 @@ public class DriveMeet2 extends CommandOpMode
                     @Override public void initialize() {launching = false;}
                     @Override public boolean isFinished() {return true;}
                 }
-        ));
+        );
     }
 
     private CommandBase shoot(Slot slot) {
@@ -429,4 +533,5 @@ public class DriveMeet2 extends CommandOpMode
             else if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.UNKNOWN) indexerCmds.new setSlot(Slot.SECOND).initialize();
             else if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.UNKNOWN) indexerCmds.new setSlot(Slot.THIRD).initialize();
     }
+
 }

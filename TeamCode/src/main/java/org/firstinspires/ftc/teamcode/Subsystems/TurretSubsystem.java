@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
-import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.telemetry.JoinedTelemetry;
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,31 +12,26 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.teleop.DriveMeet1;
 import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
-
-import dev.nextftc.core.commands.Command;
 
 public class TurretSubsystem
 {
-    private DcMotorEx motor;
-    private GoBildaPinpointDriver odo;
-    private ServoImplEx launchAngle;
-    private DcMotorEx launcher;
-    private DcMotorEx launcher1;
-
-    private DcMotorEx encoder;
-
-    private AnalogInput encoderAnalog;
+    private final DcMotorEx motor;
+    private final GoBildaPinpointDriver odo;
+    private final ServoImplEx launchAngle;
+    private final DcMotorEx launcher;
+    private final DcMotorEx launcher1;
 
     private double angle = 0.18;
     private double vel = 1900;
     private double offset = -5;
-
     private int target;
+
+    private final int TURRET_LEFT = -55;
+    private final int TURRET_RIGHT = 50;
+
 
     public TurretSubsystem(HardwareMap hwMap)
     {
@@ -52,9 +44,7 @@ public class TurretSubsystem
         launcher.setDirection(DcMotorSimple.Direction.FORWARD);
         launcher1.setDirection(DcMotorSimple.Direction.REVERSE);
 
-
         launchAngle.setDirection(Servo.Direction.REVERSE);
-        launchAngle.scaleRange(0, .62);
 
         odo.setOffsets(-48, -182.5, DistanceUnit.MM);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -66,7 +56,7 @@ public class TurretSubsystem
     }
 
 
-    public void update()
+    public void update(double power)
     {
         AllianceColor alliance = DriveMeet2.alliance;
 
@@ -74,26 +64,32 @@ public class TurretSubsystem
 
         launchAngle.setPosition(angle);
 
-        double goalX = 900;
-        if (alliance == AllianceColor.BLUE) goalX *= -1;
-        double distX = -goalX - odo.getPosX(DistanceUnit.MM);
-        double goalY = 1700;
-        double distY = goalY - odo.getPosY(DistanceUnit.MM);
-        double distFromGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+//        double goalX = 900;
+//        if (alliance == AllianceColor.BLUE) goalX *= -1;
+//        double distX = -goalX - odo.getPosX(DistanceUnit.MM);
+//        double goalY = 1700;
+//        double distY = goalY - odo.getPosY(DistanceUnit.MM);
+//        double distFromGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+//
+//        double deg = Math.toDegrees(Math.atan2(distX, distY)) + offset;
+        double deg = offset;
 
-        double deg = Math.toDegrees(Math.atan2(distX, distY)) + offset;
-        deg -= odo.getHeading(AngleUnit.DEGREES);
-        deg = Range.clip(deg, -115, 215);
+        //deg -= odo.getHeading(AngleUnit.DEGREES);
+        //deg = deg < TURRET_LEFT ? TURRET_RIGHT : deg;
+        //deg = deg < TURRET_RIGHT ? TURRET_LEFT : deg;
+        Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
+
+
         double target = deg;
-        Range.clip(deg - 10, -235, 85);
         target = target * 5.6111111111;
         int fTarget = (int) Math.round(target * 537.7 / 360.0);
-
         this.target = fTarget;
 
         motor.setTargetPosition(-fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setPower(1);
+
+        vel = 1800 * power;
     }
 
     public void zero() {
@@ -104,6 +100,26 @@ public class TurretSubsystem
     public void setLaunchAngle(double angle) {
         this.angle = angle;
     }
+
+    public class setLaunchAngle extends CommandBase
+    {
+        double g;
+
+        public setLaunchAngle(double g) {
+            this.g = g;
+        }
+
+
+        @Override
+        public void initialize() {
+            setLaunchAngle(g);
+        }
+
+        public boolean isFinished() {
+            return true;
+        }
+    }
+
     public void launchAngleUp() {angle += 0.01;}
     public void launchAngleDown() {angle -= 0.01;}
 
@@ -124,10 +140,32 @@ public class TurretSubsystem
     }
 
     public void setOffset(double offset) {
+        offset = 90 * offset;
         this.offset = offset;
     }
-    public void upOffset() {offset += 5;}
-    public void downOffset() {offset -= 5;}
+
+    public class setOffset extends CommandBase
+    {
+        double g;
+
+        public setOffset(double g) {
+            this.g = g;
+        }
+
+
+        @Override
+        public void initialize() {
+            setOffset(g);
+        }
+
+        public boolean isFinished() {
+            return true;
+        }
+    }
+
+
+    public void upOffset() {offset += 2;}
+    public void downOffset() {offset -= 2;}
 
     public double getOffset() {
         return offset;
@@ -141,16 +179,43 @@ public class TurretSubsystem
         return vel;
     }
 
+    public class toggleSpin extends CommandBase {
+        ElapsedTime timer = new ElapsedTime();
+
+        public toggleSpin() {
+        }
+
+        @Override
+        public void initialize() {
+            if (launcher.getPower() == 1)
+            {
+                launcher.setPower(0);
+                launcher1.setPower(0);
+                launcher1.setVelocity(0);
+            } else {
+                launcher.setPower(1);
+                launcher1.setPower(1);
+                launcher1.setVelocity(vel);
+            }
+
+            timer.reset();
+        }
+
+        public boolean isFinished() {return motorToSpeed() || timer.seconds() > 5;}
+    }
+
     public class spinUp extends CommandBase {
         ElapsedTime timer = new ElapsedTime();
 
-        public spinUp() {timer.reset();}
+        public spinUp() {
+        }
 
         @Override
         public void initialize() {
             launcher.setPower(1);
             launcher1.setPower(1);
             launcher1.setVelocity(vel);
+            timer.reset();
         }
 
         public boolean isFinished() {return motorToSpeed() || timer.seconds() > 5;}
@@ -170,6 +235,6 @@ public class TurretSubsystem
     }
 
     public boolean motorToSpeed() {
-        return Math.abs(-launcher.getVelocity() - vel) < 100;
+        return Math.abs(launcher1.getVelocity() - vel) < 100;
     }
 }
