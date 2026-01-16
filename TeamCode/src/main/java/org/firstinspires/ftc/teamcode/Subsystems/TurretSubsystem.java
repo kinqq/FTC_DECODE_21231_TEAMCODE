@@ -26,7 +26,7 @@ public class TurretSubsystem
 
     private double angle = 0.18;
     private double vel = 1900;
-    private double offset = -5;
+    private double offset = 0;
     private int target;
 
     private final int TURRET_LEFT = -55;
@@ -56,22 +56,19 @@ public class TurretSubsystem
     }
 
 
-    public void update(double power)
+    public void update(double power, double hoodAngle, double offset, AllianceColor alliance, double robotX, double robotY)
     {
-        AllianceColor alliance = DriveMeet2.alliance;
+        vel = 1800 * power;
+        launchAngle.setPosition(hoodAngle);
 
-        odo.update();
+        double goalX = alliance == AllianceColor.RED ? -70 : -70;
+        double goalY = alliance == AllianceColor.RED ? 57 : -205;
+        double distX = Math.abs(goalX - robotX);
+        double distY = Math.abs(goalY - robotY);
+        double lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
-        launchAngle.setPosition(angle);
+        //double deg = Math.atan2(distX, distY);
 
-//        double goalX = 900;
-//        if (alliance == AllianceColor.BLUE) goalX *= -1;
-//        double distX = -goalX - odo.getPosX(DistanceUnit.MM);
-//        double goalY = 1700;
-//        double distY = goalY - odo.getPosY(DistanceUnit.MM);
-//        double distFromGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-//
-//        double deg = Math.toDegrees(Math.atan2(distX, distY)) + offset;
         double deg = offset;
 
         //deg -= odo.getHeading(AngleUnit.DEGREES);
@@ -89,7 +86,6 @@ public class TurretSubsystem
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setPower(1);
 
-        vel = 1800 * power;
     }
 
     public void zero() {

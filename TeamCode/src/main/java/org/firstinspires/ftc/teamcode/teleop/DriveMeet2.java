@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.draw;
 import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.drawOnlyCurrent;
+import static org.firstinspires.ftc.vision.opencv.ColorRange.ARTIFACT_GREEN;
 
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.telemetry.JoinedTelemetry;
@@ -37,7 +38,6 @@ public class DriveMeet2 extends CommandOpMode
     private TurretSubsystem turretCmds;
     private DriveCommands driveCmds;
     private Follower follower;
-    protected Paths paths;
 
     //General Info
     private boolean autoAim = true;
@@ -49,19 +49,22 @@ public class DriveMeet2 extends CommandOpMode
 
     private double power = 0.93;
     private double angle = 0.13;
+    private double offset = 0;
     private int shotType = 3;
     private int shotTypeBackUp = 3;
 
-    private final double CLOSE_POWER = 1;
+    private final double CLOSE_POWER = 0.74;
     private final double MED_POWER = 0.93;
     private final double LONG_POWER = 0.93;
     private final double FAR_POWER = 1.0;
 
 
-    private final double CLOSE_ANGLE = 0.19;
+    private final double CLOSE_ANGLE = 0.24;
     private final double MED_ANGLE = 0.24;
     private final double LONG_ANGLE = 0.24;
     private final double FAR_ANGLE = 0.19;
+
+    private final int SHOT_MODES_COUNT = 4;
 
     @Override
     public void initialize()
@@ -71,16 +74,16 @@ public class DriveMeet2 extends CommandOpMode
         turretCmds = new TurretSubsystem(hardwareMap);
         driveCmds = new DriveCommands(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
-        paths = new Paths(follower, alliance);
 
         //Indexer Init
 
         //Turret Init
-        turretCmds.setLaunchAngle(0.19);
+        turretCmds.setLaunchAngle(0.85);
         turretCmds.setLaunchVel(1900);
 
         //Follower Init
-        follower.setPose(new Pose(72, 72, Math.PI / 2));
+        //follower.setPose(new Pose(72, 72, Math.PI / 2));
+        follower.update();
 
         //if (GlobalState.teleOpStartPose != null) {
           //  follower.setStartingPose(new Pose(GlobalState.teleOpStartPose.getPose().getX(), GlobalState.teleOpStartPose.getPose().getY(), Math.toRadians(45)));
@@ -206,8 +209,7 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Follower Heading", follower.getPose().getHeading());
 
         telemetry.update();
-        follower.update();
-        drawOnlyCurrent();
+        //drawOnlyCurrent();
     }
 
     private boolean started = false;
@@ -223,8 +225,8 @@ public class DriveMeet2 extends CommandOpMode
 
             DisplayTimer = null;
             driveCmds.new intakeOn().initialize();
-            follower.update();
             follower.startTeleopDrive();
+            follower.update();
             indexerCmds.new zero(false).initialize();
             indexerCmds.new hammerDown().initialize();
             startTimer.reset();
@@ -239,8 +241,7 @@ public class DriveMeet2 extends CommandOpMode
         super.run();
         follower.update();
         indexerCmds.update();
-        turretCmds.update(power);
-        turretCmds.new setLaunchAngle(angle).initialize();
+        turretCmds.update(power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY());
 
         follower.setTeleOpDrive(
                 -gamepad1.left_stick_y,
@@ -250,18 +251,19 @@ public class DriveMeet2 extends CommandOpMode
         );
 
         //Index with bob and look for empty slot
-        if (!launching && indexerCmds.updateDone() && secondStart)
-        {
-            schedule(
-                    new SequentialCommandGroup(
-                            indexerCmds.new index(),
-                            new CommandBase() {
-                                @Override public void initialize() {findUnknown();}
-                                @Override public boolean isFinished() {return true;}
-                            }
-                    )
-            );
-        }
+//        if (!launching && indexerCmds.updateDone() && secondStart)
+//        {
+//            schedule(
+//                    new SequentialCommandGroup(
+//                            indexerCmds.new index(),
+//                            new CommandBase() {
+//                                @Override public void initialize() {findUnknown();}
+//                                @Override public boolean isFinished() {return true;}
+//                            }
+//                    )
+//            );
+//        }
+
 
 
 
@@ -281,13 +283,18 @@ public class DriveMeet2 extends CommandOpMode
             power = LONG_POWER;
             angle = LONG_ANGLE;
         }
+        if (shotType == 4)
+        {
+            power = FAR_POWER;
+            angle = FAR_ANGLE;
+        }
 
         //Gamepad One
         if (gamepad1.backWasPressed()) {indexerCmds.clearAllSlotColors();}
         if (gamepad1.startWasPressed() && !gamepad1.a) indexerCmds.new clearSecond().initialize();
-        if (gamepad1.aWasPressed() && !gamepad1.start) {}
-        if (gamepad1.bWasPressed()) {}
-        if (gamepad1.xWasPressed()) {}
+        if (gamepad1.aWasPressed() && !gamepad1.start) indexerCmds.setActive(DetectedColor.GREEN);
+        if (gamepad1.bWasPressed()) {indexerCmds.new prevSlot().initialize();}
+        if (gamepad1.xWasPressed()) indexerCmds.new nextSlot().initialize();
         if (gamepad1.yWasPressed()) {}
         if (gamepad1.dpadUpWasPressed()) {}
         if (gamepad1.dpadDownWasPressed()) {}
@@ -308,49 +315,53 @@ public class DriveMeet2 extends CommandOpMode
         }
         if (gamepad2.startWasPressed()) {}
         if (gamepad2.aWasPressed()) shotType = shotTypeBackUp;
-        if (gamepad2.bWasPressed())  schedule(shootMosaic());
-        if (gamepad2.yWasPressed()) shootBasic();
+        if (gamepad2.bWasPressed()) schedule(shootMosaic());
+        if (gamepad2.yWasPressed())
+        {
+            shootSpeed();
+        }
         if (gamepad2.xWasPressed()) shotType = 0;
         if (gamepad2.dpadUpWasPressed())
         {
-            angle += 0.01;
+            angle += 0.005;
             angle = angle > 1 ? 1 : angle;
         }
         if (gamepad2.dpadDownWasPressed())
         {
-            angle -= 0.01;
+            angle -= 0.005;
             angle = angle < 0 ? 0 : angle;
 
         }
-        if (gamepad2.dpadLeftWasPressed()) turretCmds.upOffset();
-        if (gamepad2.dpadRightWasPressed()) turretCmds.downOffset();
+        if (gamepad2.dpadLeftWasPressed()) offset += 2.5;
+        if (gamepad2.dpadRightWasPressed()) offset -= 2.5;
         if (gamepad1.leftStickButtonWasPressed()) {}
         if (gamepad1.rightStickButtonWasPressed()) {}
-        if (gamepad2.leftBumperWasReleased() && shotType == 0)
+        if (gamepad2.leftBumperWasPressed())
         {
-            power -= 0.01;
-            power = power > 1 ? 1 : power;
-            power = power < 0 ? 0 : power;
-        } if (gamepad2.leftBumperWasPressed() && shotType != 0)
-        {
-            shotType -= 1;
-            shotType = shotType < 1 ? 3 : shotType;
-            shotTypeBackUp = shotType;
+            if (shotType == 0)
+            {
+                power -= 0.01;
+                power = power > 1 ? 1 : power;
+                power = power < 0 ? 0 : power;
+            } else {
+                shotType -= 1;
+                shotType = shotType < 1 ? SHOT_MODES_COUNT : shotType;
+                shotTypeBackUp = shotType;
+            }
         }
-        if (gamepad2.rightBumperWasReleased() && shotType == 0)
+        if (gamepad2.rightBumperWasPressed())
         {
-            power += 0.01;
-            power = power > 1 ? 1 : power;
-            power = power < 0 ? 0 : power;
-        } else if (gamepad2.rightBumperWasPressed() && shotType != 0)
-        {
-            shotType += 1;
-            shotType = shotType > 3 ? 1 : shotType;
-            shotTypeBackUp = shotType;
+            if (shotType == 0)
+            {
+                power += 0.01;
+                power = power > 1 ? 1 : power;
+                power = power < 0 ? 0 : power;
+            } else {
+                shotType += 1;
+                shotType = shotType > SHOT_MODES_COUNT ? 1 : shotType;
+                shotTypeBackUp = shotType;
+            }
         }
-
-
-
 
         //General Telemetry
 
@@ -365,6 +376,7 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Shot type", shotType);
         telemetry.addData("To speed", turretCmds.motorToSpeed());
         telemetry.addData("     Power", power);
+        telemetry.addData("     Hood Angle", angle);
         telemetry.addData("     Flywheel velocity", turretCmds.getVel());
         telemetry.addData("     Expected velocity", turretCmds.getExpectedVel());
         telemetry.addLine();
@@ -397,7 +409,6 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Follower Y", follower.getPose().getY());
         telemetry.addData("     Follower Heading", follower.getPose().getHeading());
         telemetry.update();
-        draw();
     }
 
     private  void shootBasic()
@@ -413,30 +424,87 @@ public class DriveMeet2 extends CommandOpMode
                         turretCmds.new spinUp(),
                         driveCmds.new intakeOn()
                 ),
+                indexerCmds.new clearAllSlotColors(),
                 indexerCmds.new hammerUp(),
-                indexerCmds.new setSlot(Slot.THIRD),
+                shoot(Slot.FIRST),
+                indexerCmds.new hammerDown(),
+                shoot(Slot.SECOND),
+                indexerCmds.new hammerDown(),
+                shoot(Slot.THIRD),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
-                        indexerCmds.new hammerDown(),
                         indexerCmds.new setSlot(Slot.FIRST),
-                        indexerCmds.new clearAllSlotColors(),
                         new CommandBase() {
                             @Override public void initialize() {launching = false;}
                             @Override public boolean isFinished() {return true;}
                         }
-                )
+                ),
+                indexerCmds.new hammerDown(),
+                indexerCmds.new setSlot(Slot.FIRST)
+        ));
+    }
+
+    private void shootSpeed()
+    {
+        schedule(new SequentialCommandGroup(
+                indexerCmds.new hammerDown(),
+                new ParallelCommandGroup(
+                        new CommandBase() {
+                            @Override
+                            public void initialize() {
+                                launching = true;
+                            }
+
+                            @Override
+                            public boolean isFinished() {
+                                return true;
+                            }
+                        },
+                        indexerCmds.new setSlot(Slot.FIRST),
+                        turretCmds.new spinUp(),
+                        driveCmds.new intakeOn()
+                ),
+                indexerCmds.new clearAllSlotColors(),
+                indexerCmds.new hammerUp(),
+                //indexerCmds.new setSlot(Slot.SECOND),
+                indexerCmds.new setSlot(Slot.THIRD),
+                new CommandBase() {
+                    ElapsedTime timer = new ElapsedTime();
+                    @Override public void initialize() {timer.reset();}
+                    @Override public boolean isFinished() {return timer.seconds() > 0.1;}
+                },
+                new ParallelCommandGroup(
+                        turretCmds.new spinDown(),
+                        indexerCmds.new setSlot(Slot.FIRST),
+                        new CommandBase() {
+                            @Override
+                            public void initialize() {
+                                launching = false;
+                            }
+
+                            @Override
+                            public boolean isFinished() {
+                                return true;
+                            }
+                        }
+                ),
+                indexerCmds.new hammerDown(),
+                indexerCmds.new setSlot(Slot.FIRST)
         ));
     }
 
     private CommandBase shootMosaic()
     {
         return new SequentialCommandGroup(
-                new CommandBase() {
-                    @Override public void initialize() {launching = true;}
-                    @Override public boolean isFinished() {return true;}
-                },
-                driveCmds.new intakeOn(),
-                turretCmds.new spinUp(),
+                new ParallelCommandGroup(
+                        new CommandBase() {
+                            @Override public void initialize() {launching = true;}
+                            @Override public boolean isFinished() {return true;}
+                        },
+                        driveCmds.new intakeOn(),
+                        turretCmds.new spinUp(),
+                        indexerCmds.new hammerDown()
+                ),
                 new CommandBase() {
                     private CommandBase inner;
 
@@ -473,14 +541,15 @@ public class DriveMeet2 extends CommandOpMode
                         if (inner != null) inner.end(interrupted);
                     }
                 },
-                driveCmds.new intakeOn(),
-                turretCmds.new spinDown(),
-                indexerCmds.new hammerDown(),
-                indexerCmds.new setSlot(Slot.FIRST),
-                new CommandBase() {
-                    @Override public void initialize() {launching = false;}
-                    @Override public boolean isFinished() {return true;}
-                }
+                new ParallelCommandGroup(
+                        turretCmds.new spinDown(),
+                        indexerCmds.new hammerDown(),
+                        indexerCmds.new setSlot(Slot.FIRST),
+                        new CommandBase() {
+                            @Override public void initialize() {launching = false;}
+                            @Override public boolean isFinished() {return true;}
+                        }
+                )
         );
     }
 

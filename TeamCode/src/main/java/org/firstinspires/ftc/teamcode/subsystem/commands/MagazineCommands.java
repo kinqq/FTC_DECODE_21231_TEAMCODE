@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.vision.opencv.ColorRange.ARTIFACT_GREEN;
+
 import android.graphics.Color;
 
 import com.arcrobotics.ftclib.controller.PIDController;
@@ -80,7 +82,7 @@ public class MagazineCommands {
     }
 
     public boolean updateDone() {
-        return Math.abs(target - encoder.getCurrentPosition()) < 150;
+        return Math.abs(target - encoder.getCurrentPosition()) < 125;
     }
 
     public class zero extends CommandBase{
@@ -107,7 +109,10 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
+
             servoPos += 0.5;
+            servoPos = servoPos > 1 ? 0 : servoPos;
+            servoPos = servoPos < 0 ? 1 : servoPos;
         }
 
         @Override
@@ -120,6 +125,8 @@ public class MagazineCommands {
         @Override
         public void initialize() {
             servoPos -= 0.5;
+            servoPos = servoPos > 1 ? 0 : servoPos;
+            servoPos = servoPos < 0 ? 1 : servoPos;
         }
 
         @Override
@@ -224,7 +231,7 @@ public class MagazineCommands {
     }
 
     public void setActive(DetectedColor override) {
-        slotColors.replace(Slot.FIRST, override);
+        slotColors.replace(activeSlot, override);
     }
 
     public class hammerUp extends CommandBase {
@@ -316,13 +323,13 @@ public class MagazineCommands {
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H < 169 && H > 154 && S > 0.40 && S < 0.53)
+            if (H < 152 && H > 145 && S > 0.40 && S < 0.66)
             {
                 slotColors.replace(activeSlot, DetectedColor.GREEN);
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 192 && H < 215 && S > 0.28 && S < 0.4)
+            else if (H < 169 && H > 154 && S > 0.40 && S < 0.53)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
@@ -333,7 +340,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !newBall || timer.seconds() > 0.1;
+            return !newBall || timer.seconds() > 0.05;
         }
 
         private float clamp01(float v) {
