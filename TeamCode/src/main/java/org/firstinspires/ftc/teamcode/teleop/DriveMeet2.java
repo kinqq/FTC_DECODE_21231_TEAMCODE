@@ -51,18 +51,31 @@ public class DriveMeet2 extends CommandOpMode
     private double angle = 0.13;
     private double offset = 0;
     private int shotType = 3;
+    private int lastShot = 0;
     private int shotTypeBackUp = 3;
 
-    private final double CLOSE_POWER = 0.74;
+    //TODO: .64 close pow, .21 close hood
+
+    private final double CLOSE_POWER = 0.68;
     private final double MED_POWER = 0.93;
     private final double LONG_POWER = 0.93;
     private final double FAR_POWER = 1.0;
 
 
-    private final double CLOSE_ANGLE = 0.24;
+    private final double CLOSE_ANGLE = 0.215;
     private final double MED_ANGLE = 0.24;
     private final double LONG_ANGLE = 0.24;
     private final double FAR_ANGLE = 0.19;
+
+    private final double CLOSE_POWER_SPEED = 0.68;
+    private final double MED_POWER_SPEED = 0.93;
+    private final double LONG_POWER_SPEED = 0.93;
+    private final double FAR_POWER_SPEED = 1.0;
+
+    private final double CLOSE_ANGLE_SPEED = 0.215;
+    private final double MED_ANGLE_SPEED = 0.24;
+    private final double LONG_ANGLE_SPEED = 0.24;
+    private final double FAR_ANGLE_SPEED = 0.19;
 
     private final int SHOT_MODES_COUNT = 4;
 
@@ -268,26 +281,49 @@ public class DriveMeet2 extends CommandOpMode
 
 
         //Handle Power
-        if (shotType == 1)
+        if (lastShot == 0)
         {
-            power = CLOSE_POWER;
-            angle = CLOSE_ANGLE;
+            switch (shotType)
+            {
+                case 1:
+                    power = CLOSE_POWER;
+                    angle = CLOSE_ANGLE;
+                    break;
+                case 2:
+                    power = MED_POWER;
+                    angle = MED_ANGLE;
+                    break;
+                case 3:
+                    power = LONG_POWER;
+                    angle = LONG_ANGLE;
+                    break;
+                case 4:
+                    power = FAR_POWER;
+                    angle = FAR_ANGLE;
+                    break;
+            }
+        } else {
+            switch (shotType)
+            {
+                case 1:
+                    power = CLOSE_POWER_SPEED;
+                    angle = CLOSE_ANGLE_SPEED;
+                    break;
+                case 2:
+                    power = MED_POWER_SPEED;
+                    angle = MED_ANGLE_SPEED;
+                    break;
+                case 3:
+                    power = LONG_POWER_SPEED;
+                    angle = LONG_ANGLE_SPEED;
+                    break;
+                case 4:
+                    power = FAR_POWER_SPEED;
+                    angle = FAR_ANGLE_SPEED;
+                    break;
+            }
         }
-        if (shotType == 2)
-        {
-            power = MED_POWER;
-            angle = MED_ANGLE;
-        }
-        if (shotType == 3)
-        {
-            power = LONG_POWER;
-            angle = LONG_ANGLE;
-        }
-        if (shotType == 4)
-        {
-            power = FAR_POWER;
-            angle = FAR_ANGLE;
-        }
+
 
         //Gamepad One
         if (gamepad1.backWasPressed()) {indexerCmds.clearAllSlotColors();}
@@ -413,6 +449,28 @@ public class DriveMeet2 extends CommandOpMode
 
     private  void shootBasic()
     {
+        lastShot = 0;
+        if (shotType == 1)
+        {
+            power = CLOSE_POWER;
+            angle = CLOSE_ANGLE;
+        }
+        if (shotType == 2)
+        {
+            power = MED_POWER;
+            angle = MED_ANGLE;
+        }
+        if (shotType == 3)
+        {
+            power = LONG_POWER;
+            angle = LONG_ANGLE;
+        }
+        if (shotType == 4)
+        {
+            power = FAR_POWER;
+            angle = FAR_ANGLE;
+        }
+
         schedule(new SequentialCommandGroup(
                 indexerCmds.new hammerDown(),
                 new ParallelCommandGroup(
@@ -446,6 +504,29 @@ public class DriveMeet2 extends CommandOpMode
 
     private void shootSpeed()
     {
+        lastShot = 1;
+
+        if (shotType == 1)
+        {
+            power = CLOSE_POWER_SPEED;
+            angle = CLOSE_ANGLE_SPEED;
+        }
+        if (shotType == 2)
+        {
+            power = MED_POWER_SPEED;
+            angle = MED_ANGLE_SPEED;
+        }
+        if (shotType == 3)
+        {
+            power = LONG_POWER_SPEED;
+            angle = LONG_ANGLE_SPEED;
+        }
+        if (shotType == 4)
+        {
+            power = FAR_POWER_SPEED;
+            angle = FAR_ANGLE_SPEED;
+        }
+
         schedule(new SequentialCommandGroup(
                 indexerCmds.new hammerDown(),
                 new ParallelCommandGroup(
@@ -466,7 +547,15 @@ public class DriveMeet2 extends CommandOpMode
                 ),
                 indexerCmds.new clearAllSlotColors(),
                 indexerCmds.new hammerUp(),
-                //indexerCmds.new setSlot(Slot.SECOND),
+                new CommandBase() {
+                    @Override public boolean isFinished() {return turretCmds.motorToSpeed();}
+                },
+                indexerCmds.new setSlot(Slot.SECOND),
+                new CommandBase() {
+                    ElapsedTime timer = new ElapsedTime();
+                    @Override public void initialize() {timer.reset();}
+                    @Override public boolean isFinished() {return timer.milliseconds() > 50 && turretCmds.motorToSpeed();}
+                },
                 indexerCmds.new setSlot(Slot.THIRD),
                 new CommandBase() {
                     ElapsedTime timer = new ElapsedTime();
@@ -493,8 +582,30 @@ public class DriveMeet2 extends CommandOpMode
         ));
     }
 
-    private CommandBase shootMosaic()
+    private CommandBase shootMotif()
     {
+        lastShot = 0;
+        if (shotType == 1)
+        {
+            power = CLOSE_POWER;
+            angle = CLOSE_ANGLE;
+        }
+        if (shotType == 2)
+        {
+            power = MED_POWER;
+            angle = MED_ANGLE;
+        }
+        if (shotType == 3)
+        {
+            power = LONG_POWER;
+            angle = LONG_ANGLE;
+        }
+        if (shotType == 4)
+        {
+            power = FAR_POWER;
+            angle = FAR_ANGLE;
+        }
+
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
                         new CommandBase() {
