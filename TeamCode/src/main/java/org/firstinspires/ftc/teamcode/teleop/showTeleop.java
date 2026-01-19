@@ -9,11 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
-
 @TeleOp(name = "Not so Basic Drive")
 @Configurable
-public class testTeleop extends OpMode
+public class showTeleop extends OpMode
 {
     private DcMotorEx motor1;
     private DcMotorEx motor2;
@@ -46,7 +44,6 @@ public class testTeleop extends OpMode
 
         telemetry.addLine("ROBOT READY");
 
-        timer.reset();
     }
 
     public void loop() {
