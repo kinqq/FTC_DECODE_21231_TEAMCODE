@@ -30,8 +30,8 @@ public class TurretSubsystem
     private double offset = 0;
     private double target;
 
-    private final int TURRET_LEFT = -90;
-    private final int TURRET_RIGHT = 90;
+    private final int TURRET_LEFT = -82;
+    private final int TURRET_RIGHT = 45;
 
 
     public TurretSubsystem(HardwareMap hwMap)
@@ -62,21 +62,21 @@ public class TurretSubsystem
         vel = 1800 * power;
         launchAngle.setPosition(hoodAngle);
 
-        double goalX = alliance == AllianceColor.RED ? 135 : 10;
-        double goalY = alliance == AllianceColor.RED ? 140 : 170;
+        double goalX = alliance == AllianceColor.RED ? 170 : 10;
+        double goalY = alliance == AllianceColor.RED ? 175 : 170;
         double distX = Math.abs(goalX - robotX);
         double distY = Math.abs(goalY - robotY);
         double lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
-//        double deg = Math.toDegrees(Math.atan2(distY, distX));
-//        deg -= Math.toDegrees(robotHeading);
-//        deg += offset;
-//        deg *= alliance == AllianceColor.BLUE ? -1 : 1;
+        double deg = Math.toDegrees(Math.atan2(distY, distX));
+        deg -= Math.toDegrees(robotHeading);
+        deg += offset;
+        deg *= alliance == AllianceColor.BLUE ? -1 : 1;
 //        deg = deg < TURRET_LEFT ? TURRET_RIGHT : deg;
 //        deg = deg > TURRET_RIGHT ? TURRET_LEFT : deg;
-        //deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
+        deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
 
-        double deg = offset;
+//      double deg = offset;
 
         double target = deg;
         target = target * 5.6111111111;

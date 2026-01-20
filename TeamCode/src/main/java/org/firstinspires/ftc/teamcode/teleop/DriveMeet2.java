@@ -53,6 +53,7 @@ public class DriveMeet2 extends CommandOpMode
     private int shotType = 1;
     private int lastShot = 0;
     private int shotTypeBackUp = 3;
+    private boolean indexColors = false;
 
     //TODO: .64 close pow, .21 close hood
 
@@ -261,8 +262,7 @@ public class DriveMeet2 extends CommandOpMode
         follower.update();
         indexerCmds.update();
 
-        if(launching)
-            turretCmds.update(power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
+        turretCmds.update(power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
 
         follower.setTeleOpDrive(
                 alliance == AllianceColor.RED ? -gamepad1.left_stick_y : gamepad1.left_stick_y,
@@ -272,21 +272,28 @@ public class DriveMeet2 extends CommandOpMode
         );
 
         //Index with bob and look for empty slot
-//        if (!launching && indexerCmds.updateDone() && secondStart)
-//        {
-//            schedule(
-//                    new SequentialCommandGroup(
-//                            indexerCmds.new index(),
-//                            new CommandBase() {
-//                                @Override public void initialize() {findUnknown();}
-//                                @Override public boolean isFinished() {return true;}
-//                            }
-//                    )
-//            );
-//        }
-
-
-
+        if (indexColors && !launching && indexerCmds.updateDone() && secondStart)
+        {
+            schedule(
+                    new SequentialCommandGroup(
+                            indexerCmds.new index(),
+                            new CommandBase() {
+                                @Override public void initialize() {findUnknown();}
+                                @Override public boolean isFinished() {return true;}
+                            }
+                    )
+            );
+        } else if (!launching && indexerCmds.updateDone() && secondStart){
+            schedule(
+                    new SequentialCommandGroup(
+                            indexerCmds.new distanceSwitcher(),
+                            new CommandBase() {
+                                @Override public void initialize() {findUnknown();}
+                                @Override public boolean isFinished() {return true;}
+                            }
+                    )
+            );
+        }
 
         //Handle Power
         if (lastShot == 0)
@@ -337,16 +344,16 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad1.backWasPressed()) {indexerCmds.clearAllSlotColors();}
         if (gamepad1.startWasPressed() && !gamepad1.a) indexerCmds.new clearSecond().initialize();
         if (gamepad1.aWasPressed() && !gamepad1.start) indexerCmds.setActive(DetectedColor.GREEN);
-        if (gamepad1.bWasPressed()) {indexerCmds.new prevSlot().initialize();}
-        if (gamepad1.xWasPressed()) indexerCmds.new nextSlot().initialize();
-        if (gamepad1.yWasPressed()) {}
+        if (gamepad1.bWasPressed()) indexerCmds.new prevSlot().initialize();
+        if (gamepad1.xWasPressed()) indexerCmds.setActive(DetectedColor.PURPLE);
+        if (gamepad1.yWasPressed()) indexerCmds.new nextSlot().initialize();
         if (gamepad1.dpadUpWasPressed()) {}
         if (gamepad1.dpadDownWasPressed()) {}
         if (gamepad1.dpadLeftWasPressed()) {}
         if (gamepad1.dpadRightWasPressed()) {}
         if (gamepad1.leftStickButtonWasPressed()) {}
         if (gamepad1.rightStickButtonWasPressed()) {}
-        if (gamepad1.leftBumperWasPressed()) indexerCmds.resetPos();
+        if (gamepad1.leftBumperWasPressed()) indexColors = !indexColors;
         if (gamepad1.rightBumperWasPressed()) driveCmds.new toggleIntake().initialize();
 
         //Gamepad Two
@@ -362,7 +369,9 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad2.bWasPressed()) schedule(shootMotif());
         if (gamepad2.yWasPressed())
         {
-            shootSpeed();
+            if (shotType == 0)
+                shootSpeed();
+            else shootBasic();
         }
         if (gamepad2.xWasPressed()) shotType = 0;
         if (gamepad2.dpadUpWasPressed())
@@ -385,7 +394,7 @@ public class DriveMeet2 extends CommandOpMode
             if (shotType == 0)
             {
                 power -= 0.01;
-                power = power > 1 ? 1 : power;
+                //power = power > 1 ? 1 : power;
                 power = power < 0 ? 0 : power;
             } else {
                 shotType -= 1;
@@ -398,7 +407,7 @@ public class DriveMeet2 extends CommandOpMode
             if (shotType == 0)
             {
                 power += 0.01;
-                power = power > 1 ? 1 : power;
+                //power = power > 1 ? 1 : power;
                 power = power < 0 ? 0 : power;
             } else {
                 shotType += 1;
@@ -550,7 +559,9 @@ public class DriveMeet2 extends CommandOpMode
                 indexerCmds.new clearAllSlotColors(),
                 indexerCmds.new hammerUp(),
                 new CommandBase() {
-                    @Override public boolean isFinished() {return turretCmds.motorToSpeed();}
+                    ElapsedTime timer = new ElapsedTime();
+                    @Override public void initialize() {timer.reset();}
+                    @Override public boolean isFinished() {return timer.milliseconds() > 100 && turretCmds.motorToSpeed();}
                 },
                 indexerCmds.new setSlot(Slot.SECOND),
                 new CommandBase() {

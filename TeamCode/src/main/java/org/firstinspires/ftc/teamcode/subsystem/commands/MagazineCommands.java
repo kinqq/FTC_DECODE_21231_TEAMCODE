@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.*;
@@ -299,6 +300,31 @@ public class MagazineCommands {
         }
 
         @Override public boolean isFinished() { return true; }
+    }
+
+    public class distanceSwitcher extends CommandBase {
+        RevColorSensorV3 color = bob;
+
+        ElapsedTime timer = new ElapsedTime();
+        boolean newBall = false;
+
+        @Override
+        public void initialize() {
+            if (bob.getDistance(DistanceUnit.MM) < 44)
+            {
+                setActive(DetectedColor.GREEN);
+                newBall = true;
+            }
+            else setActive(DetectedColor.UNKNOWN);
+
+            timer.reset();
+        }
+
+        @Override
+        public boolean isFinished() {
+            return !newBall || timer.seconds() > 0.4;
+        }
+
     }
 
     public class index extends CommandBase {
