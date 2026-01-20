@@ -15,7 +15,11 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.ParallelRaceGroup;
+import com.seattlesolvers.solverslib.command.RunCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+import com.seattlesolvers.solverslib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 
 import org.firstinspires.ftc.teamcode.Subsystems.*;
 import org.firstinspires.ftc.teamcode.autonomous.Paths;
@@ -527,59 +531,34 @@ public class DriveMeet2 extends CommandOpMode
             angle = FAR_ANGLE_SPEED;
         }
 
-        schedule(new SequentialCommandGroup(
+        schedule(
+            new SequentialCommandGroup(
                 indexerCmds.new hammerDown(),
                 new ParallelCommandGroup(
-                        new CommandBase() {
-                            @Override
-                            public void initialize() {
-                                launching = true;
-                            }
-
-                            @Override
-                            public boolean isFinished() {
-                                return true;
-                            }
-                        },
-                        indexerCmds.new setSlot(Slot.FIRST),
-                        turretCmds.new spinUp(),
-                        driveCmds.new intakeOn()
+                    new RunCommand(() -> launching = true),
+                    indexerCmds.new setSlot(Slot.FIRST),
+                    turretCmds.new spinUp(),
+                    driveCmds.new intakeOn()
                 ),
                 indexerCmds.new clearAllSlotColors(),
                 indexerCmds.new hammerUp(),
-                new CommandBase() {
-                    @Override public boolean isFinished() {return turretCmds.motorToSpeed();}
-                },
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 indexerCmds.new setSlot(Slot.SECOND),
-                new CommandBase() {
-                    ElapsedTime timer = new ElapsedTime();
-                    @Override public void initialize() {timer.reset();}
-                    @Override public boolean isFinished() {return timer.milliseconds() > 50 && turretCmds.motorToSpeed();}
-                },
+                new ParallelRaceGroup(
+                    new WaitCommand(100),
+                    new WaitUntilCommand(() -> turretCmds.motorToSpeed())
+                ),
                 indexerCmds.new setSlot(Slot.THIRD),
-                new CommandBase() {
-                    ElapsedTime timer = new ElapsedTime();
-                    @Override public void initialize() {timer.reset();}
-                    @Override public boolean isFinished() {return timer.seconds() > 0.1;}
-                },
+                new WaitCommand(100),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
                         indexerCmds.new setSlot(Slot.FIRST),
-                        new CommandBase() {
-                            @Override
-                            public void initialize() {
-                                launching = false;
-                            }
-
-                            @Override
-                            public boolean isFinished() {
-                                return true;
-                            }
-                        }
+                        new RunCommand(() -> launching = false)
                 ),
                 indexerCmds.new hammerDown(),
                 indexerCmds.new setSlot(Slot.FIRST)
-        ));
+            )
+        );
     }
 
     private CommandBase shootMotif()
