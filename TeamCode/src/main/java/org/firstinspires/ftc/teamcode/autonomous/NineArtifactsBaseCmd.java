@@ -287,7 +287,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
-        telemetry.addData("Heading", follower.getPose().getHeading());
+        telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
         telemetry.addData("Indexer Target", indexerCmds.getTarget());
         telemetry.addData("Motif Detected", llCmds.getLastDetectedMotif());
         telemetry.addData("Launch Vel.", turretCmds.launchMotor.getVelocity());

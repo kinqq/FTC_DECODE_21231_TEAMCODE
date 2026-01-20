@@ -8,11 +8,15 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.DigitalIoDeviceConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.hardware.motors.Motor;
+
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.*;
@@ -45,7 +49,7 @@ public class MagazineCommands {
 
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
-        encoder = hwMap.get(DcMotorEx.class, "leftFront");
+        encoder = hwMap.get(DcMotorEx.class, "intake");
 
         intake = hwMap.get(DcMotorEx.class, "intake");
 
@@ -95,7 +99,7 @@ public class MagazineCommands {
         public void initialize() {
             if (reset) {
                 encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                encoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
             servoPos = 0;
         }

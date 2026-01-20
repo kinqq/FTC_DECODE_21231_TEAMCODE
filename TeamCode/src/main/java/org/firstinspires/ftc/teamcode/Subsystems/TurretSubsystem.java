@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
@@ -27,10 +28,10 @@ public class TurretSubsystem
     private double angle = 0.18;
     private double vel = 1900;
     private double offset = 0;
-    private int target;
+    private double target;
 
-    private final int TURRET_LEFT = -55;
-    private final int TURRET_RIGHT = 50;
+    private final int TURRET_LEFT = -90;
+    private final int TURRET_RIGHT = 90;
 
 
     public TurretSubsystem(HardwareMap hwMap)
@@ -56,31 +57,31 @@ public class TurretSubsystem
     }
 
 
-    public void update(double power, double hoodAngle, double offset, AllianceColor alliance, double robotX, double robotY)
+    public void update(double power, double hoodAngle, double offset, AllianceColor alliance, double robotX, double robotY, double robotHeading)
     {
         vel = 1800 * power;
         launchAngle.setPosition(hoodAngle);
 
-        double goalX = alliance == AllianceColor.RED ? -70 : -70;
-        double goalY = alliance == AllianceColor.RED ? 57 : -205;
+        double goalX = alliance == AllianceColor.RED ? 135 : 10;
+        double goalY = alliance == AllianceColor.RED ? 140 : 170;
         double distX = Math.abs(goalX - robotX);
         double distY = Math.abs(goalY - robotY);
         double lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
-        //double deg = Math.atan2(distX, distY);
+//        double deg = Math.toDegrees(Math.atan2(distY, distX));
+//        deg -= Math.toDegrees(robotHeading);
+//        deg += offset;
+//        deg *= alliance == AllianceColor.BLUE ? -1 : 1;
+//        deg = deg < TURRET_LEFT ? TURRET_RIGHT : deg;
+//        deg = deg > TURRET_RIGHT ? TURRET_LEFT : deg;
+        //deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
 
         double deg = offset;
-
-        //deg -= odo.getHeading(AngleUnit.DEGREES);
-        //deg = deg < TURRET_LEFT ? TURRET_RIGHT : deg;
-        //deg = deg < TURRET_RIGHT ? TURRET_LEFT : deg;
-        Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
-
 
         double target = deg;
         target = target * 5.6111111111;
         int fTarget = (int) Math.round(target * 537.7 / 360.0);
-        this.target = fTarget;
+        this.target = deg;
 
         motor.setTargetPosition(-fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -127,7 +128,7 @@ public class TurretSubsystem
         return motor.getCurrentPosition();
     }
 
-    public int getTarget() {
+    public double getTarget() {
         return target;
     }
 
@@ -231,6 +232,6 @@ public class TurretSubsystem
     }
 
     public boolean motorToSpeed() {
-        return Math.abs(launcher1.getVelocity() - vel) < 100;
+        return Math.abs(launcher1.getVelocity() - vel) < 50;
     }
 }
