@@ -1,24 +1,17 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.draw;
-import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.drawOnlyCurrent;
-import static org.firstinspires.ftc.vision.opencv.ColorRange.ARTIFACT_GREEN;
-
 import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.telemetry.JoinedTelemetry;
-import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.*;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+
+import com.seattlesolvers.solverslib.command.*;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.command.CommandBase;
-import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 import org.firstinspires.ftc.teamcode.Subsystems.*;
-import org.firstinspires.ftc.teamcode.autonomous.Paths;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
@@ -54,8 +47,6 @@ public class DriveMeet2 extends CommandOpMode
     private int lastShot = 0;
     private int shotTypeBackUp = 3;
 
-    //TODO: .64 close pow, .21 close hood
-
     private final double CLOSE_POWER = 0.68;
     private final double MED_POWER = 0.93;
     private final double LONG_POWER = 0.93;
@@ -77,11 +68,13 @@ public class DriveMeet2 extends CommandOpMode
     private final double LONG_ANGLE_SPEED = 0.24;
     private final double FAR_ANGLE_SPEED = 0.19;
 
-    private final int SHOT_MODES_COUNT = 4;
-
+    private int SHOT_MODES_COUNT;
+    
     @Override
     public void initialize()
     {
+        SHOT_MODES_COUNT = 4;
+
         //Subsystem Init
         indexerCmds = new MagazineCommands(hardwareMap);
         turretCmds = new TurretSubsystem(hardwareMap);
@@ -260,9 +253,7 @@ public class DriveMeet2 extends CommandOpMode
         super.run();
         follower.update();
         indexerCmds.update();
-
-        if(launching)
-            turretCmds.update(power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
+        turretCmds.update(power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
 
         follower.setTeleOpDrive(
                 alliance == AllianceColor.RED ? -gamepad1.left_stick_y : gamepad1.left_stick_y,
@@ -362,7 +353,8 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad2.bWasPressed()) schedule(shootMotif());
         if (gamepad2.yWasPressed())
         {
-            shootSpeed();
+            if (shotType == 1) shootSpeed();
+            else shootBasic();
         }
         if (gamepad2.xWasPressed()) shotType = 0;
         if (gamepad2.dpadUpWasPressed())
@@ -495,8 +487,10 @@ public class DriveMeet2 extends CommandOpMode
                 indexerCmds.new hammerUp(),
                 shoot(Slot.FIRST),
                 indexerCmds.new hammerDown(),
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 shoot(Slot.SECOND),
                 indexerCmds.new hammerDown(),
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 shoot(Slot.THIRD),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
@@ -539,45 +533,25 @@ public class DriveMeet2 extends CommandOpMode
         schedule(new SequentialCommandGroup(
                 indexerCmds.new hammerDown(),
                 new ParallelCommandGroup(
-                        new CommandBase() {
-                            @Override public void initialize() {launching = true;}
-                            @Override public boolean isFinished() {return true;}},
+                        new InstantCommand(() -> launching = true),
                         indexerCmds.new setSlot(Slot.FIRST),
                         turretCmds.new spinUp(),
                         driveCmds.new intakeOn()
                 ),
-
                 indexerCmds.new clearAllSlotColors(),
                 indexerCmds.new hammerUp(),
-                new CommandBase() {
-                    @Override public boolean isFinished() {return turretCmds.motorToSpeed();}
-                },
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 indexerCmds.new setSlot(Slot.SECOND),
-                new CommandBase() {
-                    ElapsedTime timer = new ElapsedTime();
-                    @Override public void initialize() {timer.reset();}
-                    @Override public boolean isFinished() {return timer.milliseconds() > 100 && turretCmds.motorToSpeed();}
-                },
+                new ParallelRaceGroup(
+                        new WaitCommand(100),
+                        new WaitUntilCommand(() -> turretCmds.motorToSpeed())
+                ),
                 indexerCmds.new setSlot(Slot.THIRD),
-                new CommandBase() {
-                    ElapsedTime timer = new ElapsedTime();
-                    @Override public void initialize() {timer.reset();}
-                    @Override public boolean isFinished() {return timer.seconds() > 0.5;}
-                },
+                new WaitCommand(100),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
                         indexerCmds.new setSlot(Slot.FIRST),
-                        new CommandBase() {
-                            @Override
-                            public void initialize() {
-                                launching = false;
-                            }
-
-                            @Override
-                            public boolean isFinished() {
-                                return true;
-                            }
-                        }
+                        new InstantCommand(() -> launching = false)
                 ),
                 indexerCmds.new hammerDown(),
                 indexerCmds.new setSlot(Slot.FIRST)

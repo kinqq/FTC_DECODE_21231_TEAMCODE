@@ -34,7 +34,7 @@ public class Turretboundstest extends LinearOpMode {
             double target = deg;
             ;//Range.clip(deg - 10, -235, 85);
             double dTarget = target * 5.6111111111;
-            int fTarget = (int) Math.round(dTarget * 537.7 / 360.0);
+            int fTarget = (int) Math.round(dTarget * 384.5 / 360.0);
 
 
             motor.setTargetPosition(fTarget);

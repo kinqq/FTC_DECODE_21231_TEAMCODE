@@ -62,10 +62,10 @@ public class TurretSubsystem
         vel = 1800 * power;
         launchAngle.setPosition(hoodAngle);
 
-        double goalX = alliance == AllianceColor.RED ? 170 : 10;
-        double goalY = alliance == AllianceColor.RED ? 175 : 170;
-        double distX = Math.abs(goalX - robotX);
-        double distY = Math.abs(goalY - robotY);
+        double goalX = alliance == AllianceColor.RED ? 145 : 10;
+        double goalY = alliance == AllianceColor.RED ? 140 : 170;
+        double distX = goalX - robotX;
+        double distY = goalY - robotY;
         double lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
         double deg = Math.toDegrees(Math.atan2(distY, distX));
@@ -74,14 +74,15 @@ public class TurretSubsystem
         deg *= alliance == AllianceColor.BLUE ? -1 : 1;
 //        deg = deg < TURRET_LEFT ? TURRET_RIGHT : deg;
 //        deg = deg > TURRET_RIGHT ? TURRET_LEFT : deg;
+        deg = AngleUnit.normalizeDegrees(deg);
         deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
 
 //      double deg = offset;
 
         double target = deg;
         target = target * 5.6111111111;
-        int fTarget = (int) Math.round(target * 537.7 / 360.0);
-        this.target = deg;
+        int fTarget = (int) Math.round(target * 384.5 / 360.0);
+        this.target = fTarget;
 
         motor.setTargetPosition(-fTarget);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
