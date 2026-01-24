@@ -51,13 +51,13 @@ public class FieldPosTest extends CommandOpMode {
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
     }
 
-    public double xPos = 0;
-    public double yPos = 0;
+    public double xPos = 135;
+    public double yPos = 140;
 
     @Override
     public void run()
     {
-        follower.setPose(new Pose(135, 140, 0));
+        follower.setPose(new Pose(xPos, yPos, 0));
         follower.update();
 
         if (gamepad1.aWasPressed()) yPos -= 1;

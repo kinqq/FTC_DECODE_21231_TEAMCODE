@@ -302,7 +302,7 @@ public class MagazineCommands {
         @Override public boolean isFinished() { return true; }
     }
 
-    public class distanceSwitcher extends CommandBase {
+    public class distanceIndex extends CommandBase {
         RevColorSensorV3 color = bob;
 
         ElapsedTime timer = new ElapsedTime();
@@ -315,8 +315,6 @@ public class MagazineCommands {
                 setActive(DetectedColor.GREEN);
                 newBall = true;
             }
-            else setActive(DetectedColor.UNKNOWN);
-
             timer.reset();
         }
 
