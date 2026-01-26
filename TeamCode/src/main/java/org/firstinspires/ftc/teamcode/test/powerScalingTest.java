@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.test;
 
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,7 +18,7 @@ public class powerScalingTest extends OpMode
 {
    public DcMotorEx motor;
    public DcMotorEx motor1;
-   double motorPower = 0;
+   double motorPower = 1;
 
     @Override
     public void init()
@@ -24,7 +26,9 @@ public class powerScalingTest extends OpMode
         motor = hardwareMap.get(DcMotorEx.class, "launcher");
         motor1 = hardwareMap.get(DcMotorEx.class, "launcher1");
 
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        motor1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
     }
 
     public void loop()

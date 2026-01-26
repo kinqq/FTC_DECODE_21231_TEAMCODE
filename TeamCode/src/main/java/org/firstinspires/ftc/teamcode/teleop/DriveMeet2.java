@@ -228,15 +228,13 @@ public class DriveMeet2 extends CommandOpMode
             started = true;
 
             DisplayTimer = null;
-            //driveCmds.new intakeOn().initialize();
             follower.startTeleopDrive();
-            indexerCmds.new zero(false).initialize();
-            indexerCmds.new hammerDown().initialize();
+            indexerCmds.zero().initialize();
+            indexerCmds.new HammerDown().initialize();
             startTimer.reset();
         }
-        if (startTimer.seconds() > 0.3 && !secondStart)
-        {
-            indexerCmds.new zero(true).initialize();
+        if (startTimer.seconds() > 0.3 && !secondStart) {
+            indexerCmds.zero().initialize();
 
             if (GlobalState.teleOpStartPose != null) {
                 follower.setStartingPose(GlobalState.teleOpStartPose);
@@ -387,11 +385,11 @@ public class DriveMeet2 extends CommandOpMode
     {
         //Gamepad One
         if (gamepad1.backWasPressed()) {indexerCmds.clearAllSlotColors();}
-        if (gamepad1.startWasPressed() && !gamepad1.a) indexerCmds.new clearSecond().initialize();
+        if (gamepad1.startWasPressed() && !gamepad1.a) indexerCmds.setColor(Slot.SECOND, DetectedColor.UNKNOWN).initialize();
         if (gamepad1.aWasPressed() && !gamepad1.start) indexerCmds.setActive(DetectedColor.GREEN);
-        if (gamepad1.bWasPressed()) indexerCmds.new prevSlot().initialize();
-        if (gamepad1.xWasPressed()) indexerCmds.setActive(DetectedColor.PURPLE);
-        if (gamepad1.yWasPressed()) indexerCmds.new nextSlot().initialize();
+        if (gamepad1.bWasPressed()) {indexerCmds.prevSlot().initialize();}
+        if (gamepad1.xWasPressed()) indexerCmds.nextSlot().initialize();
+        if (gamepad1.yWasPressed()) {}
         if (gamepad1.dpadUpWasPressed()) {}
         if (gamepad1.dpadDownWasPressed()) {}
         if (gamepad1.dpadLeftWasPressed()) {}
@@ -521,26 +519,36 @@ public class DriveMeet2 extends CommandOpMode
         }
 
         schedule(new SequentialCommandGroup(
-                indexerCmds.new hammerDown(),
+                indexerCmds.new HammerDown(),
                 new ParallelCommandGroup(
-                        new InstantCommand(() -> launching = true),
-                        indexerCmds.new setSlot(Slot.FIRST),
+                        new CommandBase() {
+                            @Override public void initialize() {launching = true;}
+                            @Override public boolean isFinished() {return true;}
+                        },
+                        indexerCmds.new SetSlot(Slot.FIRST),
                         turretCmds.new spinUp(),
                         driveCmds.new intakeOn()
                 ),
-                indexerCmds.new clearAllSlotColors(),
+                indexerCmds.clearAllSlotColors(),
+                indexerCmds.new HammerUp(),
                 shoot(Slot.FIRST),
-                indexerCmds.new hammerDown(),
+                indexerCmds.new HammerDown(),
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 shoot(Slot.SECOND),
-                indexerCmds.new hammerDown(),
+                indexerCmds.new HammerDown(),
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 shoot(Slot.THIRD),
                 new WaitCommand(500),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
-                        new InstantCommand(() -> launching = false)
+                        indexerCmds.new SetSlot(Slot.FIRST),
+                        new CommandBase() {
+                            @Override public void initialize() {launching = false;}
+                            @Override public boolean isFinished() {return true;}
+                        }
                 ),
-                indexerCmds.new hammerDown(),
-                indexerCmds.new setSlot(Slot.FIRST)
+                indexerCmds.new HammerDown(),
+                indexerCmds.new SetSlot(Slot.FIRST)
         ));
     }
 
@@ -570,28 +578,30 @@ public class DriveMeet2 extends CommandOpMode
         }
 
         schedule(new SequentialCommandGroup(
-                indexerCmds.new hammerDown(),
+                indexerCmds.new HammerDown(),
                 new ParallelCommandGroup(
                         new InstantCommand(() -> launching = true),
-                        indexerCmds.new setSlot(Slot.FIRST),
+                        indexerCmds.new SetSlot(Slot.FIRST),
                         turretCmds.new spinUp(),
                         driveCmds.new intakeOn()
                 ),
-                turretCmds.new spinUp(),
-                indexerCmds.new hammerUp(),
-                turretCmds.new spinUp(),
-                indexerCmds.new setSlot(Slot.SECOND),
-                turretCmds.new spinUp(),
-                indexerCmds.new setSlot(Slot.THIRD),
-                new WaitCommand(500),
+                indexerCmds.clearAllSlotColors(),
+                indexerCmds.new HammerUp(),
+                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
+                indexerCmds.new SetSlot(Slot.SECOND),
+                new ParallelRaceGroup(
+                        new WaitCommand(100),
+                        new WaitUntilCommand(() -> turretCmds.motorToSpeed())
+                ),
+                indexerCmds.new SetSlot(Slot.THIRD),
+                new WaitCommand(100),
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
-                        indexerCmds.new setSlot(Slot.FIRST),
-                        indexerCmds.new clearAllSlotColors(),
+                        indexerCmds.new SetSlot(Slot.FIRST),
                         new InstantCommand(() -> launching = false)
                 ),
-                indexerCmds.new hammerDown(),
-                indexerCmds.new setSlot(Slot.FIRST)
+                indexerCmds.new HammerDown(),
+                indexerCmds.new SetSlot(Slot.FIRST)
         ));
     }
 
@@ -627,7 +637,7 @@ public class DriveMeet2 extends CommandOpMode
                         },
                         driveCmds.new intakeOn(),
                         turretCmds.new spinUp(),
-                        indexerCmds.new hammerDown()
+                        indexerCmds.new HammerDown()
                 ),
                 new CommandBase() {
                     private CommandBase inner;
@@ -642,9 +652,9 @@ public class DriveMeet2 extends CommandOpMode
 
                         inner = new SequentialCommandGroup(
                                 c0,
-                                indexerCmds.new hammerDown(),
+                                indexerCmds.new HammerDown(),
                                 c1,
-                                indexerCmds.new hammerDown(),
+                                indexerCmds.new HammerDown(),
                                 c2
                         );
                         inner.initialize();
@@ -667,8 +677,8 @@ public class DriveMeet2 extends CommandOpMode
                 },
                 new ParallelCommandGroup(
                         turretCmds.new spinDown(),
-                        indexerCmds.new hammerDown(),
-                        indexerCmds.new setSlot(Slot.FIRST),
+                        indexerCmds.new HammerDown(),
+                        indexerCmds.new SetSlot(Slot.FIRST),
                         new CommandBase() {
                             @Override public void initialize() {launching = false;}
                             @Override public boolean isFinished() {return true;}
@@ -679,10 +689,9 @@ public class DriveMeet2 extends CommandOpMode
 
     private CommandBase shoot(Slot slot) {
         return new SequentialCommandGroup(
-                turretCmds.new spinUp(),
-                indexerCmds.new setSlot(slot),
-                indexerCmds.new hammerUp(),
-                indexerCmds.new clearFirst()
+                indexerCmds.setSlot(slot),
+                indexerCmds.hammerUp(),
+                indexerCmds.setColor(Slot.FIRST, DetectedColor.UNKNOWN)
         );
     }
 
@@ -716,9 +725,9 @@ public class DriveMeet2 extends CommandOpMode
     }
 
     private void findUnknown() {
-            if (indexerCmds.getSlot(Slot.FIRST) == DetectedColor.UNKNOWN) indexerCmds.new setSlot(Slot.FIRST).initialize();
-            else if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.UNKNOWN) indexerCmds.new setSlot(Slot.SECOND).initialize();
-            else if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.UNKNOWN) indexerCmds.new setSlot(Slot.THIRD).initialize();
+            if (indexerCmds.getSlot(Slot.FIRST) == DetectedColor.UNKNOWN) indexerCmds.new SetSlot(Slot.FIRST).initialize();
+            else if (indexerCmds.getSlot(Slot.SECOND) == DetectedColor.UNKNOWN) indexerCmds.new SetSlot(Slot.SECOND).initialize();
+            else if (indexerCmds.getSlot(Slot.THIRD) == DetectedColor.UNKNOWN) indexerCmds.new SetSlot(Slot.THIRD).initialize();
     }
 
 }

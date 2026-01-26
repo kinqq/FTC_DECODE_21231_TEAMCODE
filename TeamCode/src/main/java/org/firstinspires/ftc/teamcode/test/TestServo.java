@@ -17,7 +17,7 @@ public class TestServo extends OpMode {
     ServoImplEx servo1, servo2;
     DcMotor motor1, motor2;
     public static String servoName1 = "turntable";
-//    public static String servoName2 = "pivot";
+    public static String servoName2 = "pivot";
 //    public static String motorName1 = "leftRot";
 //    public static String motorName2 = "leftEle";
     public static int lowPwm = 500, highPwm = 2500;
@@ -28,11 +28,11 @@ public class TestServo extends OpMode {
     @Override
     public void init() {
         servo1 = (ServoImplEx) hardwareMap.get(Servo.class, servoName1);
-//        servo2 = (ServoImplEx) hardwareMap.get(Servo.class, servoName2);
+        servo2 = (ServoImplEx) hardwareMap.get(Servo.class, servoName2);
         servo1.setPwmRange(new PwmControl.PwmRange(lowPwm, highPwm));
-//        servo2.setPwmRange(new PwmControl.PwmRange(lowPwm, highPwm));
+        servo2.setPwmRange(new PwmControl.PwmRange(lowPwm, highPwm));
         servoPos1 = servo1.getPosition();
-//        servoPos2 = servo2.getPosition();
+        servoPos2 = servo2.getPosition();
 
 //        motor1 = hardwareMap.get(DcMotor.class, motorName1);
 //        motor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -69,7 +69,7 @@ public class TestServo extends OpMode {
         }
 
         servo1.setPosition(servoPos1);
-//        servo2.setPosition(servoPos2);
+        servo2.setPosition(servoPos1 + servoPos2);
 //        motor1.setTargetPosition(motorPos1);
 //        motor1.setPower(motorPow1);
 //        motor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -78,7 +78,7 @@ public class TestServo extends OpMode {
 //        motor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         telemetry.addData("servoPos1", servoPos1);
-//        telemetry.addData("servoPos2", servoPos2);
+        telemetry.addData("servoPos2", servoPos2);
 //        telemetry.addData("servoName1", servoName1);
 //        telemetry.addData("servoName2", servoName2);
 //        telemetry.addData("motorPos1", motor1.getCurrentPosition());

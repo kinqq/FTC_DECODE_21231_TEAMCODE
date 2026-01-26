@@ -96,7 +96,7 @@ public class TurretCommands {
     public void setLaunchAngleDeg(double angleDeg) {
         angle = Range.clip(angleDeg, 15, 60);
 
-        double pos = angleDeg;
+        double pos = 0.815 - 0.003 * angle;
         launchAngle.setPosition(Range.clip(pos, 0.0, 1.0));
     }
 

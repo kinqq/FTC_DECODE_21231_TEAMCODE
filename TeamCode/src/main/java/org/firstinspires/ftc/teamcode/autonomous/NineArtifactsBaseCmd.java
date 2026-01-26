@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,117 +25,56 @@ import org.firstinspires.ftc.teamcode.util.MotifUtil;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 
 public abstract class NineArtifactsBaseCmd extends CommandOpMode {
-    protected static final double INTAKE_POWER = 1.0;
+    private static final double INTAKE_POWER = 1.0;
 
-    protected TurretCommands turretCmds;
-    protected MagazineCommands indexerCmds;
-    protected LimelightCommands llCmds;
-    protected DcMotorEx intake;
-    protected Follower follower;
+    private TurretCommands turretCmds;
+    private MagazineCommands indexerCmds;
+    private LimelightCommands llCmds;
+    private DcMotorEx intake;
+    private Follower follower;
 
-    protected Paths paths;
+    private Paths paths;
 
 
-    protected abstract AllianceColor getAllianceColor();
+    abstract AllianceColor getAllianceColor();
 
-    protected class IntakeOn extends CommandBase {
-        private final double p;
-        public IntakeOn(double p) { this.p = p; }
-        @Override public void execute() { intake.setPower(p); }
-        @Override public boolean isFinished() { return true; }
-    }
+    public CommandBase intakeOn(double power) { return new InstantCommand(() -> intake.setPower(power)); }
+    public CommandBase intakeOff() { return new InstantCommand(() -> intake.setPower(0.0)); }
 
-    protected class IntakeOff extends CommandBase {
-        @Override public void execute() { intake.setPower(0.0); }
-        @Override public boolean isFinished() { return true; }
-    }
-
-    private Slot[] pickSlotsForMotif(DetectedColor[] motifColors) {
-        DetectedColor[] slotColors = new DetectedColor[]{
-                indexerCmds.getSlot(Slot.FIRST),
-                indexerCmds.getSlot(Slot.SECOND),
-                indexerCmds.getSlot(Slot.THIRD)
-        };
-        Slot[] slotEnum = new Slot[]{Slot.FIRST, Slot.SECOND, Slot.THIRD};
-
-        Slot[] result = new Slot[3];
-
-        for (int i = 0; i < 3; i++) {
-            DetectedColor needed = motifColors[i];
-            Slot chosen = null;
-
-            for (int j = 0; j < 3; j++) {
-                if (slotColors[j] == needed) {
-                    chosen = slotEnum[j];
-
-                    slotColors[j] = DetectedColor.UNKNOWN;
-                    break;
-                }
-            }
-
-            result[i] = chosen;
-        }
-
-        return result;
-    }
-
-    protected CommandBase shoot(Slot slot) {
+    private CommandBase shoot(Slot slot, double power) {
         return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        indexerCmds.new setSlot(slot),
-                        turretCmds.activateLauncher(0.9225)
-                ),
-                indexerCmds.new hammerUp(),
-                indexerCmds.new clearFirst(),
-                new CommandBase() {
-                    final ElapsedTime timer = new ElapsedTime();
-                    @Override public void initialize() {timer.reset();}
-                    @Override public boolean isFinished() {return true;}//timer.seconds() > 2;}
-                }
+            new ParallelCommandGroup(
+                turretCmds.activateLauncher(power),
+                indexerCmds.setSlot(slot)
+            ),
+            indexerCmds.hammerUp(),
+            indexerCmds.setColor(slot, DetectedColor.UNKNOWN)
         );
     }
 
-    protected CommandBase shootMotifFromDetection(double power) {
-        return new CommandBase() {
-            private CommandBase inner;
+    private CommandBase shootMotifFromDetection(double power) {
+        LimelightCommands.Motif motif = llCmds.getLastDetectedMotif();
+        DetectedColor[] motifTranslated = MotifUtil.motifToColors(motif);
 
-            @Override
-            public void initialize() {
-                LimelightCommands.Motif motif = llCmds.getLastDetectedMotif();
-                DetectedColor[] motifTranslated = MotifUtil.motifToColors(motif);
+        MagazineCommands.Target[] t = indexerCmds.pickTargetsForMotif(motifTranslated);
+        if (t == null) return new InstantCommand(() -> {});
 
-                Slot[] slots = pickSlotsForMotif(motifTranslated);
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> indexerCmds.lockTo(t[0].pos)),
+            shoot(t[0].slot, power),
 
-                CommandBase c0 = (slots[0] != null) ? shoot(slots[0]) : new InstantCommand(() -> {});
-                CommandBase c1 = (slots[1] != null) ? shoot(slots[1]) : new InstantCommand(() -> {});
-                CommandBase c2 = (slots[2] != null) ? shoot(slots[2]) : new InstantCommand(() -> {});
+            new InstantCommand(() -> indexerCmds.lockTo(t[1].pos)),
+            shoot(t[1].slot, power),
 
-                inner = new SequentialCommandGroup(
-                        c0,
-                        indexerCmds.new hammerDown(),
-                        c1,
-                        indexerCmds.new hammerDown(),
-                        c2,
-                        indexerCmds.new hammerDown()
-                        );
-                inner.initialize();
-            }
+            new InstantCommand(() -> indexerCmds.lockTo(t[2].pos)),
+            shoot(t[2].slot, power),
 
-            @Override
-            public void execute() {
-                if (inner != null) inner.execute();
-            }
+            new InstantCommand(indexerCmds::unlock)
+        );
+    }
 
-            @Override
-            public boolean isFinished() {
-                return inner == null || inner.isFinished();
-            }
-
-            @Override
-            public void end(boolean interrupted) {
-                if (inner != null) inner.end(interrupted);
-            }
-        };
+    private CommandBase followPath(PathChain path) {
+        return new FollowPathCommand(follower, path, true);
     }
 
     @Override
@@ -177,17 +118,17 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         SequentialCommandGroup shootPreload =
             new SequentialCommandGroup(
-                    new ParallelCommandGroup(
-                            llCmds.waitForAnyMotif(),
-                            new FollowPathCommand(follower, paths.Path1, true),
-                            turretCmds.activateLauncher(0.93)
-                            ),
-                    new ParallelCommandGroup(
-                    indexerCmds.new SetSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                    turretCmds.setLaunchAngle(0.22),
+                new ParallelCommandGroup(
+                    llCmds.waitForAnyMotif(),
+                    followPath(paths.Path1),
+                    turretCmds.activateLauncher(0.93)
+                ),
+                new ParallelCommandGroup(
+                    indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
+                    turretCmds.setLaunchAngle(30),
                     turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg),
-                    indexerCmds.new setSlot(Slot.SECOND),
-                    new IntakeOn(INTAKE_POWER)
+                    indexerCmds.setSlot(Slot.SECOND),
+                    intakeOn(INTAKE_POWER)
                 ),
                 shootMotifFromDetection(0.893)
             );
@@ -195,31 +136,31 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         SequentialCommandGroup intakeFirstRow =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
-                    new FollowPathCommand(follower, paths.Path2, true),
+                    followPath(paths.Path2),
                     turretCmds.deactivateLauncher(),
-                    indexerCmds.new setSlot(Slot.FIRST),
-                    new IntakeOn(INTAKE_POWER)
+                    indexerCmds.setSlot(Slot.FIRST),
+                    intakeOn(INTAKE_POWER)
                 ),
                 new SequentialCommandGroup(
-                    new FollowPathCommand(follower, paths.Path3, true),
-                    indexerCmds.new setSlot(Slot.SECOND)
+                    followPath(paths.Path3),
+                    indexerCmds.setSlot(Slot.SECOND)
                 ),
                 new SequentialCommandGroup(
-                    new FollowPathCommand(follower, paths.Path4, true),
-                    indexerCmds.new setSlot(Slot.THIRD),
+                    followPath(paths.Path4),
+                    indexerCmds.setSlot(Slot.THIRD),
                     new InstantCommand(() -> turretCmds.activateLauncherRaw(1600))
                 ),
-                new FollowPathCommand(follower, paths.Path5, true)
+                followPath(paths.Path5)
             );
 
         SequentialCommandGroup shootFirstRow =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
-                    indexerCmds.new SetSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
+                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
                     turretCmds.activateLauncher(.88),
-                    turretCmds.setLaunchAngle(0.22),
+                    turretCmds.setLaunchAngle(30),
                         turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg),
-                    new FollowPathCommand(follower, paths.Path6, true)
+                    followPath(paths.Path6)
                 ),
                 shootMotifFromDetection(.88)
             );
@@ -227,40 +168,40 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
         SequentialCommandGroup intakeSecondRow =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
-                    new FollowPathCommand(follower, paths.Path7, true),
+                    followPath(paths.Path7),
                     turretCmds.deactivateLauncher(),
-                    indexerCmds.new setSlot(Slot.FIRST),
-                    new IntakeOn(INTAKE_POWER)
+                    indexerCmds.setSlot(Slot.FIRST),
+                    intakeOn(INTAKE_POWER)
                 ),
                 new SequentialCommandGroup(
-                    new FollowPathCommand(follower, paths.Path8, true),
-                    indexerCmds.new setSlot(Slot.SECOND)
+                    followPath(paths.Path8),
+                    indexerCmds.setSlot(Slot.SECOND)
                 ),
                 new SequentialCommandGroup(
-                    new FollowPathCommand(follower, paths.Path9, true),
-                    indexerCmds.new setSlot(Slot.THIRD)
+                    followPath(paths.Path9),
+                    indexerCmds.setSlot(Slot.THIRD)
                 ),
-                new FollowPathCommand(follower, paths.Path10, true)
+                followPath(paths.Path10)
             );
 
         SequentialCommandGroup shootSecondRow =
             new SequentialCommandGroup(
-                indexerCmds.new SetSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
                 new ParallelCommandGroup(
                     new SequentialCommandGroup(
                         turretCmds.activateLauncher(.88),
                         turretCmds.setLaunchAngle(0.22),
                         turretCmds.setTarget(alliance == AllianceColor.RED ? preloadTurretTargetDeg : -preloadTurretTargetDeg)
                     ),
-                    new FollowPathCommand(follower, paths.Path11, true)
+                    followPath(paths.Path11)
                 ),
                 shootMotifFromDetection(.88)
             );
 
         ParallelCommandGroup park =
             new ParallelCommandGroup(
-                new FollowPathCommand(follower, paths.Path12),
-                new IntakeOff(),
+                followPath(paths.Path12),
+                intakeOff(),
                 turretCmds.deactivateLauncher()
             );
 
@@ -283,7 +224,6 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
     public void run() {
         super.run();
         follower.update();
-        indexerCmds.update();
 
         telemetry.addData("X", follower.getPose().getX());
         telemetry.addData("Y", follower.getPose().getY());
