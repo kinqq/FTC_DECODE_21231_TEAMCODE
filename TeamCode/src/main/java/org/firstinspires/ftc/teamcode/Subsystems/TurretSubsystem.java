@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,9 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
 
 public class TurretSubsystem
 {
@@ -30,9 +26,8 @@ public class TurretSubsystem
     private double offset = 0;
     private double target;
 
-    private final int TURRET_LEFT = -82;
-    private final int TURRET_RIGHT = 45;
-
+    protected final int TURRET_LEFT = -82;
+    protected final int TURRET_RIGHT = 45;
 
     public TurretSubsystem(HardwareMap hwMap)
     {
@@ -93,7 +88,7 @@ public class TurretSubsystem
     }
 
     public double autoPower(double goalDist) {
-        return Range.clip((0.00331102 * Math.pow(goalDist, 3)) - (0.783942 * Math.pow(goalDist, 2)) + (64.04573 * goalDist) - 437.7664, 0, 1800);
+        return Range.clip((0.00342857 * Math.pow(goalDist, 3)) - (0.811192 * Math.pow(goalDist, 2)) + (65.97109 * goalDist) - 479.45985, 0, 1800);
     }
 
     public double autoHood(double goalDist) {
@@ -152,10 +147,10 @@ public class TurretSubsystem
 
     public class spinUpRaw extends CommandBase {
         ElapsedTime timer = new ElapsedTime();
-        private double velocity;
+        private final double velocity;
 
-        public spinUpRaw(double vel) {
-            this.velocity = vel;
+        public spinUpRaw(double velocity) {
+            this.velocity = velocity;
         }
 
         @Override
