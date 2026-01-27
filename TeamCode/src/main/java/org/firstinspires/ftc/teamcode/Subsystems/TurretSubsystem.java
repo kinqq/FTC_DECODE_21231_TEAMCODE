@@ -20,7 +20,6 @@ import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
 public class TurretSubsystem
 {
     private final DcMotorEx motor;
-    private final GoBildaPinpointDriver odo;
     private final ServoImplEx launchAngle;
     private final DcMotorEx launcher;
     private final DcMotorEx launcher1;
@@ -38,7 +37,6 @@ public class TurretSubsystem
     public TurretSubsystem(HardwareMap hwMap)
     {
         motor = hwMap.get(DcMotorEx.class, "turret");
-        odo = hwMap.get(GoBildaPinpointDriver.class, "odo");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
         launcher = hwMap.get(DcMotorEx.class, "launcher");
         launcher1 = hwMap.get(DcMotorEx.class, "launcher1");
@@ -49,19 +47,14 @@ public class TurretSubsystem
         launcher1.setDirection(DcMotorSimple.Direction.REVERSE);
 
         launchAngle.setDirection(Servo.Direction.REVERSE);
-
-        odo.setOffsets(-48, -182.5, DistanceUnit.MM);
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.REVERSED,
-                GoBildaPinpointDriver.EncoderDirection.REVERSED
-        );
-        odo.resetPosAndIMU();
     }
 
 
-    public void update(boolean autoPower, double power, double hoodAngle, double offset, AllianceColor alliance, double robotX, double robotY, double robotHeading)
+    public void update(boolean autoPower, boolean autoAim, double power, double hoodAngle, double offset, AllianceColor alliance, double robotX, double robotY, double robotHeading)
     {
+        this.offset = offset;
+        this.angle = hoodAngle;
+
         if (!autoPower)
         {
             vel = 1800 * power;
@@ -73,6 +66,7 @@ public class TurretSubsystem
             launchAngle.setPosition(angle);
         }
 
+        double deg;
 
         double goalX = alliance == AllianceColor.RED ? 144 : 140;
         double goalY = alliance == AllianceColor.RED ? 144 : 145;
@@ -80,16 +74,15 @@ public class TurretSubsystem
         double distY = goalY - robotY;
         lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 
-        double deg = Math.toDegrees(Math.atan2(distY, distX));
-        deg -= Math.toDegrees(robotHeading);
-        deg += offset;
-        deg = AngleUnit.normalizeDegrees(deg);
-        deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
+        if (autoAim) {
+            deg = Math.toDegrees(Math.atan2(distY, distX));
+            deg -= Math.toDegrees(robotHeading);
+            deg += offset;
+            deg = AngleUnit.normalizeDegrees(deg);
+            deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
+        } else deg = offset;
 
-//      double deg = offset;
-
-        double target = deg;
-        target = target * 5.6111111111;
+        double target = deg * 5.6111111111;
         int fTarget = (int) Math.round(target * 384.5 / 360.0);
         this.target = fTarget;
 
@@ -100,17 +93,16 @@ public class TurretSubsystem
     }
 
     public double autoPower(double goalDist) {
-        return Range.clip((0.00785922 * Math.pow(goalDist, 3)) - (1.65427 * Math.pow(goalDist, 2)) + (117.05967 * goalDist) - 1464.50463, 0, 1800);
+        return Range.clip((0.00331102 * Math.pow(goalDist, 3)) - (0.783942 * Math.pow(goalDist, 2)) + (64.04573 * goalDist) - 437.7664, 0, 1800);
     }
 
     public double autoHood(double goalDist) {
-        return Range.clip((5.64189e-7 * Math.pow(goalDist, 3)) - (0.000120574 * Math.pow(goalDist, 2)) + (0.00950386 * goalDist) + 0.00863624, 0, 0.5);
+        return Range.clip(((1.66203e-7) * Math.pow(goalDist, 3)) - (0.0000423232 * Math.pow(goalDist, 2)) + (0.00462337 * goalDist) + 0.0877451, 0, 0.301);
     }
 
 
     public void zero() {
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        odo.resetPosAndIMU();
     }
 
     public double getDist() {

@@ -34,7 +34,6 @@ public class MagazineCommands {
     public RevColorSensorV3 bob;
 
     private double servoPos = 0;
-    private double oldPos = 0;
     private int target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
@@ -94,9 +93,14 @@ public class MagazineCommands {
     }
 
     public boolean isBusy() {
-        target = (int) ((servoPos - 0.1) * 7722);
+        target = (int) Math.round((indexer.getPosition() - 0.618) * 7720);
         return Math.abs(target - encoder.getCurrentPosition()) > 125;
     }
+
+    public double realServoPos() {
+        return indexer.getPosition();
+    }
+
 
     public CommandBase zero() {
         return new InstantCommand(() -> {
@@ -108,16 +112,16 @@ public class MagazineCommands {
     public CommandBase nextSlot() {
         return new InstantCommand(() -> {
             if (activeSlot == Slot.FIRST) activeSlot = Slot.SECOND;
-            if (activeSlot == Slot.SECOND) activeSlot = Slot.THIRD;
-            if (activeSlot == Slot.THIRD) activeSlot = Slot.FIRST;
+            else if (activeSlot == Slot.SECOND) activeSlot = Slot.THIRD;
+            else if (activeSlot == Slot.THIRD) activeSlot = Slot.FIRST;
         });
     }
 
     public CommandBase prevSlot() {
         return new InstantCommand(() -> {
             if (activeSlot == Slot.FIRST) activeSlot = Slot.THIRD;
-            if (activeSlot == Slot.SECOND) activeSlot = Slot.FIRST;
-            if (activeSlot == Slot.THIRD) activeSlot = Slot.SECOND;
+            else if (activeSlot == Slot.SECOND) activeSlot = Slot.FIRST;
+            else if (activeSlot == Slot.THIRD) activeSlot = Slot.SECOND;
         });
     }
 
@@ -142,18 +146,19 @@ public class MagazineCommands {
         return new SetSlot(slot);
     }
 
-    public void resetPos() {servoPos = oldPos;}
-
     public CommandBase setColor(Slot slot, DetectedColor color) {
         return new InstantCommand(() -> slotColors.replace(slot, color));
     }
 
-    public CommandBase clearAllSlotColors () {
-        return new InstantCommand(() -> {
+    public class clearAllSlotColors extends CommandBase {
+
+        public void initialize() {
             setColor(Slot.FIRST, DetectedColor.UNKNOWN);
             setColor(Slot.SECOND, DetectedColor.UNKNOWN);
             setColor(Slot.THIRD, DetectedColor.UNKNOWN);
-        });
+        }
+
+        public boolean isFinished() {return true;}
     }
 
     public void setActive(DetectedColor override) {
@@ -203,7 +208,7 @@ public class MagazineCommands {
         });
     }
 
-    public class DistanceSwitcher extends CommandBase {
+    public class DistanceIndex extends CommandBase {
         RevColorSensorV3 color = bob;
 
         ElapsedTime timer = new ElapsedTime();
@@ -284,6 +289,11 @@ public class MagazineCommands {
     public int getTarget() {
         return target;
     }
+
+    public Slot getActiveSlot() {
+        return activeSlot;
+    }
+
     public int getPos() {
         return encoder.getCurrentPosition();
     }
