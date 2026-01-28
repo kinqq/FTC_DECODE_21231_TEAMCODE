@@ -160,6 +160,8 @@ public class DriveMeet2 extends CommandOpMode
                 follower.setPose(new Pose(72, 72, Math.toRadians(90)));
                 DisplayTimer.reset();
             }
+            if (gamepad1.rightStickButtonWasPressed()) alliance = AllianceColor.RED;
+            if (gamepad1.leftStickButtonWasPressed()) alliance = AllianceColor.BLUE;
 
             //Gamepad Two
             if (gamepad2.aWasPressed()) autoAim = true;
@@ -280,10 +282,10 @@ public class DriveMeet2 extends CommandOpMode
         if (indexerCmds.isFull() && !hasBeenFull)
         {
             hasBeenFull = true;
-            driveCmds.new intakeReverse();
+            driveCmds.new intakeReverse().initialize();
         } else if (!indexerCmds.isFull() && hasBeenFull) {
             hasBeenFull = false;
-            driveCmds.new intakeOn();
+            driveCmds.new intakeOn().initialize();
         }
 
         //Update Controllers
@@ -339,6 +341,8 @@ public class DriveMeet2 extends CommandOpMode
 
         //Telemetry
             //Quick Info
+        telemetry.addData("IS FILL", indexerCmds.isFull());
+        telemetry.addData("WAS FULL", hasBeenFull);
             telemetry.addLine("Quick Info (Important During Comp)");
                 telemetry.addData("     Is Motor at Expected Vel", turretCmds.motorToSpeed());
                 telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
@@ -362,6 +366,7 @@ public class DriveMeet2 extends CommandOpMode
 
         telemetry.addLine("Indexer Data");
         telemetry.addData("     Current Position", indexerCmds.getPos());
+        telemetry.addData("     Current Position (real)", indexerCmds.realServoPos());
         telemetry.addData("     Target", indexerCmds.getTarget());
         telemetry.addLine();
         telemetry.addData("     Active Slot", indexerCmds.getSlot(Slot.FIRST));
@@ -402,6 +407,7 @@ public class DriveMeet2 extends CommandOpMode
         if (gamepad1.xWasPressed()) schedule(indexerCmds.nextSlot());
         if (gamepad1.yWasPressed()) indexerCmds.setActive(DetectedColor.PURPLE);
         if (gamepad1.rightBumperWasPressed()) driveCmds.new toggleIntake().initialize();
+        if (gamepad1.leftBumperWasPressed()) driveCmds.new intakeForward().initialize();
         if (gamepad1.rightStickButtonWasPressed()) index = !index;
         if (gamepad1.leftStickButtonWasPressed()) odoDrive = !odoDrive;
 
@@ -555,7 +561,7 @@ public class DriveMeet2 extends CommandOpMode
                 indexerCmds.new HammerUp(),
                 new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                 indexerCmds.new SetSlot(Slot.SECOND),
-                new ParallelRaceGroup(
+                new ParallelCommandGroup(
                         new WaitCommand(100),
                         new WaitUntilCommand(() -> turretCmds.motorToSpeed())
                 ),

@@ -63,8 +63,8 @@ public class TurretSubsystem
 
         double deg;
 
-        double goalX = alliance == AllianceColor.RED ? 144 : 140;
-        double goalY = alliance == AllianceColor.RED ? 144 : 145;
+        double goalX = alliance == AllianceColor.RED ? 145 : 0;
+        double goalY = 145;
         double distX = goalX - robotX;
         double distY = goalY - robotY;
         lineToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
@@ -88,7 +88,7 @@ public class TurretSubsystem
     }
 
     public double autoPower(double goalDist) {
-        return Range.clip((0.00342857 * Math.pow(goalDist, 3)) - (0.811192 * Math.pow(goalDist, 2)) + (65.97109 * goalDist) - 479.45985, 0, 1800);
+        return Range.clip((0.004 * Math.pow(goalDist, 3)) - (0.926154 * Math.pow(goalDist, 2)) + (73.28462 * goalDist) - 626.23077, 0, 1800);
     }
 
     public double autoHood(double goalDist) {

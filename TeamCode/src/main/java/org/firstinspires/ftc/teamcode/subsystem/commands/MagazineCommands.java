@@ -90,6 +90,7 @@ public class MagazineCommands {
 
     public boolean isBusy() {
         target = (int) Math.round((indexer.getPosition() - 0.618) * 7720);
+        if (indexer.getPosition() == 0.1) target = 0;
         return Math.abs(target - encoder.getCurrentPosition()) > 125;
     }
 
@@ -155,9 +156,9 @@ public class MagazineCommands {
     public class clearAllSlotColors extends CommandBase {
 
         public void initialize() {
-            setColor(Slot.FIRST, DetectedColor.EMPTY);
-            setColor(Slot.SECOND, DetectedColor.EMPTY);
-            setColor(Slot.THIRD, DetectedColor.EMPTY);
+            slotColors.replace(Slot.FIRST, DetectedColor.EMPTY);
+            slotColors.replace(Slot.SECOND, DetectedColor.EMPTY);
+            slotColors.replace(Slot.THIRD, DetectedColor.EMPTY);
         }
 
         public boolean isFinished() {return true;}
