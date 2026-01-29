@@ -18,10 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 public class MagazineCommands {
@@ -36,7 +33,7 @@ public class MagazineCommands {
 
     private double servoPos = 0;
     private double oldPos = 0;
-    private double target = 0;
+    private int target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
     public void unlock() { lock = false; }
@@ -73,7 +70,7 @@ public class MagazineCommands {
         encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         for (Slot s : Slot.values()) {
-            slotColors.put(s, DetectedColor.UNKNOWN);
+            slotColors.put(s, DetectedColor.EMPTY);
         }
     }
 
@@ -105,6 +102,17 @@ public class MagazineCommands {
 
         return Math.abs(target - getAnalogAngle()) > 10;
     }
+
+    public boolean isFull() {
+        return slotColors.get(Slot.FIRST) != DetectedColor.EMPTY
+        && slotColors.get(Slot.SECOND) != DetectedColor.EMPTY
+        && slotColors.get(Slot.THIRD) != DetectedColor.EMPTY;
+    }
+
+    public double realServoPos() {
+        return indexer.getPosition();
+    }
+
 
     public double getAnalogAngle() {
         double voltage = analogInput.getVoltage();
@@ -195,12 +203,15 @@ public class MagazineCommands {
         return new InstantCommand(() -> slotColors.replace(slot, color));
     }
 
-    public CommandBase clearAllSlotColors () {
-        return new InstantCommand(() -> {
-            setColor(Slot.FIRST, DetectedColor.UNKNOWN);
-            setColor(Slot.SECOND, DetectedColor.UNKNOWN);
-            setColor(Slot.THIRD, DetectedColor.UNKNOWN);
-        });
+    public class clearAllSlotColors extends CommandBase {
+
+        public void initialize() {
+            slotColors.replace(Slot.FIRST, DetectedColor.EMPTY);
+            slotColors.replace(Slot.SECOND, DetectedColor.EMPTY);
+            slotColors.replace(Slot.THIRD, DetectedColor.EMPTY);
+        }
+
+        public boolean isFinished() {return true;}
     }
 
     public void setActive(DetectedColor override) {
@@ -250,7 +261,7 @@ public class MagazineCommands {
         });
     }
 
-    public class DistanceSwitcher extends CommandBase {
+    public class DistanceIndex extends CommandBase {
         RevColorSensorV3 color = bob;
 
         ElapsedTime timer = new ElapsedTime();
@@ -260,7 +271,7 @@ public class MagazineCommands {
         public void initialize() {
             if (bob.getDistance(DistanceUnit.MM) < 44)
             {
-                setActive(DetectedColor.GREEN);
+                setActive(DetectedColor.UNKNOWN);
                 newBall = true;
             }
             timer.reset();
@@ -332,7 +343,7 @@ public class MagazineCommands {
                 timer.reset();
                 newBall = true;
             }
-            else slotColors.replace(activeSlot, DetectedColor.UNKNOWN);
+            else slotColors.replace(activeSlot, DetectedColor.EMPTY);
             }
 
         @Override
@@ -341,7 +352,7 @@ public class MagazineCommands {
         }
 
         private float clamp01(float v) {
-            return v < 0f ? 0f : (v > 1f ? 1f : v);
+            return v < 0f ? 0f : (Math.min(v, 1f));
         }
     }
 
@@ -352,6 +363,11 @@ public class MagazineCommands {
     public double getTarget() {
         return target;
     }
+
+    public Slot getActiveSlot() {
+        return activeSlot;
+    }
+
     public int getPos() {
         return encoder.getCurrentPosition();
     }
