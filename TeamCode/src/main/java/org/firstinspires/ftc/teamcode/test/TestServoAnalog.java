@@ -30,7 +30,7 @@ public class TestServoAnalog extends OpMode {
 
         servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
-        servo.setPosition(0);
+//        servo.setPosition(0);
 
         telemetryM.addLine("Initialized!");
         telemetryM.update(telemetry);
@@ -43,19 +43,19 @@ public class TestServoAnalog extends OpMode {
 
     @Override
     public void loop() {
-        if (timer.milliseconds() > 1000) {
-            if (increasing) {
-                servo.setPosition(servo.getPosition() + 0.1);
-                if (servo.getPosition() >= 1) increasing = false;
-            }
-            else {
-                servo.setPosition(servo.getPosition() - 0.1);
-                if (servo.getPosition() <= 0) increasing = true;
-            }
-            timer.reset();
-        }
+//        if (timer.milliseconds() > 5000) {
+//            if (increasing) {
+//                servo.setPosition(servo.getPosition() + 0.1);
+//                if (servo.getPosition() >= 1) increasing = false;
+//            }
+//            else {
+//                servo.setPosition(servo.getPosition() - 0.1);
+//                if (servo.getPosition() <= 0) increasing = true;
+//            }
+//            timer.reset();
+//        }
+        servo.setPosition(0.618);
 
-        // 아날로그 피드백 읽기 (0~3.3V) → 각도(예: 0~360° 가정; 필요시 보정)
         double voltage = analog.getVoltage();
         double angleDeg = (voltage / 3.3) * 360.0;
 

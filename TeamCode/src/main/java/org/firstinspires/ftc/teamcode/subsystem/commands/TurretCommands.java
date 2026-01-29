@@ -34,7 +34,6 @@ public class TurretCommands {
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
 
         launchAngle.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        launchAngle.setDirection(Servo.Direction.REVERSE);
 
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);

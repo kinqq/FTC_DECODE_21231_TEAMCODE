@@ -263,21 +263,21 @@ public class DriveMeet2 extends CommandOpMode
         }
 
         //Index with bob and look for empty slot
-        if (index && !launching && indexerCmds.updateDone() && secondStart)
+        if (index && !launching && !indexerCmds.isBusy() && secondStart)
         {
             schedule(
                     new SequentialCommandGroup(
-                            indexerCmds.new index(),
+                            indexerCmds.new Index(),
                             new CommandBase() {
                                 @Override public void initialize() {findUnknown();}
                                 @Override public boolean isFinished() {return true;}
                             }
                     )
             );
-        } else if (!launching && indexerCmds.updateDone() && secondStart) {
+        } else if (!launching && !indexerCmds.isBusy() && secondStart) {
             schedule(
                     new SequentialCommandGroup(
-                            indexerCmds.new distanceIndex(),
+                            indexerCmds.new DistanceSwitcher(),
                             new InstantCommand(this::findUnknown)
                     )
             );
