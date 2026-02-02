@@ -26,14 +26,14 @@ public class MagazineCommands {
     public ServoImplEx indexer1;
     public ServoImplEx hammer;
 
-    public final DcMotorEx encoder;
+//    public final DcMotorEx encoder;
     private final AnalogInput analogInput;
 
     public RevColorSensorV3 bob;
 
     private double servoPos = 0;
     private double oldPos = 0;
-    private int target = 0;
+    private double target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
     public void lockTo(double pos) { lock = true; lockedPos = pos; }
@@ -60,7 +60,7 @@ public class MagazineCommands {
         indexer1 = hwMap.get(ServoImplEx.class, "turntable1");
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
-        encoder = hwMap.get(DcMotorEx.class, "intake");
+//        encoder = hwMap.get(DcMotorEx.class, "intake");
         analogInput = hwMap.get(AnalogInput.class, "analog");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
@@ -68,7 +68,7 @@ public class MagazineCommands {
         indexer.setPwmRange(new PwmControl.PwmRange(500, 2500));
         indexer1.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
-        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.EMPTY);
@@ -125,12 +125,12 @@ public class MagazineCommands {
         return (voltage / 3.3) * 360.0;
     }
 
-    public CommandBase zero() {
-        return new InstantCommand(() -> {
-            encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        });
-    }
+//    public CommandBase zero() {
+//        return new InstantCommand(() -> {
+//            encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//            encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        });
+//    }
 
     public class NextSlot extends CommandBase {
         @Override
@@ -194,9 +194,25 @@ public class MagazineCommands {
             timer.reset();
         }
 
+        private int stage = 0;
+        @Override
+        public void execute() {
+            if (timer.seconds() > 0.3 && stage == 0)
+            {
+                new PrevSlot().initialize();
+                stage = 1;
+            }
+            if (timer.seconds() > 0.4 && stage == 1)
+            {
+                initialize();
+                stage = 2;
+            }
+
+        }
+
         @Override
         public boolean isFinished() {
-            return !isBusy() || timer.seconds() > 2.0;
+            return !isBusy() || (timer.seconds() > 2.0 && stage == 2);
         }
     }
 
@@ -413,9 +429,10 @@ public class MagazineCommands {
         return activeSlot;
     }
 
-    public int getPos() {
-        return encoder.getCurrentPosition();
-    }
+//    public int getPos() {
+//        return encoder.getCurrentPosition();
+//    }
+
     public double getServoPos() {
         return servoPos;
     }

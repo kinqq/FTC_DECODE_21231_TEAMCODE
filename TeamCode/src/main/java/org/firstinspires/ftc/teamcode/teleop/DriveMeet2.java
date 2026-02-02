@@ -209,7 +209,7 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addLine();
         telemetry.addLine("Indexer Positional Data");
             telemetry.addData("     Target Position", indexerCmds.getTarget());
-            telemetry.addData("     Current Position", indexerCmds.getPos());
+            telemetry.addData("     Current Position", indexerCmds.getAnalogAngle());
             telemetry.addData("     Current Slot", indexerCmds.getActiveSlot());
         telemetry.addLine();
         telemetry.addLine("Follower Data");
@@ -222,8 +222,8 @@ public class DriveMeet2 extends CommandOpMode
     }
 
     private boolean started = false;
-    private boolean secondStart = false;
-    private final ElapsedTime startTimer = new ElapsedTime();
+//    private boolean secondStart = false;
+//    private final ElapsedTime startTimer = new ElapsedTime();
 
     @Override
     public void run()
@@ -232,7 +232,7 @@ public class DriveMeet2 extends CommandOpMode
         if (!started) {
             started = true;
             DisplayTimer = null;
-            startTimer.reset();
+//            startTimer.reset();
 
             //Follower
             if (GlobalState.teleOpStartPose != null) {
@@ -248,10 +248,10 @@ public class DriveMeet2 extends CommandOpMode
             indexerCmds.new HammerDown().initialize();
             indexerCmds.start();
         }
-        if (startTimer.milliseconds() >= 650 && !secondStart) {
-            secondStart = true;
-            schedule(indexerCmds.zero());
-        }
+//        if (startTimer.milliseconds() >= 650 && !secondStart) {
+//            secondStart = true;
+//            schedule(indexerCmds.zero());
+//        }
 
         //Run next scheduled command and update subsystems
         super.run();
@@ -268,7 +268,7 @@ public class DriveMeet2 extends CommandOpMode
             );
 
         //Index the Magazine Either by Color or Distance
-        if (index && !launching && !indexerCmds.isBusy() && secondStart)
+        if (index && !launching && !indexerCmds.isBusy()/* && secondStart*/)
         {
             schedule(
                     new SequentialCommandGroup(
@@ -276,7 +276,7 @@ public class DriveMeet2 extends CommandOpMode
                            new InstantCommand(this::findEmpty)
                     )
             );
-        } else if (!launching && !indexerCmds.isBusy() && secondStart) {
+        } else if (!launching && !indexerCmds.isBusy()/* && secondStart*/) {
             schedule(
                     new SequentialCommandGroup(
                             indexerCmds.new DistanceIndex(),
@@ -346,8 +346,6 @@ public class DriveMeet2 extends CommandOpMode
 
         //Telemetry
             //Quick Info
-            telemetry.addData("G", indexerCmds.getAnalog());
-
             telemetry.addLine("Quick Info (Important During Comp)");
                 telemetry.addData("     Is Motor at Expected Vel", turretCmds.motorToSpeed());
                 telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
@@ -370,7 +368,7 @@ public class DriveMeet2 extends CommandOpMode
 
 
         telemetry.addLine("Indexer Data");
-        telemetry.addData("     Current Position", indexerCmds.getPos());
+        telemetry.addData("     Current Position", indexerCmds.getAnalogAngle());
         telemetry.addData("     Current Position (real)", indexerCmds.realServoPos());
         telemetry.addData("     Target", indexerCmds.getTarget());
         telemetry.addLine();
