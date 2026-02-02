@@ -15,8 +15,11 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
+import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
+import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 
@@ -24,7 +27,8 @@ import org.firstinspires.ftc.teamcode.constant.Slot;
 public class CmdAutoTest extends CommandOpMode {
 
     private TurretCommands turretCommands;
-    private IndexerCommands indexerCmds;
+    private MagazineCommands indexerCmds;
+    private IntakeCommands intakeCmds;
     protected Follower follower;
     private CommandBase activeIndexerCmd;
     private Slot currentSlot = Slot.FIRST;
@@ -32,8 +36,8 @@ public class CmdAutoTest extends CommandOpMode {
     @Override
     public void initialize() {
         turretCommands = new TurretCommands(hardwareMap);
-        indexerCmds = new IndexerCommands(hardwareMap);
-        indexerCmds.initializeIndexer();
+        indexerCmds = new MagazineCommands(hardwareMap);
+        intakeCmds = new IntakeCommands(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
         PathChain path1 = follower
@@ -56,9 +60,9 @@ public class CmdAutoTest extends CommandOpMode {
 
         schedule(
             new SequentialCommandGroup(
-                indexerCmds.spinToIntake(Slot.FIRST)
-//                indexerCmds.spinToIntake(Slot.SECOND),
-//                indexerCmds.spinToIntake(Slot.THIRD)
+                intakeCmds.intakeOn(1),
+                indexerCmds.waitForAnyArtifact(),
+                intakeCmds.intakeOff()
             )
         );
 
@@ -73,7 +77,11 @@ public class CmdAutoTest extends CommandOpMode {
         follower.update();
 
         telemetry.addData("CurrentSlot", currentSlot);
-        telemetry.addData("error", indexerCmds.getTargetDeg() - indexerCmds.getCurrentDeg());
+        telemetry.addData("Servo Pos", indexerCmds.getServoPos());
+        telemetry.addData("Current Target", indexerCmds.getTarget());
+        telemetry.addData("Current Pos", indexerCmds.getAnalogAngle());
+        telemetry.addData("isBusy", indexerCmds.isBusy());
+        telemetry.addData("dist", indexerCmds.bob.getDistance(DistanceUnit.MM));
         telemetry.update();
     }
 }

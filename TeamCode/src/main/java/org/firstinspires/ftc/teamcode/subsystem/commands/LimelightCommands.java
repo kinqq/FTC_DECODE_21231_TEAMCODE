@@ -6,6 +6,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -109,6 +110,8 @@ public class LimelightCommands {
 
 
     public class WaitForAnyMotif extends CommandBase {
+        ElapsedTime timer = new ElapsedTime();
+        boolean start = false;
 
         @Override
         public void initialize() {
@@ -117,6 +120,11 @@ public class LimelightCommands {
 
         @Override
         public void execute() {
+            if (!start) {
+                timer.reset();
+                start = true;
+            }
+
             lastDetectedMotif = detectMotifFromLatest();
             Telemetry telemetry = PanelsTelemetry.INSTANCE.getFtcTelemetry();
             telemetry.addData("motif", lastDetectedMotif);
@@ -125,6 +133,10 @@ public class LimelightCommands {
 
         @Override
         public boolean isFinished() {
+            if (timer.seconds() > 4.0) {
+                lastDetectedMotif = Motif.PPG;
+                return true;
+            }
             return lastDetectedMotif != Motif.UNKNOWN;
         }
     }

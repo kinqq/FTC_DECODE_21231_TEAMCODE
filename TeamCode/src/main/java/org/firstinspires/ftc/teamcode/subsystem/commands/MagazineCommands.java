@@ -25,19 +25,25 @@ public class MagazineCommands {
     public ServoImplEx indexer;
     public ServoImplEx indexer1;
     public ServoImplEx hammer;
-    private AnalogInput encoderDegrees;
-    //private
 
     public final DcMotorEx encoder;
+    private final AnalogInput analogInput;
 
     public RevColorSensorV3 bob;
 
+    private double servoPos = 0;
+    private double oldPos = 0;
     private int target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
     public void lockTo(double pos) { lock = true; lockedPos = pos; }
     public void unlock() { lock = false; }
     private static final double OFFSET = 0.518;
+    private String lastPickLog = "";
+
+    public String getLastPickLog() {
+        return lastPickLog;
+    }
 
 
     private Slot activeSlot = Slot.FIRST;
@@ -55,7 +61,7 @@ public class MagazineCommands {
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
         encoder = hwMap.get(DcMotorEx.class, "intake");
-        encoderDegrees = hwMap.get(AnalogInput.class, "analog");
+        analogInput = hwMap.get(AnalogInput.class, "analog");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
 
@@ -63,8 +69,6 @@ public class MagazineCommands {
         indexer1.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
         encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-
 
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.EMPTY);
@@ -77,43 +81,32 @@ public class MagazineCommands {
     }
 
     public void update() {
-        double target;
-
-
         if (lock) {
-            target = lockedPos;
+            servoPos = lockedPos;
         }
         else {
             double base =
-                activeSlot == Slot.FIRST  ? 0.1   :
+                activeSlot == Slot.FIRST ? 0.1 :
                     activeSlot == Slot.SECOND ? 0.273 :
                         0.445;
 
             double cur = indexer.getPosition();
             double alt = base + OFFSET;
-            target = Math.abs(cur - base) < Math.abs(cur - alt) ? base : alt;
+            servoPos = Math.abs(cur - base) < Math.abs(cur - alt) ? base : alt;
         }
 
-        indexer.setPosition(target);
-        indexer1.setPosition(target + 0.003); // somehow this works better
+        indexer.setPosition(servoPos);
+        indexer1.setPosition(servoPos + 0.003); // somehow this works better
     }
 
     public boolean isBusy() {
-        if (indexer.getPosition() <= 0.2) target = 0;
-        if (indexer.getPosition() == 0.273) target = 1340;
-        if (indexer.getPosition() <= 0.5 && indexer.getPosition() >= 0.4) target = 2590;
-        if (indexer.getPosition() == 0.618) target = 3960;
-        if (indexer.getPosition() <= 0.8 && indexer.getPosition() >= 0.7) target = 5370;
-        if (indexer.getPosition() <= 1 && indexer.getPosition() >= 0.9) target = 6620;
+        double currPos = lock ? lockedPos : servoPos;
 
-        return Math.abs(target - encoder.getCurrentPosition()) > 100;
-    }
+        if (Math.abs(currPos % OFFSET - 0.1) < 0.001) target = 176.94;
+        if (Math.abs(currPos % OFFSET - 0.273) < 0.001) target = 52.58;
+        if (Math.abs(currPos % OFFSET - 0.445) < 0.001) target = 299.78;
 
-    public double getAnalog() {
-        double voltage = encoderDegrees.getVoltage();
-        double angleDeg = (voltage / 3.3) * 360.0;
-
-        return angleDeg;
+        return Math.abs(target - getAnalogAngle()) > 10;
     }
 
     public boolean isFull() {
@@ -126,6 +119,11 @@ public class MagazineCommands {
         return indexer.getPosition();
     }
 
+
+    public double getAnalogAngle() {
+        double voltage = analogInput.getVoltage();
+        return (voltage / 3.3) * 360.0;
+    }
 
     public CommandBase zero() {
         return new InstantCommand(() -> {
@@ -185,25 +183,60 @@ public class MagazineCommands {
 
     public class SetSlot extends CommandBase {
         Slot slot;
+        ElapsedTime timer = new ElapsedTime();
 
-        public
-        SetSlot(Slot slot) {
+        public SetSlot(Slot slot) {
             this.slot = slot;
         }
 
         public void initialize() {
             activeSlot = slot;
+            timer.reset();
         }
 
         @Override
         public boolean isFinished() {
-            return !isBusy();
+            return !isBusy() || timer.seconds() > 2.0;
         }
     }
 
     public CommandBase setSlot(Slot slot) {
         return new SetSlot(slot);
     }
+
+    public class LockSlot extends CommandBase {
+        double position;
+        ElapsedTime timer = new ElapsedTime();
+
+        public LockSlot(double position) {
+            this.position = position;
+        }
+
+        public void initialize() {
+            lock = true;
+            lockedPos = position;
+            timer.reset();
+        }
+
+        @Override
+        public boolean isFinished() {
+            return !isBusy() || timer.seconds() > 2.0;
+        }
+    }
+
+    public CommandBase lockSlot(double pos) {
+        return new LockSlot(pos);
+    }
+
+    public CommandBase lockSlot(Slot slot) {
+        double pos = 0.1;
+        if (slot == Slot.FIRST) pos = 0.1;
+        if (slot == Slot.SECOND) pos = 0.273;
+        if (slot == Slot.THIRD) pos = 0.445;
+        return new LockSlot(pos);
+    }
+
+    public void resetPos() {servoPos = oldPos;}
 
     public CommandBase setColor(Slot slot, DetectedColor color) {
         return new InstantCommand(() -> slotColors.replace(slot, color));
@@ -246,7 +279,7 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.65);
+            hammer.setPosition(0.63);
             timer.reset();
         }
 
@@ -289,6 +322,27 @@ public class MagazineCommands {
         }
 
     }
+
+    public class WaitForAnyArtifact extends CommandBase {
+        ElapsedTime timer = new ElapsedTime();
+
+        boolean start = false;
+
+        @Override
+        public void execute() {
+            if (!start) {
+                timer.reset();
+                start = true;
+            }
+        }
+
+        @Override
+        public boolean isFinished() {
+            return bob.getDistance(DistanceUnit.MM) < 44 || timer.seconds() > 3.0;
+        }
+    }
+
+    public CommandBase waitForAnyArtifact() { return new WaitForAnyArtifact(); }
 
     public class Index extends CommandBase {
         RevColorSensorV3 color;
@@ -351,7 +405,7 @@ public class MagazineCommands {
         return slotColors.get(slot);
     }
 
-    public int getTarget() {
+    public double getTarget() {
         return target;
     }
 
@@ -362,27 +416,43 @@ public class MagazineCommands {
     public int getPos() {
         return encoder.getCurrentPosition();
     }
-    private double baseOf(Slot s) {
-        return s == Slot.FIRST ? 0.1 : (s == Slot.SECOND ? 0.273 : 0.445);
+    public double getServoPos() {
+        return servoPos;
     }
 
-    private boolean wrapMove(double from, double to) {
-        return Math.abs(from - to) > 0.5; // 너가 말한 "서보 한계로 wrap"을 강하게 컷
+    private String fmtTarget(Target t) {
+        if (t == null) return "null";
+        Slot s = t.slot;
+        double b = baseOf(s);
+        int wrap = Math.abs(t.pos - b) < 1e-6 ? 0 : 1;
+        return s.name() + "[w" + wrap + "]@" + String.format("%.3f", t.pos);
     }
 
+    private String motifStr(DetectedColor[] m) {
+        if (m == null) return "null";
+        return m[0] + "," + m[1] + "," + m[2];
+    }
+
+    private double baseOf(Slot s) { return s == Slot.FIRST ? 0.1 : (s == Slot.SECOND ? 0.273 : 0.445); }
     public Target[] pickTargetsForMotif(DetectedColor[] motif) {
-        double startPos = indexer.getPosition();
+        if (motif == null || motif.length != 3) return null;
+
+        final double EPS = 1e-6;
+        final double startPos = indexer.getPosition(); // [0,1]
+
         Slot[] S = Slot.values(); // FIRST, SECOND, THIRD
 
         Target[] best = null;
-        double bestCost = 1e9;
+        double bestCost = 1e18;
 
         for (boolean rev : new boolean[]{false, true}) {
-            Slot[] order = rev ? new Slot[]{S[2], S[1], S[0]} : new Slot[]{S[0], S[1], S[2]};
+            Slot[] order = rev
+                ? new Slot[]{S[2], S[1], S[0]}
+                : new Slot[]{S[0], S[1], S[2]};
 
             for (int start = 0; start < 3; start++) {
                 Slot[] seq = new Slot[]{
-                    order[(start) % 3],
+                    order[start % 3],
                     order[(start + 1) % 3],
                     order[(start + 2) % 3]
                 };
@@ -394,30 +464,52 @@ public class MagazineCommands {
                 if (!match) continue;
 
                 for (int mask = 0; mask < 8; mask++) {
+                    double[] p = new double[3];
                     Target[] cand = new Target[3];
-                    double cur = startPos;
-                    double cost = 0;
                     boolean ok = true;
 
                     for (int i = 0; i < 3; i++) {
                         double b = baseOf(seq[i]);
-                        double p = ((mask & (1 << i)) == 0) ? b : (b + OFFSET);
-
-                        if (wrapMove(cur, p)) { ok = false; break; }
-
-                        cost += Math.abs(cur - p);
-                        cand[i] = new Target(seq[i], p);
-                        cur = p;
+                        double pi = ((mask & (1 << i)) == 0) ? b : (b + OFFSET);
+                        if (pi < 0.0 || pi > 1.0) { ok = false; break; }
+                        p[i] = pi;
+                        cand[i] = new Target(seq[i], pi);
                     }
+                    if (!ok) continue;
 
-                    if (ok && cost < bestCost) {
+                    boolean forward = (p[0] <= p[1] + EPS) && (p[1] <= p[2] + EPS);
+                    boolean backward = (p[0] + EPS >= p[1]) && (p[1] + EPS >= p[2]);
+                    if (!forward && !backward) continue;
+
+                    double cost =
+                        Math.abs(startPos - p[0]) +
+                            Math.abs(p[0] - p[1]) +
+                            Math.abs(p[1] - p[2]);
+
+                    if (cost < bestCost) {
                         bestCost = cost;
                         best = cand;
                     }
                 }
             }
         }
+        if (best == null) {
+            lastPickLog =
+                "pickTargets: motif=" + motifStr(motif) +
+                    " start=" + String.format("%.3f", indexer.getPosition()) +
+                    " => BEST=null";
+            return null;
+        }
+
+        lastPickLog =
+            "pickTargets: motif=" + motifStr(motif) +
+                " start=" + String.format("%.3f", indexer.getPosition()) +
+                " => " + fmtTarget(best[0]) + " -> " + fmtTarget(best[1]) + " -> " + fmtTarget(best[2]);
+
 
         return best;
     }
+
+
+
 }
