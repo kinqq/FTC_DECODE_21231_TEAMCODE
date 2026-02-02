@@ -427,7 +427,7 @@ public class DriveMeet2 extends CommandOpMode
             autoDrive = true;
 
             Pose start = new Pose(follower.getPose().getX(), follower.getPose().getY());
-            Pose end = new Pose(72, 72);
+            Pose end = new Pose(38.5, 33.5);
             PathChain base = follower
                     .pathBuilder()
                     .addPath(new BezierLine(start, end))
