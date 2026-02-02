@@ -6,6 +6,7 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.util.MotifUtil;
 
 public class LaunchCommands {
@@ -24,6 +25,13 @@ public class LaunchCommands {
             turretCmds.activateLauncher(power),
             indexerCmds.lockSlot(target.pos),
             indexerCmds.setColor(target.slot, DetectedColor.UNKNOWN)
+        );
+    }
+
+    public CommandBase shoot(Slot slot, double power) {
+        return new SequentialCommandGroup(
+            turretCmds.activateLauncher(power),
+            indexerCmds.setSlot(slot)
         );
     }
 

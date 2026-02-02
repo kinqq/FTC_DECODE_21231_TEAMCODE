@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.draw;
-import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.drawOnlyCurrent;
-import static org.firstinspires.ftc.vision.opencv.ColorRange.ARTIFACT_GREEN;
-
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -11,25 +7,10 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
-import org.firstinspires.ftc.teamcode.Subsystems.*;
-import org.firstinspires.ftc.teamcode.autonomous.Paths;
-import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
-import org.firstinspires.ftc.teamcode.constant.DetectedColor;
-import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
-import org.firstinspires.ftc.teamcode.subsystem.commands.DriveCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
-import org.firstinspires.ftc.teamcode.util.GlobalState;
 
 @TeleOp(name = "Field Pos Test")
 @Disabled

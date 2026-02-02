@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 
-import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 
-
-public class Paths {
+public class NineArtifactsPaths {
     public PathChain Path1;
     public PathChain Path2;
     public PathChain Path3;
@@ -19,7 +16,7 @@ public class Paths {
     public PathChain Path7;
     public PathChain Path8;
 
-    public Paths(Follower follower) {
+    public NineArtifactsPaths(Follower follower) {
         Path1 = follower.pathBuilder().addPath(
                 new BezierLine(
                     new Pose(116.8, 130.350),

@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 
-public abstract class NineArtifactsBaseCmd extends CommandOpMode {
+public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
     private static final double INTAKE_POWER = 1.0;
 
     private TurretCommands turretCmds;
@@ -159,7 +159,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         SequentialCommandGroup shootSecondRow =
             new SequentialCommandGroup(
-                    new ParallelCommandGroup(indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                new ParallelCommandGroup(indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
                     turretCmds.activateLauncher(.78),
                     turretCmds.setLaunchAngle(35),
                     turretCmds.setTarget(volleyTurretTargetDeg),
