@@ -4,11 +4,9 @@ import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.telemetry.*;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.seattlesolvers.solverslib.command.*;
 
@@ -51,7 +49,6 @@ public class DriveMeet2 extends CommandOpMode
 
     //Program Controlled Booleans
     private boolean launching = false;
-    private boolean hasBeenFull = false;
 
     //Program Controlled Numbers
     private int lastShot = 0;

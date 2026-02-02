@@ -18,7 +18,6 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 public class TurretSubsystem
 {
@@ -26,7 +25,7 @@ public class TurretSubsystem
     private final ServoImplEx launchAngle;
     private final DcMotorEx launcher;
     private final DcMotorEx launcher1;
-    private LimelightCommands llCmds;
+//    private LimelightCommands llCmds;
 
 
     private double lineToGoal;
@@ -45,8 +44,8 @@ public class TurretSubsystem
         launcher = hwMap.get(DcMotorEx.class, "launcher");
         launcher1 = hwMap.get(DcMotorEx.class, "launcher1");
 
-        llCmds = new LimelightCommands(hwMap);
-        llCmds.start(0);
+//        llCmds = new LimelightCommands(hwMap);
+//        llCmds.start(0);
 
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -64,18 +63,18 @@ public class TurretSubsystem
     {
         this.offset = offset;
         this.angle = hoodAngle;
-        int llId;
-        double llX;
+//        int llId;
+//        double llX;
 
-        if (llCmds.getMotifMeasurementFromLatest() != null)
-        {
-            llId = llCmds.getMotifMeasurementFromLatest().tagId;
-            if (llId == 21 || llId == 20 || llId == 24) {
-                llX = llCmds.getMotifMeasurementFromLatest().xDeg;
-            } else llX = 0;
-        } else {
-            llX = 0;
-        }
+//        if (llCmds.getMotifMeasurementFromLatest() != null)
+//        {
+//            llId = llCmds.getMotifMeasurementFromLatest().tagId;
+//            if (llId == 21 || llId == 20 || llId == 24) {
+//                llX = llCmds.getMotifMeasurementFromLatest().xDeg;
+//            } else llX = 0;
+//        } else {
+//            llX = 0;
+//        }
 
         if (!autoPower)
         {

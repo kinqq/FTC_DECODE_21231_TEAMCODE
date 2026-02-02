@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PwmControl;
@@ -32,7 +31,6 @@ public class MagazineCommands {
     public RevColorSensorV3 bob;
 
     private double servoPos = 0;
-    private double oldPos = 0;
     private double target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
@@ -246,13 +244,10 @@ public class MagazineCommands {
 
     public CommandBase lockSlot(Slot slot) {
         double pos = 0.1;
-        if (slot == Slot.FIRST) pos = 0.1;
         if (slot == Slot.SECOND) pos = 0.273;
         if (slot == Slot.THIRD) pos = 0.445;
         return new LockSlot(pos);
     }
-
-    public void resetPos() {servoPos = oldPos;}
 
     public CommandBase setColor(Slot slot, DetectedColor color) {
         return new InstantCommand(() -> slotColors.replace(slot, color));
@@ -437,6 +432,7 @@ public class MagazineCommands {
         return servoPos;
     }
 
+    @SuppressLint("DefaultLocale")
     private String fmtTarget(Target t) {
         if (t == null) return "null";
         Slot s = t.slot;
@@ -451,6 +447,7 @@ public class MagazineCommands {
     }
 
     private double baseOf(Slot s) { return s == Slot.FIRST ? 0.1 : (s == Slot.SECOND ? 0.273 : 0.445); }
+    @SuppressLint("DefaultLocale")
     public Target[] pickTargetsForMotif(DetectedColor[] motif) {
         if (motif == null || motif.length != 3) return null;
 
