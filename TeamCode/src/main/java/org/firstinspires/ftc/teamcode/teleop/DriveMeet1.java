@@ -8,6 +8,7 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -36,6 +37,8 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 @TeleOp(name = "DriveMeet1")
 @Configurable
+@Disabled
+
 public class DriveMeet1 extends CommandOpMode {
 
     private DcMotorEx intake;

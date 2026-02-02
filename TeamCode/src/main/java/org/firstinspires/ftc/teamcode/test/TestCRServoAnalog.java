@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "TestCRServoAnalog", group = "Test")
 @Configurable
+@Disabled
+
 public class TestCRServoAnalog extends OpMode {
 
     private AnalogInput analog;       // 피드백(아날로그)

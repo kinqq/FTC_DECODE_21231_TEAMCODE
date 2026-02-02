@@ -14,6 +14,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "TestServoAnalog", group = "Test")
 @Configurable
+@Disabled
+
 public class TestServoAnalog extends OpMode {
     private ServoImplEx servo;          // 단일 CR 서보
     private final ElapsedTime timer = new ElapsedTime();

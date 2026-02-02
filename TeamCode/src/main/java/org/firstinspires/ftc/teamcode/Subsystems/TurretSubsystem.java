@@ -1,9 +1,15 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.f;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.p;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,6 +18,7 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
+import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 public class TurretSubsystem
 {
@@ -19,6 +26,8 @@ public class TurretSubsystem
     private final ServoImplEx launchAngle;
     private final DcMotorEx launcher;
     private final DcMotorEx launcher1;
+    private LimelightCommands llCmds;
+
 
     private double lineToGoal;
     private double angle = 0.18;
@@ -36,10 +45,16 @@ public class TurretSubsystem
         launcher = hwMap.get(DcMotorEx.class, "launcher");
         launcher1 = hwMap.get(DcMotorEx.class, "launcher1");
 
+        llCmds = new LimelightCommands(hwMap);
+        llCmds.start(0);
+
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         launcher.setDirection(DcMotorSimple.Direction.FORWARD);
         launcher1.setDirection(DcMotorSimple.Direction.REVERSE);
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(p, i, d, f);
+        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        launcher1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
         launchAngle.setDirection(Servo.Direction.REVERSE);
     }
@@ -49,6 +64,18 @@ public class TurretSubsystem
     {
         this.offset = offset;
         this.angle = hoodAngle;
+        int llId;
+        double llX;
+
+        if (llCmds.getMotifMeasurementFromLatest() != null)
+        {
+            llId = llCmds.getMotifMeasurementFromLatest().tagId;
+            if (llId == 21 || llId == 20 || llId == 24) {
+                llX = llCmds.getMotifMeasurementFromLatest().xDeg;
+            } else llX = 0;
+        } else {
+            llX = 0;
+        }
 
         if (!autoPower)
         {
@@ -76,6 +103,8 @@ public class TurretSubsystem
             deg = AngleUnit.normalizeDegrees(deg);
             deg = Range.clip(deg, TURRET_LEFT, TURRET_RIGHT);
         } else deg = offset;
+
+        //deg = -llX;
 
         double target = deg * 5.6111111111;
         int fTarget = (int) Math.round(target * 384.5 / 360.0);
@@ -136,8 +165,7 @@ public class TurretSubsystem
 
         @Override
         public void initialize() {
-            launcher.setPower(1);
-            launcher1.setPower(1);
+            launcher.setVelocity(vel);
             launcher1.setVelocity(vel);
             timer.reset();
         }
@@ -155,8 +183,7 @@ public class TurretSubsystem
 
         @Override
         public void initialize() {
-            launcher.setPower(1);
-            launcher1.setPower(1);
+            launcher.setVelocity(velocity);
             launcher1.setVelocity(velocity);
             timer.reset();
         }

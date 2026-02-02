@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.test;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -14,6 +15,8 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @TeleOp(name = "TestMotorVelocity", group = "Test")
 @Pinned
 @Configurable
+@Disabled
+
 public class TestMotorVelocity extends OpMode {
     private DcMotorEx motor;
     public static String motorName = "launcher";

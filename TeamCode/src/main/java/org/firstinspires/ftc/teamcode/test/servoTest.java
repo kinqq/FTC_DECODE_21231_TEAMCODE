@@ -5,6 +5,7 @@ import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
@@ -18,6 +19,8 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="Servo Test", group="Test")
 @Configurable
+@Disabled
+
 public class servoTest extends LinearOpMode
 {
     private double servoPos = 0;

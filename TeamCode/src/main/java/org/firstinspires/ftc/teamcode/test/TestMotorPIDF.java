@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,6 +16,8 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @TeleOp(name = "TestMotorPIDF", group = "Test")
 @Configurable
 @Pinned
+@Disabled
+
 public class TestMotorPIDF extends OpMode {
     private DcMotorEx motor;
     private PIDFController controller = new PIDFController(0,0,0,0);

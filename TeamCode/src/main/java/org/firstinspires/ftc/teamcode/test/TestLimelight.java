@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode.test;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 @TeleOp(group = "Test")
+
 public class TestLimelight extends OpMode {
     LimelightCommands ll;
     LimelightCommands.Motif motif;

@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -19,6 +20,8 @@ import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 import org.firstinspires.ftc.teamcode.teleop.DriveMeet1;
 
 @TeleOp(name = "Magazine PIDF Tuner", group = "Tuning")
+@Disabled
+
 public class CRServoPIDFTuning extends OpMode {
 
     CRServoImplEx servo;

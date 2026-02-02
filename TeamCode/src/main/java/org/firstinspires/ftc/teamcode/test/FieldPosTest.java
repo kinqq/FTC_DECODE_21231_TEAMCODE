@@ -9,6 +9,7 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandBase;
@@ -31,6 +32,8 @@ import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
 
 @TeleOp(name = "Field Pos Test")
+@Disabled
+
 public class FieldPosTest extends CommandOpMode {
     private Follower follower;
 

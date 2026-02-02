@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystem.commands;
 import android.graphics.Color;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -24,7 +25,8 @@ public class MagazineCommands {
     public ServoImplEx indexer;
     public ServoImplEx indexer1;
     public ServoImplEx hammer;
-    public DcMotorEx intake;
+    private AnalogInput encoderDegrees;
+    //private
 
     public final DcMotorEx encoder;
 
@@ -53,7 +55,7 @@ public class MagazineCommands {
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
         encoder = hwMap.get(DcMotorEx.class, "intake");
-        intake = hwMap.get(DcMotorEx.class, "intake");
+        encoderDegrees = hwMap.get(AnalogInput.class, "analog");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
 
@@ -62,13 +64,21 @@ public class MagazineCommands {
 
         encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+
+
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.EMPTY);
         }
     }
 
+    public void start() {
+        indexer.setPosition(0.1);
+        activeSlot = Slot.FIRST;
+    }
+
     public void update() {
         double target;
+
 
         if (lock) {
             target = lockedPos;
@@ -89,9 +99,21 @@ public class MagazineCommands {
     }
 
     public boolean isBusy() {
-        target = (int) Math.round((indexer.getPosition() - 0.618) * 7720);
-        if (indexer.getPosition() == 0.1) target = 0;
-        return Math.abs(target - encoder.getCurrentPosition()) > 125;
+        if (indexer.getPosition() <= 0.2) target = 0;
+        if (indexer.getPosition() == 0.273) target = 1340;
+        if (indexer.getPosition() <= 0.5 && indexer.getPosition() >= 0.4) target = 2590;
+        if (indexer.getPosition() == 0.618) target = 3960;
+        if (indexer.getPosition() <= 0.8 && indexer.getPosition() >= 0.7) target = 5370;
+        if (indexer.getPosition() <= 1 && indexer.getPosition() >= 0.9) target = 6620;
+
+        return Math.abs(target - encoder.getCurrentPosition()) > 100;
+    }
+
+    public double getAnalog() {
+        double voltage = encoderDegrees.getVoltage();
+        double angleDeg = (voltage / 3.3) * 360.0;
+
+        return angleDeg;
     }
 
     public boolean isFull() {
@@ -112,6 +134,39 @@ public class MagazineCommands {
         });
     }
 
+    public class NextSlot extends CommandBase {
+        @Override
+        public void initialize()
+        {
+            if (activeSlot == Slot.FIRST) activeSlot = Slot.SECOND;
+            else if (activeSlot == Slot.SECOND) activeSlot = Slot.THIRD;
+            else if (activeSlot == Slot.THIRD) activeSlot = Slot.FIRST;
+        }
+
+        @Override
+        public boolean isFinished() {
+            return !isBusy();
+        }
+
+    }
+
+    public class PrevSlot extends CommandBase {
+        @Override
+        public void initialize()
+        {
+            if (activeSlot == Slot.FIRST) activeSlot = Slot.THIRD;
+            else if (activeSlot == Slot.SECOND) activeSlot = Slot.FIRST;
+            else if (activeSlot == Slot.THIRD) activeSlot = Slot.SECOND;
+        }
+
+        @Override
+        public boolean isFinished() {
+            return !isBusy();
+        }
+
+    }
+
+
     public CommandBase nextSlot() {
         return new InstantCommand(() -> {
             if (activeSlot == Slot.FIRST) activeSlot = Slot.SECOND;
@@ -131,7 +186,8 @@ public class MagazineCommands {
     public class SetSlot extends CommandBase {
         Slot slot;
 
-        public SetSlot(Slot slot) {
+        public
+        SetSlot(Slot slot) {
             this.slot = slot;
         }
 
@@ -260,13 +316,19 @@ public class MagazineCommands {
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H < 152 && H > 145 && S > 0.40 && S < 0.66)
+            if (H > 142 && H < 148 && S > 0.45 && S < 0.48)
             {
-                slotColors.replace(activeSlot, DetectedColor.GREEN);
+                slotColors.replace(activeSlot, DetectedColor.EMPTY);
                 timer.reset();
                 newBall = true;
             }
-            else if (H < 169 && H > 154 && S > 0.40 && S < 0.53)
+            else if (H > 142 && H < 150 && S > 0.47 && S < 0.61)
+            {
+                slotColors.replace(activeSlot, DetectedColor.GREEN);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
+                timer.reset();
+                newBall = true;
+            }
+            else if (H > 142 && H < 163 && S > 0.34 && S < 0.4689)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();

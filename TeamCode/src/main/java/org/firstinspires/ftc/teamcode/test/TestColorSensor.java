@@ -5,6 +5,7 @@ import android.graphics.Color;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -15,6 +16,8 @@ import dev.frozenmilk.sinister.loading.Pinned;
 
 @TeleOp(name = "TestColorSensor", group = "Test")
 @Configurable
+@Disabled
+
 public class TestColorSensor extends OpMode {
     NormalizedColorSensor cs;
 

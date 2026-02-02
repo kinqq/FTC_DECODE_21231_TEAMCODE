@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @Autonomous
 @Disabled
+
 public class AutomaticMovementTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {

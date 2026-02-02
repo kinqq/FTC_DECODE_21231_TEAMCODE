@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.test;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,6 +14,8 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @TeleOp(name = "TestServo", group = "Test")
 @Configurable
 @Pinned
+@Disabled
+
 public class TestServo extends OpMode {
     ServoImplEx servo1, servo2;
     DcMotor motor1, motor2;
