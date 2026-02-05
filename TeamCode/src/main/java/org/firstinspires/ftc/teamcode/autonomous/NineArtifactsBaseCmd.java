@@ -66,7 +66,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
-        paths = new NineArtifactsPaths(follower);
+        paths = new NineArtifactsPaths(follower, alliance);
 
         double preloadTurretTargetDeg;
         double volleyTurretTargetDeg;

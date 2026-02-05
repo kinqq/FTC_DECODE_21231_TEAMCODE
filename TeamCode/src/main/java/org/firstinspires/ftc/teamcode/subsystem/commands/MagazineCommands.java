@@ -34,9 +34,10 @@ public class MagazineCommands {
     private double target = 0;
     private boolean lock = false;
     private double lockedPos = 0.0;
-    public void lockTo(double pos) { lock = true; lockedPos = pos; }
     public void unlock() { lock = false; }
     private static final double OFFSET = 0.518;
+    public ElapsedTime timer;
+    public double lastTime = 0, lastAngle, velocity;
     private String lastPickLog = "";
 
     public String getLastPickLog() {
@@ -67,6 +68,11 @@ public class MagazineCommands {
         indexer1.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
 //        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        timer = new ElapsedTime();
+        timer.reset();
+
+        lastTime = timer.seconds();
+        lastAngle = getAnalogAngle();
 
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.EMPTY);
@@ -79,6 +85,10 @@ public class MagazineCommands {
     }
 
     public void update() {
+        double dt = timer.seconds() - lastTime;
+        double da = getAnalogAngle() - lastAngle;
+        velocity = da/dt;
+
         if (lock) {
             servoPos = lockedPos;
         }
@@ -105,12 +115,6 @@ public class MagazineCommands {
         if (Math.abs(currPos % OFFSET - 0.445) < 0.001) target = 299.78;
 
         return Math.abs(target - getAnalogAngle()) > 10;
-    }
-
-    public boolean isFull() {
-        return slotColors.get(Slot.FIRST) != DetectedColor.EMPTY
-        && slotColors.get(Slot.SECOND) != DetectedColor.EMPTY
-        && slotColors.get(Slot.THIRD) != DetectedColor.EMPTY;
     }
 
     public double realServoPos() {
@@ -192,25 +196,25 @@ public class MagazineCommands {
             timer.reset();
         }
 
-        private int stage = 0;
-        @Override
-        public void execute() {
-            if (timer.seconds() > 0.3 && stage == 0)
-            {
-                new PrevSlot().initialize();
-                stage = 1;
-            }
-            if (timer.seconds() > 0.4 && stage == 1)
-            {
-                initialize();
-                stage = 2;
-            }
-
-        }
+//        private int stage = 0;
+//        @Override
+//        public void execute() {
+//            if (timer.seconds() > 0.3 && stage == 0)
+//            {
+//                new PrevSlot().initialize();
+//                stage = 1;
+//            }
+//            if (timer.seconds() > 0.4 && stage == 1)
+//            {
+//                initialize();
+//                stage = 2;
+//            }
+//
+//        }
 
         @Override
         public boolean isFinished() {
-            return !isBusy() || (timer.seconds() > 2.0 && stage == 2);
+            return !isBusy() || (timer.seconds() > 2.0);
         }
     }
 

@@ -1,9 +1,15 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.f;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
+import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.p;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
@@ -46,6 +52,10 @@ public class TurretCommands {
         launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setPower(0);
         launchMotor1.setPower(0);
+
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(p, i, d, f);
+        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
         targetTurretDeg = getAngleDeg();
     }
@@ -223,7 +233,7 @@ public class TurretCommands {
     public class ActivateLauncher extends CommandBase {
         private final ElapsedTime timer = new ElapsedTime();
         private boolean started = false;
-        private double power = 1.0;
+        private final double power;
 
         public ActivateLauncher(double power) {
             this.power = power;
@@ -245,7 +255,7 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            return Math.abs(launchMotor1.getVelocity() - (1800 * power)) < 40 || timer.seconds() > 4.0;
+            return Math.abs(launchMotor1.getVelocity() - (1800 * power)) < 50 || timer.seconds() > 3.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

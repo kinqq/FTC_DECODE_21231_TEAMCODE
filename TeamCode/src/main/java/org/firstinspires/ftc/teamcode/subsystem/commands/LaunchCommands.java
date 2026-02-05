@@ -31,7 +31,23 @@ public class LaunchCommands {
     public CommandBase shoot(Slot slot, double power) {
         return new SequentialCommandGroup(
             turretCmds.activateLauncher(power),
-            indexerCmds.setSlot(slot)
+            indexerCmds.lockSlot(slot),
+            indexerCmds.hammerUp(),
+            indexerCmds.setColor(slot, DetectedColor.UNKNOWN)
+        );
+    }
+
+    public CommandBase shootEachSlot(double power) {
+        return new SequentialCommandGroup(
+            indexerCmds.lockSlot(Slot.FIRST),
+            shoot(Slot.FIRST, power),
+            new WaitCommand(300),
+            shoot(Slot.SECOND, power),
+            new WaitCommand(300),
+            shoot(Slot.THIRD, power),
+            new WaitCommand(300),
+            indexerCmds.hammerDown(),
+            new InstantCommand(indexerCmds::unlock)
         );
     }
 
