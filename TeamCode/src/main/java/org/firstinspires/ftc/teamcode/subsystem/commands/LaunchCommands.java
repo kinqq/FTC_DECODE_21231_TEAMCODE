@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystem.commands;
 
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
@@ -24,6 +25,7 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             turretCmds.activateLauncher(power),
             indexerCmds.lockSlot(target.pos),
+            indexerCmds.hammerUp(),
             indexerCmds.setColor(target.slot, DetectedColor.UNKNOWN)
         );
     }
@@ -41,11 +43,11 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             indexerCmds.lockSlot(Slot.FIRST),
             shoot(Slot.FIRST, power),
-            new WaitCommand(300),
+            new WaitCommand(200),
             shoot(Slot.SECOND, power),
-            new WaitCommand(300),
+            new WaitCommand(200),
             shoot(Slot.THIRD, power),
-            new WaitCommand(300),
+            new WaitCommand(200),
             indexerCmds.hammerDown(),
             new InstantCommand(indexerCmds::unlock)
         );
@@ -73,13 +75,12 @@ public class LaunchCommands {
                 }
                 inner = new SequentialCommandGroup(
                     indexerCmds.lockSlot(t[0].pos),
-                    indexerCmds.hammerUp(),
                     shoot(t[0], power),
-                    new WaitCommand(300),
+                    new WaitCommand(200),
                     shoot(t[1], power),
-                    new WaitCommand(300),
+                    new WaitCommand(200),
                     shoot(t[2], power),
-                    new WaitCommand(500),
+                    new WaitCommand(200),
                     indexerCmds.hammerDown(),
                     new InstantCommand(indexerCmds::unlock)
                 );

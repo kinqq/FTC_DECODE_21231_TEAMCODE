@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.Range;
+import com.seattlesolvers.solverslib.controller.PController;
 import com.seattlesolvers.solverslib.controller.PIDController;
 import com.seattlesolvers.solverslib.controller.PIDFController;
 
@@ -28,7 +29,7 @@ import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
 @Configurable
 public class FlywheelPIDFTuning extends OpMode {
 
-    PIDFController pidf;
+    PController pid;
 
     public double lowV = 900;
     public double highV = 2000;
@@ -36,49 +37,29 @@ public class FlywheelPIDFTuning extends OpMode {
     private DcMotorEx launcher1;
     private DcMotorEx launcher;
 
-    private double vel = 1500;
+    private double vel = 1600;
 
     public void init() {
-//        pidf = new PIDFController(p, i, d, f);
+        pid = new PController(p);
 
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         launcher1 = hardwareMap.get(DcMotorEx.class, "launcher1");
         launcher.setDirection(DcMotorSimple.Direction.FORWARD);
         launcher1.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(p, i, d, f);
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        launcher1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-
         PanelsConfigurables.INSTANCE.refreshClass(DriveMeet2.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
     }
 
     public void loop() {
-//        pidf.setPIDF(p, i, d, f);
+        double kF = 0.00045;
+        pid.setP(p);
+        double pidResult = pid.calculate(launcher.getVelocity(), vel);
+        double ff = kF * vel;
+        double power = Range.clip(pidResult + ff, -1, 1);
 
-//        double power = pidf.calculate(launcher.getVelocity(), vel);
-//        double power1 = pidf.calculate(launcher1.getVelocity(), vel);
-
-//        if (gamepad1.a) {
-//            launcher.setPower(power);
-//            launcher1.setPower(power1);
-//        } else {
-//            launcher.setPower(0);
-//            launcher1.setPower(0);
-//        }
-
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(p, i, d, f);
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        launcher1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-
-        if (gamepad1.a) {
-            launcher.setVelocity(vel);
-            launcher1.setVelocity(vel);
-        } else {
-            launcher.setPower(0);
-            launcher1.setPower(0);
-        }
+        launcher.setPower(power);
+        launcher1.setPower(power);
 
         telemetry.addData("Error", launcher.getVelocity() - vel);
         telemetry.addData("Error 1", launcher1.getVelocity() - vel);
