@@ -94,20 +94,15 @@ public class DriveMeet2 extends CommandOpMode
         //Initialize Data From Auto
             //Follower
             follower.update();
-            if (GlobalState.teleOpStartPose != null) {
+            if (GlobalState.teleOpStartPose != null)
                 follower.setStartingPose(GlobalState.teleOpStartPose);
-                follower.setPose(GlobalState.teleOpStartPose);
-            } else if (startLocation == 0){
+            else if (startLocation == 0)
                 follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
-                follower.setPose(new Pose(72, 72, Math.toRadians(90)));
-            } else if (startLocation == 1 && alliance == AllianceColor.RED)
-            {
+            else if (startLocation == 1 && alliance == AllianceColor.RED)
                 follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
-            } else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
+            else if (startLocation == 1 && alliance == AllianceColor.BLUE)
                 follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-                follower.setPose(new Pose(56, 5, Math.toRadians(90)));
-            }
+
             //Alliance
             if (GlobalState.alliance != null) {
                 alliance = GlobalState.alliance;
@@ -230,8 +225,7 @@ public class DriveMeet2 extends CommandOpMode
 //    private final ElapsedTime startTimer = new ElapsedTime();
 
     @Override
-    public void run()
-    {
+    public void run() {
         //Run On Start Only
         if (!started) {
             started = true;
@@ -239,61 +233,56 @@ public class DriveMeet2 extends CommandOpMode
 //            startTimer.reset();
 
             //Follower
-            if (GlobalState.teleOpStartPose != null) {
+            if (GlobalState.teleOpStartPose != null)
                 follower.setStartingPose(GlobalState.teleOpStartPose);
-                follower.setPose(GlobalState.teleOpStartPose);
-            } else if (startLocation == 0){
+            else if (startLocation == 0)
                 follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
-                follower.setPose(new Pose(72, 72, Math.toRadians(90)));
-            } else if (startLocation == 1 && alliance == AllianceColor.RED)
-            {
+            else if (startLocation == 1 && alliance == AllianceColor.RED)
                 follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
-            } else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
-                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-                follower.setPose(new Pose(56, 5, Math.toRadians(90)));
-            }
-            follower.startTeleopDrive();
+            else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
+                follower.setStartingPose(new Pose(56, 5, Math.toRadians(90)));
 
-            //Indexer
-            indexerCmds.new HammerDown().initialize();
-            indexerCmds.start();
+                follower.startTeleopDrive();
+
+                //Indexer
+                indexerCmds.new HammerDown().initialize();
+                indexerCmds.start();
+            }
         }
 //        if (startTimer.milliseconds() >= 650 && !secondStart) {
 //            secondStart = true;
 //            schedule(indexerCmds.zero());
 //        }
 
-        //Run next scheduled command and update subsystems
-        super.run();
-        follower.update();
-        indexerCmds.update();
-        turretCmds.update(autoPower, autoAim, power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
+            //Run next scheduled command and update subsystems
+            super.run();
+            follower.update();
+            indexerCmds.update();
+            turretCmds.update(autoPower, autoAim, power, angle, offset, alliance, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading());
 
-        if (!autoDrive)
-            follower.setTeleOpDrive(
-                    alliance == AllianceColor.RED ? -gamepad1.left_stick_y : gamepad1.left_stick_y,
-                    alliance == AllianceColor.RED ? -gamepad1.left_stick_x : gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
-                    !odoDrive
-            );
+            if (!autoDrive)
+                follower.setTeleOpDrive(
+                        alliance == AllianceColor.RED ? -gamepad1.left_stick_y : gamepad1.left_stick_y,
+                        alliance == AllianceColor.RED ? -gamepad1.left_stick_x : gamepad1.left_stick_x,
+                        -gamepad1.right_stick_x,
+                        !odoDrive
+                );
 
-        //Index the Magazine Either by Color or Distance
-        if (index && !launching && !indexerCmds.isBusy()/* && secondStart*/)
-        {
-            schedule(
-                    new SequentialCommandGroup(
-                            indexerCmds.new Index(),
-                           new InstantCommand(this::findEmpty)
-                    )
-            );
-        } else if (!launching && !indexerCmds.isBusy()/* && secondStart*/) {
-            schedule(
-                    new SequentialCommandGroup(
-                            indexerCmds.new DistanceIndex()
-                    )
-            );
-        }
+            //Index the Magazine Either by Color or Distance
+            if (index && !launching && !indexerCmds.isBusy()/* && secondStart*/) {
+                schedule(
+                        new SequentialCommandGroup(
+                                indexerCmds.new Index(),
+                                new InstantCommand(this::findEmpty)
+                        )
+                );
+            } else if (!launching && !indexerCmds.isBusy()/* && secondStart*/) {
+                schedule(
+                        new SequentialCommandGroup(
+                                indexerCmds.new DistanceIndex()
+                        )
+                );
+            }
 //        if (indexerCmds.isFull() && !hasBeenFull)
 //        {
 //            hasBeenFull = true;
@@ -303,109 +292,106 @@ public class DriveMeet2 extends CommandOpMode
 //            driveCmds.new intakeOn().initialize();
 //        }
 
-        //Update Controllers
-        controls();
+            //Update Controllers
+            controls();
 
-        //Handle Shot Types
-        if (autoPower) shotType = -1;
-        else if (lastShot != 0)
-        {
-            switch (shotType)
-            {
-                case 1:
-                    power = CLOSE_POWER;
-                    angle = CLOSE_ANGLE;
-                    break;
-                case 2:
-                    power = MED_POWER;
-                    angle = MED_ANGLE;
-                    break;
-                case 3:
-                    power = LONG_POWER;
-                    angle = LONG_ANGLE;
-                    break;
-                case 4:
-                    power = FAR_POWER;
-                    angle = FAR_ANGLE;
-                    break;
+            //Handle Shot Types
+            if (autoPower) shotType = -1;
+            else if (lastShot != 0) {
+                switch (shotType) {
+                    case 1:
+                        power = CLOSE_POWER;
+                        angle = CLOSE_ANGLE;
+                        break;
+                    case 2:
+                        power = MED_POWER;
+                        angle = MED_ANGLE;
+                        break;
+                    case 3:
+                        power = LONG_POWER;
+                        angle = LONG_ANGLE;
+                        break;
+                    case 4:
+                        power = FAR_POWER;
+                        angle = FAR_ANGLE;
+                        break;
+                }
+            } else {
+                switch (shotType) {
+                    case 1:
+                        power = CLOSE_POWER_SPEED;
+                        angle = CLOSE_ANGLE_SPEED;
+                        break;
+                    case 2:
+                        power = MED_POWER_SPEED;
+                        angle = MED_ANGLE_SPEED;
+                        break;
+                    case 3:
+                        power = LONG_POWER_SPEED;
+                        angle = LONG_ANGLE_SPEED;
+                        break;
+                    case 4:
+                        power = FAR_POWER_SPEED;
+                        angle = FAR_ANGLE_SPEED;
+                        break;
+                }
             }
-        } else {
-            switch (shotType)
-            {
-                case 1:
-                    power = CLOSE_POWER_SPEED;
-                    angle = CLOSE_ANGLE_SPEED;
-                    break;
-                case 2:
-                    power = MED_POWER_SPEED;
-                    angle = MED_ANGLE_SPEED;
-                    break;
-                case 3:
-                    power = LONG_POWER_SPEED;
-                    angle = LONG_ANGLE_SPEED;
-                    break;
-                case 4:
-                    power = FAR_POWER_SPEED;
-                    angle = FAR_ANGLE_SPEED;
-                    break;
-            }
-        }
 
-        //Draw Follower
-        Draw.drawDebug(follower);
+            //Draw Follower
+            Draw.drawDebug(follower);
 
-        //Telemetry
+            //Telemetry
             //Quick Info
-        telemetry.addData("G", indexerCmds.getVelocity());
+            telemetry.addData("G", indexerCmds.getVelocity());
             telemetry.addLine("Quick Info (Important During Comp)");
-                telemetry.addData("     Is Motor at Expected Vel", turretCmds.motorToSpeed());
-                telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
-                telemetry.addData("     Shot Type", shotType);
-                telemetry.addData("     Flywheel Power", power);
-                telemetry.addData("     Hood Angle", angle);
-                telemetry.addData("     Expected Velocity", turretCmds.getExpectedVel());
-                telemetry.addData("     Actual Velocity", turretCmds.getVel());
-                telemetry.addData("     Distance From Goal", turretCmds.getDist());
-                telemetry.addData("     Active Indexer Slot", indexerCmds.getActiveSlot());
-                //telemetry.addData("     Attempting to Auto Drive", autoDrive);
+            telemetry.addData("     Is Motor at Expected Vel", turretCmds.motorToSpeed());
+            telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
+            telemetry.addData("     Shot Type", shotType);
+            telemetry.addData("     Flywheel Power", power);
+            telemetry.addData("     Hood Angle", angle);
+            telemetry.addData("     Expected Velocity", turretCmds.getExpectedVel());
+            telemetry.addData("     Actual Velocity", turretCmds.getVel());
+            telemetry.addData("     Distance From Goal", turretCmds.getDist());
+            telemetry.addData("     Active Indexer Slot", indexerCmds.getActiveSlot());
+            //telemetry.addData("     Attempting to Auto Drive", autoDrive);
             telemetry.addLine();
             telemetry.addLine("General Information");
-                telemetry.addData("     Motif", motifTranslated[0] + ", " + motifTranslated[1] + ", " +  motifTranslated[2]);
-                telemetry.addData("     Alliance", alliance);
-                telemetry.addData("     Auto Aiming", autoAim);
-                telemetry.addData("     Field Centric", odoDrive);
-                telemetry.addData("     Auto Power", autoPower);
+            telemetry.addData("     Motif", motifTranslated[0] + ", " + motifTranslated[1] + ", " + motifTranslated[2]);
+            telemetry.addData("     Alliance", alliance);
+            telemetry.addData("     Auto Aiming", autoAim);
+            telemetry.addData("     Field Centric", odoDrive);
+            telemetry.addData("     Auto Power", autoPower);
             telemetry.addLine();
 
 
-        telemetry.addLine("Indexer Data");
-        telemetry.addData("     Current Position", indexerCmds.getAnalogAngle());
-        telemetry.addData("     Current Position (real)", indexerCmds.realServoPos());
-        telemetry.addData("     Target", indexerCmds.getTarget());
-        telemetry.addLine();
-        telemetry.addData("     Active Slot", indexerCmds.getSlot(Slot.FIRST));
-        telemetry.addData("     Top Left", indexerCmds.getSlot(Slot.THIRD));
-        telemetry.addData("     Top Right", indexerCmds.getSlot(Slot.SECOND));
-        telemetry.addLine();
-        telemetry.addData("     Indexer P", ConstantsServo.kP);
-        telemetry.addData("     Indexer I", ConstantsServo.kI);
-        telemetry.addData("     Indexer D", ConstantsServo.kD);
-        telemetry.addLine();
+            telemetry.addLine("Indexer Data");
+            telemetry.addData("     Current Position", indexerCmds.getAnalogAngle());
+            telemetry.addData("     Current Position (real)", indexerCmds.realServoPos());
+            telemetry.addData("     Target", indexerCmds.getTarget());
+            telemetry.addLine();
+            telemetry.addData("     Active Slot", indexerCmds.getSlot(Slot.FIRST));
+            telemetry.addData("     Top Left", indexerCmds.getSlot(Slot.THIRD));
+            telemetry.addData("     Top Right", indexerCmds.getSlot(Slot.SECOND));
+            telemetry.addLine();
+            telemetry.addData("     Indexer P", ConstantsServo.kP);
+            telemetry.addData("     Indexer I", ConstantsServo.kI);
+            telemetry.addData("     Indexer D", ConstantsServo.kD);
+            telemetry.addLine();
 
-        telemetry.addLine("Turret Data");
-        telemetry.addData("     Current Position", turretCmds.getPos());
-        telemetry.addData("     Target", turretCmds.getTarget());
-        telemetry.addData("     Offset", turretCmds.getOffset());
-        telemetry.addLine();
-        telemetry.addData("     Launch Angle", turretCmds.getLaunchAngle());
-        telemetry.addLine();
+            telemetry.addLine("Turret Data");
+            telemetry.addData("     Current Position", turretCmds.getPos());
+            telemetry.addData("     Target", turretCmds.getTarget());
+            telemetry.addData("     Offset", turretCmds.getOffset());
+            telemetry.addLine();
+            telemetry.addData("     Launch Angle", turretCmds.getLaunchAngle());
+            telemetry.addLine();
 
-        telemetry.addLine("Odometry Data");
-        telemetry.addData("     Follower X", follower.getPose().getX());
-        telemetry.addData("     Follower Y", follower.getPose().getY());
-        telemetry.addData("     Follower Heading", Math.toDegrees(follower.getPose().getHeading()));
-        telemetry.update();
-    }
+            telemetry.addLine("Odometry Data");
+            telemetry.addData("     Follower X", follower.getPose().getX());
+            telemetry.addData("     Follower Y", follower.getPose().getY());
+            telemetry.addData("     Follower Heading", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.update();
+        }
 
     private void controls()
     {
