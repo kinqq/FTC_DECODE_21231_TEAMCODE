@@ -38,7 +38,7 @@ public class DriveMeet2 extends CommandOpMode
     private boolean autoAim = true;
     private boolean odoDrive = true;
     private boolean autoPower = true;
-    private boolean index = true;
+    private boolean index = false;
     private boolean autoDrive = false;
 
     //Configurable Numbers
@@ -46,6 +46,7 @@ public class DriveMeet2 extends CommandOpMode
     private double angle = 0.13;
     private double offset = 0;
     private int shotType = 1;
+    private int startLocation = 1;
 
     //Program Controlled Booleans
     private boolean launching = false;
@@ -96,11 +97,17 @@ public class DriveMeet2 extends CommandOpMode
             if (GlobalState.teleOpStartPose != null) {
                 follower.setStartingPose(GlobalState.teleOpStartPose);
                 follower.setPose(GlobalState.teleOpStartPose);
-            } else {
+            } else if (startLocation == 0){
                 follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
                 follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+            } else if (startLocation == 1 && alliance == AllianceColor.RED)
+            {
+                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+            } else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
+                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(56, 5, Math.toRadians(90)));
             }
-
             //Alliance
             if (GlobalState.alliance != null) {
                 alliance = GlobalState.alliance;
@@ -235,9 +242,16 @@ public class DriveMeet2 extends CommandOpMode
             if (GlobalState.teleOpStartPose != null) {
                 follower.setStartingPose(GlobalState.teleOpStartPose);
                 follower.setPose(GlobalState.teleOpStartPose);
-            } else {
+            } else if (startLocation == 0){
                 follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
                 follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+            } else if (startLocation == 1 && alliance == AllianceColor.RED)
+            {
+                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+            } else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
+                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(56, 5, Math.toRadians(90)));
             }
             follower.startTeleopDrive();
 
@@ -276,8 +290,7 @@ public class DriveMeet2 extends CommandOpMode
         } else if (!launching && !indexerCmds.isBusy()/* && secondStart*/) {
             schedule(
                     new SequentialCommandGroup(
-                            indexerCmds.new DistanceIndex(),
-                            new InstantCommand(this::findEmpty)
+                            indexerCmds.new DistanceIndex()
                     )
             );
         }
@@ -343,6 +356,7 @@ public class DriveMeet2 extends CommandOpMode
 
         //Telemetry
             //Quick Info
+        telemetry.addData("G", indexerCmds.getVelocity());
             telemetry.addLine("Quick Info (Important During Comp)");
                 telemetry.addData("     Is Motor at Expected Vel", turretCmds.motorToSpeed());
                 telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
@@ -522,38 +536,45 @@ public class DriveMeet2 extends CommandOpMode
             angle = FAR_ANGLE;
         }
 
-        schedule(new SequentialCommandGroup(
-                indexerCmds.new HammerDown(),
-                new ParallelCommandGroup(
-                        new CommandBase() {
-                            @Override public void initialize() {launching = true;}
-                            @Override public boolean isFinished() {return true;}
-                        },
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        turretCmds.new spinUp(),
-                        driveCmds.new intakeOn()
-                ),
-                indexerCmds.new clearAllSlotColors(),
-                indexerCmds.new HammerUp(),
-                shoot(Slot.FIRST),
-                indexerCmds.new HammerDown(),
-                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
-                shoot(Slot.SECOND),
-                indexerCmds.new HammerDown(),
-                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
-                shoot(Slot.THIRD),
-                new WaitCommand(500),
-                new ParallelCommandGroup(
-                        turretCmds.new spinDown(),
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        new CommandBase() {
-                            @Override public void initialize() {launching = false;}
-                            @Override public boolean isFinished() {return true;}
-                        }
-                ),
-                indexerCmds.new HammerDown(),
-                indexerCmds.new SetSlot(Slot.FIRST)
-        ));
+        schedule(
+                new SequentialCommandGroup(
+                        new ParallelRaceGroup(
+                            new SequentialCommandGroup(
+                                    indexerCmds.new HammerDown(),
+                                    new ParallelCommandGroup(
+                                            new CommandBase() {
+                                                @Override public void initialize() {launching = true;}
+                                                @Override public boolean isFinished() {return true;}
+                                            },
+                                            indexerCmds.new SetSlot(Slot.FIRST),
+                                            turretCmds.new spinUp(),
+                                            driveCmds.new intakeOn()
+                                    ),
+                                    indexerCmds.new clearAllSlotColors(),
+                                    indexerCmds.new HammerUp(),
+                                    shoot(Slot.FIRST),
+                                    indexerCmds.new HammerDown(),
+                                    new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
+                                    shoot(Slot.SECOND),
+                                    indexerCmds.new HammerDown(),
+                                    new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
+                                    shoot(Slot.THIRD),
+                                    new WaitCommand(500)
+                            ),
+                            new WaitUntilCommand(() -> gamepad2.left_trigger > 0)
+                        ),
+                        new ParallelCommandGroup(
+                                turretCmds.new spinDown(),
+                                indexerCmds.new SetSlot(Slot.FIRST),
+                                new CommandBase() {
+                                    @Override public void initialize() {launching = false;}
+                                    @Override public boolean isFinished() {return true;}
+                                }
+                        ),
+                        indexerCmds.new HammerDown(),
+                        indexerCmds.new SetSlot(Slot.FIRST)
+                )
+        );
     }
 
     private void shootSpeed()
@@ -581,32 +602,39 @@ public class DriveMeet2 extends CommandOpMode
             angle = FAR_ANGLE_SPEED;
         }
 
-        schedule(new SequentialCommandGroup(
-                indexerCmds.new HammerDown(),
-                new ParallelCommandGroup(
-                        new InstantCommand(() -> launching = true),
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        turretCmds.new spinUp(),
-                        driveCmds.new intakeOn()
+        schedule(
+            new SequentialCommandGroup(
+                new ParallelRaceGroup(
+                        new SequentialCommandGroup(
+                                indexerCmds.new HammerDown(),
+                                new ParallelCommandGroup(
+                                        new InstantCommand(() -> launching = true),
+                                        indexerCmds.new SetSlot(Slot.FIRST),
+                                        turretCmds.new spinUp(),
+                                        driveCmds.new intakeOn()
+                                ),
+                                indexerCmds.new clearAllSlotColors(),
+                                indexerCmds.new HammerUp(),
+                                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
+                                indexerCmds.new SetSlot(Slot.SECOND),
+                                new ParallelCommandGroup(
+                                        new WaitCommand(100),
+                                        new WaitUntilCommand(() -> turretCmds.motorToSpeed())
+                                ),
+                                indexerCmds.new SetSlot(Slot.THIRD),
+                                new WaitCommand(500)
+                        ),
+                        new WaitUntilCommand(() -> gamepad2.left_trigger > 0)
                 ),
-                indexerCmds.new clearAllSlotColors(),
-                indexerCmds.new HammerUp(),
-                new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
-                indexerCmds.new SetSlot(Slot.SECOND),
                 new ParallelCommandGroup(
-                        new WaitCommand(100),
-                        new WaitUntilCommand(() -> turretCmds.motorToSpeed())
+                    turretCmds.new spinDown(),
+                    indexerCmds.new SetSlot(Slot.FIRST),
+                    new InstantCommand(() -> launching = false)
                 ),
-                indexerCmds.new SetSlot(Slot.THIRD),
-                new WaitCommand(500),
-                new ParallelCommandGroup(
-                        turretCmds.new spinDown(),
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        new InstantCommand(() -> launching = false)
-                ),
-                indexerCmds.new HammerDown(),
-                indexerCmds.new SetSlot(Slot.FIRST)
-        ));
+                    indexerCmds.new HammerDown(),
+                    indexerCmds.new SetSlot(Slot.FIRST)
+            )
+        );
     }
 
     private CommandBase shootMotif()

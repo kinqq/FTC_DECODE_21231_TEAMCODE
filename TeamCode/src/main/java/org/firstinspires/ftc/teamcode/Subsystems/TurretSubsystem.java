@@ -35,7 +35,7 @@ public class TurretSubsystem
     private double target;
 
     protected final int TURRET_LEFT = -82;
-    protected final int TURRET_RIGHT = 45;
+    protected final int TURRET_RIGHT = 75;
 
     public TurretSubsystem(HardwareMap hwMap)
     {

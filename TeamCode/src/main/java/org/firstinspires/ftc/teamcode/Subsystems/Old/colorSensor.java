@@ -43,9 +43,9 @@ public class colorSensor
         V = (float) (hsv[2]);
 
          if (bob_gary_joe == 0) {
-            if (H > 142 && H < 147 && S > 0.45 && S < 0.48)  return 0;
-            else if (H > 142 && H < 150 && S > 0.47 && S < 0.61) return 1;
-            else if (H > 142 && H < 163 && S > 0.34 && S < 0.4689) return 2;
+            if (H > 142 && H < 175 && S > 0.3 && S < 0.37) return 0;
+            else if (H > 142 && H < 166 && S > 0.47 && S < 0.61) return 1;
+            else if (H > 142 && S > 0.32 && S < 0.4689) return 2;
             else return 0;
          } else if (bob_gary_joe == 1) {
              if (H < 169 && H > 148 && S > 0.53 && S < 0.77) return 1;

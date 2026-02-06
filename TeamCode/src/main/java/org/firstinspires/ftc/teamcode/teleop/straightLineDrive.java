@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "Straight Line")
 @Configurable
-@Disabled
 
 public class straightLineDrive extends OpMode
 {

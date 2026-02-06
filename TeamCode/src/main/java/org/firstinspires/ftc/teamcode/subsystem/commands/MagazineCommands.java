@@ -5,6 +5,8 @@ import android.graphics.Color;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PwmControl;
@@ -25,7 +27,7 @@ public class MagazineCommands {
     public ServoImplEx indexer1;
     public ServoImplEx hammer;
 
-//    public final DcMotorEx encoder;
+    public final DcMotorEx encoder;
     private final AnalogInput analogInput;
 
     public RevColorSensorV3 bob;
@@ -58,7 +60,7 @@ public class MagazineCommands {
         indexer1 = hwMap.get(ServoImplEx.class, "turntable1");
         hammer = hwMap.get(ServoImplEx.class, "hammer");
 
-//        encoder = hwMap.get(DcMotorEx.class, "intake");
+        encoder = hwMap.get(DcMotorEx.class, "intake");
         analogInput = hwMap.get(AnalogInput.class, "analog");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
@@ -66,7 +68,7 @@ public class MagazineCommands {
         indexer.setPwmRange(new PwmControl.PwmRange(500, 2500));
         indexer1.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
-//        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         for (Slot s : Slot.values()) {
             slotColors.put(s, DetectedColor.EMPTY);
@@ -182,37 +184,46 @@ public class MagazineCommands {
     public class SetSlot extends CommandBase {
         Slot slot;
         ElapsedTime timer = new ElapsedTime();
+        ElapsedTime periodicTimer = new ElapsedTime();
+        boolean nextToReverse;
 
         public SetSlot(Slot slot) {
             this.slot = slot;
         }
 
         public void initialize() {
+            int diff = (slot.ordinal() - activeSlot.ordinal() + 3) % 3;
+            nextToReverse = (diff == 2);
+
             activeSlot = slot;
             timer.reset();
+            periodicTimer.reset();
         }
 
-        private int stage = 0;
+        boolean stage = false;
+
         @Override
         public void execute() {
-            if (timer.seconds() > 0.3 && stage == 0)
-            {
-                new PrevSlot().initialize();
-                stage = 1;
+            if (periodicTimer.seconds() > 0.5 && encoder.getVelocity() < 100 && isBusy() && !stage) {
+                if (nextToReverse) new NextSlot().initialize();
+                else new PrevSlot().initialize();
+                stage = true;
+                periodicTimer.reset();
             }
-            if (timer.seconds() > 0.4 && stage == 1)
-            {
-                initialize();
-                stage = 2;
+            if (periodicTimer.seconds() > 0.2 && stage) {
+                activeSlot = slot;
+                stage = false;
+                periodicTimer.reset();
             }
-
         }
 
         @Override
         public boolean isFinished() {
-            return !isBusy() || (timer.seconds() > 2.0 && stage == 2);
+            return !isBusy() || (timer.seconds() > 5.0);
         }
     }
+
+    public double getVelocity() {return encoder.getVelocity();}
 
     public CommandBase setSlot(Slot slot) {
         return new SetSlot(slot);
@@ -381,19 +392,19 @@ public class MagazineCommands {
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H > 142 && H < 148 && S > 0.45 && S < 0.48)
+            if (H > 142 && H < 175 && S > 0.3 && S < 0.37)
             {
                 slotColors.replace(activeSlot, DetectedColor.EMPTY);
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && H < 150 && S > 0.47 && S < 0.61)
+            else if (H > 142 && H < 166 && S > 0.47 && S < 0.61)
             {
                 slotColors.replace(activeSlot, DetectedColor.GREEN);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && H < 163 && S > 0.34 && S < 0.4689)
+            else if (H > 142 && S > 0.32 && S < 0.4689)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
