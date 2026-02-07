@@ -365,7 +365,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return bob.getDistance(DistanceUnit.MM) < 44 || timer.seconds() > 3.0;
+            return bob.getDistance(DistanceUnit.MM) < 44 || timer.seconds() > 2.0;
         }
     }
 

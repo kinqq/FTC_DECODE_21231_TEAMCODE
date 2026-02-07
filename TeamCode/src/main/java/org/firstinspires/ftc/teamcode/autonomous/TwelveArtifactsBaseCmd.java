@@ -72,8 +72,8 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 
 
         double aprilTagTurretTargetDeg = 45;
-        double preloadTurretTargetDeg = 2;
-        double volleyTurretTargetDeg = 33.5;
+        double preloadTurretTargetDeg = 1.5;
+        double volleyTurretTargetDeg = 33;
 
         if (alliance == AllianceColor.BLUE) {
             aprilTagTurretTargetDeg *= -1;
@@ -87,17 +87,17 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     turretCmds.setTarget(aprilTagTurretTargetDeg),
                     llCmds.waitForAnyMotif(),
                     followPath(paths.Path1),
-                    turretCmds.activateLauncher(0.718)
+                    turretCmds.activateLauncher(0.74)
                 ),
                 new ParallelCommandGroup(
                     indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                    turretCmds.setLaunchAngle(44),
+                    turretCmds.setLaunchAngle(42.5),
                     turretCmds.setTarget(preloadTurretTargetDeg),
                     indexerCmds.lockSlot(Slot.FIRST),
                     new InstantCommand(indexerCmds::unlock),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
-                launchCmds.shootEachSlot(0.718)
+                launchCmds.shootEachSlot(0.74)
             );
 
         SequentialCommandGroup intakeFirstRow =
@@ -108,7 +108,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
-                new InstantCommand(() -> follower.setMaxPower(0.5)),
+                new InstantCommand(() -> follower.setMaxPower(0.4)),
                 new ParallelCommandGroup(
                     followPath(paths.Path3),
                     new SequentialCommandGroup(
@@ -128,12 +128,19 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                 new WaitCommand(700),
                 new ParallelCommandGroup(
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
-                    turretCmds.activateLauncher(.72),
-                    turretCmds.setLaunchAngle(45),
+                    turretCmds.activateLauncher(.74),
+                    turretCmds.setLaunchAngle(41),
                     turretCmds.setTarget(volleyTurretTargetDeg),
-                    followPath(paths.Path5)
+                    followPath(paths.Path5),
+                    new SequentialCommandGroup(
+                        intakeCmds.intakeOn(-1),
+                        indexerCmds.setSlot(Slot.FIRST),
+                        indexerCmds.setSlot(Slot.SECOND),
+                        indexerCmds.setSlot(Slot.THIRD),
+                        intakeCmds.intakeOn(INTAKE_POWER)
+                    )
                 ),
-                launchCmds.shootMotifFromDetection(.72)
+                launchCmds.shootMotifFromDetection(.74)
             );
 
         SequentialCommandGroup intakeSecondRow =
@@ -144,7 +151,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
-                new InstantCommand(() -> follower.setMaxPower(0.5)),
+                new InstantCommand(() -> follower.setMaxPower(0.4)),
                 new ParallelCommandGroup(
                     followPath(paths.Path7),
                     new SequentialCommandGroup(
@@ -162,19 +169,19 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(.72),
-                    turretCmds.setLaunchAngle(45),
+                    turretCmds.activateLauncher(.74),
+                    turretCmds.setLaunchAngle(41.5),
                     turretCmds.setTarget(volleyTurretTargetDeg),
                     followPath(paths.Path8),
                     new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-0.5),
+                        intakeCmds.intakeOn(-1),
                         indexerCmds.setSlot(Slot.FIRST),
                         indexerCmds.setSlot(Slot.SECOND),
                         indexerCmds.setSlot(Slot.THIRD),
                         intakeCmds.intakeOn(INTAKE_POWER)
                     )
                 ),
-                launchCmds.shootMotifFromDetection(.72)
+                launchCmds.shootMotifFromDetection(.74)
             );
 
         SequentialCommandGroup intakeThirdRow =
@@ -186,7 +193,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
                 new ParallelCommandGroup(
-                    new InstantCommand(() -> follower.setMaxPower(0.45)),
+                    new InstantCommand(() -> follower.setMaxPower(0.4)),
                     followPath(paths.Path10),
                     new SequentialCommandGroup(
                         indexerCmds.waitForAnyArtifact(),
@@ -202,19 +209,19 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
         SequentialCommandGroup shootThirdRow = new SequentialCommandGroup(
             new ParallelCommandGroup(
                 indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                turretCmds.activateLauncher(.72),
-                turretCmds.setLaunchAngle(45),
+                turretCmds.activateLauncher(.74),
+                turretCmds.setLaunchAngle(42.5),
                 turretCmds.setTarget(volleyTurretTargetDeg),
                 followPath(paths.Path11),
                 new SequentialCommandGroup(
-                    intakeCmds.intakeOn(-0.5),
+                    intakeCmds.intakeOn(-1),
                     indexerCmds.setSlot(Slot.FIRST),
                     indexerCmds.setSlot(Slot.SECOND),
                     indexerCmds.setSlot(Slot.THIRD),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 )
             ),
-            launchCmds.shootMotifFromDetection(.72)
+            launchCmds.shootMotifFromDetection(.74)
         );
 
         ParallelCommandGroup park =
@@ -237,7 +244,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
             )
         );
 
-        telemetry.addLine("Nine Artifacts " + alliance + " ready");
+        telemetry.addLine("Twelve Artifacts " + alliance + " ready");
         telemetry.update();
     }
 
