@@ -83,8 +83,7 @@ public class DriveMeet2 extends CommandOpMode
     private final double FAR_ANGLE_SPEED = 0.19;
 
     @Override
-    public void initialize()
-    {
+    public void initialize() {
         //Initialize Subsystems
         indexerCmds = new MagazineCommands(hardwareMap);
         turretCmds = new TurretSubsystem(hardwareMap);
@@ -92,16 +91,29 @@ public class DriveMeet2 extends CommandOpMode
         follower = Constants.createFollower(hardwareMap);
 
         //Initialize Data From Auto
-            //Follower
-            if (GlobalState.teleOpStartPose != null)
-                follower.setStartingPose(GlobalState.teleOpStartPose);
-            else if (startLocation == 0)
-                follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
-            else if (startLocation == 1 && alliance == AllianceColor.RED)
-                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-            else if (startLocation == 1 && alliance == AllianceColor.BLUE)
-                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
-            else follower.setStartingPose(new Pose(72, 72, Math.toDegrees(90)));
+        //Follower
+        follower.update();
+        if (GlobalState.teleOpStartPose != null) {
+            follower.setStartingPose(GlobalState.teleOpStartPose);
+            follower.setPose(GlobalState.teleOpStartPose);
+        }
+        else if (startLocation == 0) {
+            follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
+            follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+        }
+        else if (startLocation == 1 && alliance == AllianceColor.RED) {
+            follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+            follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+        }
+        else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
+            follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+            follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+        }
+        else
+        {
+            follower.setStartingPose(new Pose(72, 72, Math.toDegrees(90)));
+            follower.setPose(new Pose(72, 72, Math.toDegrees(90)));
+        }
 
             //Alliance
             if (GlobalState.alliance != null) {
@@ -231,15 +243,27 @@ public class DriveMeet2 extends CommandOpMode
 //            startTimer.reset();
 
             //Follower
-            if (GlobalState.teleOpStartPose != null)
+            if (GlobalState.teleOpStartPose != null) {
                 follower.setStartingPose(GlobalState.teleOpStartPose);
-            else if (startLocation == 0)
+                follower.setPose(GlobalState.teleOpStartPose);
+            }
+            else if (startLocation == 0) {
                 follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
-            else if (startLocation == 1 && alliance == AllianceColor.RED)
+                follower.setPose(new Pose(72, 72, Math.toRadians(90)));
+            }
+            else if (startLocation == 1 && alliance == AllianceColor.RED) {
                 follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+            }
             else if (startLocation == 1 && alliance == AllianceColor.BLUE) {
-                follower.setStartingPose(new Pose(56, 5, Math.toRadians(90)));
-            } else follower.setStartingPose(new Pose(72, 72, Math.toRadians(90)));
+                follower.setStartingPose(new Pose(73, 5, Math.toRadians(90)));
+                follower.setPose(new Pose(73, 5, Math.toRadians(90)));
+            }
+            else
+            {
+                follower.setStartingPose(new Pose(72, 72, Math.toDegrees(90)));
+                follower.setPose(new Pose(72, 72, Math.toDegrees(90)));
+            }
 
             follower.startTeleopDrive();
 

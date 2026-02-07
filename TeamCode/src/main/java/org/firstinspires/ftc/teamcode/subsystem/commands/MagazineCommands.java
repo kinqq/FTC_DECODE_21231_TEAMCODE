@@ -397,19 +397,19 @@ public class MagazineCommands {
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H > 142 && H < 175 && S > 0.3 && S < 0.37)
+            if (H > 142 && H < 147 && S > 0.45 && S < 0.48)
             {
                 slotColors.replace(activeSlot, DetectedColor.EMPTY);
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && H < 166 && S > 0.47 && S < 0.61)
+            else if (H > 142 && H < 150 && S > 0.47 && S < 0.61)
             {
                 slotColors.replace(activeSlot, DetectedColor.GREEN);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && S > 0.32 && S < 0.4689)
+            else if (H > 142 && S > 0.34 && S < 0.4689)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
