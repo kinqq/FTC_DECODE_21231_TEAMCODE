@@ -50,12 +50,11 @@ public class TurretCommands {
         launchMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
         launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDFCoefficients pidf = new PIDFCoefficients(p, i, d, f);
+        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
+        launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
         launchMotor.setPower(0);
         launchMotor1.setPower(0);
-
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(p, i, d, f);
-        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
         targetTurretDeg = getAngleDeg();
     }
@@ -110,6 +109,7 @@ public class TurretCommands {
     }
 
     public void activateLauncherRaw(double velocity) {
+        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launchMotor.setPower(1.0);
         launchMotor1.setPower(1);
@@ -255,7 +255,10 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            return Math.abs(launchMotor1.getVelocity() - (1800 * power)) < 50 || timer.seconds() > 3.0;
+            double target = 1800 * power;
+            boolean motor0AtSpeed = Math.abs(launchMotor.getVelocity() - target) < 30;
+            boolean motor1AtSpeed = Math.abs(launchMotor1.getVelocity() - target) < 30;
+            return (motor0AtSpeed && motor1AtSpeed) || timer.seconds() > 3.0;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

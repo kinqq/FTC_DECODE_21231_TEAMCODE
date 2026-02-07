@@ -107,7 +107,7 @@ public class MagazineCommands {
         }
 
         indexer.setPosition(servoPos);
-        indexer1.setPosition(servoPos + 0.003); // somehow this works better
+        indexer1.setPosition(servoPos); // somehow this works better
     }
 
     public boolean isBusy() {
