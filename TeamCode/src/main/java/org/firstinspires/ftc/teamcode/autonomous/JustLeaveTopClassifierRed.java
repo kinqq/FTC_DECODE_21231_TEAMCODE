@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name = "Just Leave Bottom RED", preselectTeleOp = "Drive Meet 2")
+@Autonomous(name = "Just Leave Top RED", preselectTeleOp = "Drive Meet 2")
 public class JustLeaveTopClassifierRed extends JustLeaveBaseCmd {
 
     @Override

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 
-@Autonomous(name = "Just Leave Bottom BLUE", preselectTeleOp = "Drive Meet 2")
+@Autonomous(name = "Just Leave Top BLUE", preselectTeleOp = "Drive Meet 2")
 public class JustLeaveTopClassifierBlue extends JustLeaveBaseCmd {
 
     @Override

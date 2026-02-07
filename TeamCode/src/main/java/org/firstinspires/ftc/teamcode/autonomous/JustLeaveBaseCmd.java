@@ -14,6 +14,7 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
+import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
@@ -31,6 +32,7 @@ public class JustLeaveBaseCmd extends CommandOpMode {
     public Follower follower;
     public PathChain path;
     public LimelightCommands llCmds;
+    public TurretSubsystem turretCmds;
 
 
     private CommandBase followPath(PathChain path) {
@@ -47,6 +49,7 @@ public class JustLeaveBaseCmd extends CommandOpMode {
     public void initialize() {
         follower = Constants.createFollower(hardwareMap);
         llCmds = new LimelightCommands(hardwareMap);
+        turretCmds = new TurretSubsystem(hardwareMap);
 
         follower.setStartingPose(getStart());
         llCmds.start(0);
@@ -62,6 +65,8 @@ public class JustLeaveBaseCmd extends CommandOpMode {
                 .build();
 
         schedule(followPath(path));
+
+        turretCmds.zero();
     }
 
     @Override
