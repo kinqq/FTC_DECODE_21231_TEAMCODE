@@ -73,7 +73,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 
         double aprilTagTurretTargetDeg = 45;
         double preloadTurretTargetDeg = 1.5;
-        double volleyTurretTargetDeg = 33;
+        double volleyTurretTargetDeg = 33.3;
 
         if (alliance == AllianceColor.BLUE) {
             aprilTagTurretTargetDeg *= -1;
@@ -108,14 +108,16 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
-                new InstantCommand(() -> follower.setMaxPower(0.4)),
+                new InstantCommand(() -> follower.setMaxPower(0.45)),
                 new ParallelCommandGroup(
                     followPath(paths.Path3),
                     new SequentialCommandGroup(
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.SECOND),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.THIRD),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact()
                     )
                 ),
@@ -134,9 +136,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     followPath(paths.Path5),
                     new SequentialCommandGroup(
                         intakeCmds.intakeOn(-1),
-                        indexerCmds.setSlot(Slot.FIRST),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.setSlot(Slot.THIRD),
+                        new WaitCommand(800),
                         intakeCmds.intakeOn(INTAKE_POWER)
                     )
                 ),
@@ -151,14 +151,16 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
-                new InstantCommand(() -> follower.setMaxPower(0.4)),
+                new InstantCommand(() -> follower.setMaxPower(0.45)),
                 new ParallelCommandGroup(
                     followPath(paths.Path7),
                     new SequentialCommandGroup(
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.SECOND),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.THIRD),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact()
                     )
                 ),
@@ -175,9 +177,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     followPath(paths.Path8),
                     new SequentialCommandGroup(
                         intakeCmds.intakeOn(-1),
-                        indexerCmds.setSlot(Slot.FIRST),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.setSlot(Slot.THIRD),
+                        new WaitCommand(800),
                         intakeCmds.intakeOn(INTAKE_POWER)
                     )
                 ),
@@ -193,13 +193,15 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                     intakeCmds.intakeOn(INTAKE_POWER)
                 ),
                 new ParallelCommandGroup(
-                    new InstantCommand(() -> follower.setMaxPower(0.4)),
+                    new InstantCommand(() -> follower.setMaxPower(0.45)),
                     followPath(paths.Path10),
                     new SequentialCommandGroup(
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.SECOND),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.THIRD),
+                        new WaitCommand(0),
                         indexerCmds.waitForAnyArtifact()
                     )
                 ),
@@ -215,9 +217,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
                 followPath(paths.Path11),
                 new SequentialCommandGroup(
                     intakeCmds.intakeOn(-1),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    indexerCmds.setSlot(Slot.SECOND),
-                    indexerCmds.setSlot(Slot.THIRD),
+                    new WaitCommand(800),
                     intakeCmds.intakeOn(INTAKE_POWER)
                 )
             ),

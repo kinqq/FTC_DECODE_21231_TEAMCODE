@@ -134,6 +134,7 @@ public class DriveMeet1 extends CommandOpMode {
         if (!started) {
             turretCmds.setLaunchAngle(launchAngleDeg).execute();
 //            indexerCmds.indexer.setPosition(SLOT1_HOLD);
+            double HAMMER_REST = 0;
             indexerCmds.hammer.setPosition(HAMMER_REST);
             intakePower = 1.0;
             follower.startTeleopDrive();
@@ -159,12 +160,12 @@ public class DriveMeet1 extends CommandOpMode {
 
         double xDist = 0, yDist = 0;
         if (allianceColor == AllianceColor.RED) {
-            xDist = RED_GOAL_X - (follower.getPose().getX() - 72);
-            yDist = RED_GOAL_Y - (follower.getPose().getY() - 72) + 6;
+            xDist = 0 - (follower.getPose().getX() - 72);
+            yDist = 0 - (follower.getPose().getY() - 72) + 6;
         }
         else if (allianceColor == AllianceColor.BLUE) {
-            xDist = BLUE_GOAL_X - (follower.getPose().getX() - 72);
-            yDist = BLUE_GOAL_Y - (follower.getPose().getY() - 72) + 6;
+            xDist = 0 - (follower.getPose().getX() - 72);
+            yDist = 0 - (follower.getPose().getY() - 72) + 6;
         }
         double angleFromPosDeg = Math.toDegrees(Math.atan2(xDist, yDist));
         double baseTargetDeg = Math.toDegrees(follower.getPose().getHeading()) - 90 + angleFromPosDeg;

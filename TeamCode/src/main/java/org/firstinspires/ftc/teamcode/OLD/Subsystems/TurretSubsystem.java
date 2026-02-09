@@ -120,7 +120,7 @@ public class TurretSubsystem
     }
 
     public double autoHood(double goalDist) {
-        return Range.clip(((1.66203e-7) * Math.pow(goalDist, 3)) - (0.0000423232 * Math.pow(goalDist, 2)) + (0.00462337 * goalDist) + 0.0877451, 0, 0.301);
+        return Range.clip(((1.66203e-7) * Math.pow(goalDist, 3)) - (0.0000423232 * Math.pow(goalDist, 2)) + (0.00462337 * goalDist) + 0.0877451, 0, 0.26);
     }
 
 
@@ -133,7 +133,7 @@ public class TurretSubsystem
     }
 
     public double getLaunchAngle() {
-        return angle;
+        return launchAngle.getPosition();
     }
 
     public int getPos() {

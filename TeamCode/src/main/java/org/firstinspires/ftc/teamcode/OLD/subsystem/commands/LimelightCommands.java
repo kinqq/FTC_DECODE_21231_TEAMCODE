@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.OLD.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
+
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -50,9 +52,9 @@ public class LimelightCommands {
 
     public Motif motifFromId(int id) {
         switch (id) {
-            case 21: return Motif.GPP;
-            case 22: return Motif.PGP;
-            case 23: return Motif.PPG;
+            case LIMELIGHT_TAG_GPP: return Motif.GPP;
+            case LIMELIGHT_TAG_PGP: return Motif.PGP;
+            case LIMELIGHT_TAG_PPG: return Motif.PPG;
             default: return Motif.UNKNOWN;
         }
     }
@@ -133,7 +135,7 @@ public class LimelightCommands {
 
         @Override
         public boolean isFinished() {
-            if (timer.seconds() > 4.0) {
+            if (timer.seconds() > LIMELIGHT_WAIT_MOTIF_TIMEOUT_SEC) {
                 lastDetectedMotif = Motif.PPG;
                 return true;
             }
