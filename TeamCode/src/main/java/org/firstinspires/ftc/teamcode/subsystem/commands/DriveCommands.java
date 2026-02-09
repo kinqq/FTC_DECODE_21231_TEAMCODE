@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -21,7 +23,7 @@ public class DriveCommands {
     {
         @Override
         public void initialize() {
-            intake.setPower(0);
+            intake.setPower(INTAKE_OFF_POWER);
         }
 
         public boolean isFinished() {return true;}
@@ -32,7 +34,7 @@ public class DriveCommands {
         @Override
         public void initialize(){
             intake.setDirection(DcMotorSimple.Direction.REVERSE);
-            intake.setPower(1);
+            intake.setPower(INTAKE_ACTIVE_POWER);
         }
 
         public boolean isFinished() {return true;}
@@ -44,8 +46,8 @@ public class DriveCommands {
         public void initialize(){
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             intake.setDirection(DcMotorSimple.Direction.REVERSE);
-            if (intake.getPower() == 0) intake.setPower(1);
-            else intake.setPower(0);
+            if (intake.getPower() == INTAKE_OFF_POWER) intake.setPower(INTAKE_ACTIVE_POWER);
+            else intake.setPower(INTAKE_OFF_POWER);
         }
 
         public boolean isFinished() {return true;}
@@ -55,7 +57,7 @@ public class DriveCommands {
         @Override
         public void initialize() {
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            intake.setPower(0.3);
+            intake.setPower(INTAKE_IDLE_POWER);
         }
 
         @Override
@@ -69,14 +71,14 @@ public class DriveCommands {
         public void initialize() {
             intake.setDirection(DcMotorSimple.Direction.FORWARD);
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            intake.setPower(1);
+            intake.setPower(INTAKE_ACTIVE_POWER);
             timer.reset();
         }
 
 
 
         @Override
-        public boolean isFinished() {return timer.seconds() > 0.2;}
+        public boolean isFinished() {return timer.seconds() > INTAKE_REVERSE_PULSE_SEC;}
     }
 
     public class intakeForward extends CommandBase {
@@ -86,14 +88,14 @@ public class DriveCommands {
         public void initialize() {
             intake.setDirection(DcMotorSimple.Direction.REVERSE);
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            intake.setPower(1);
+            intake.setPower(INTAKE_ACTIVE_POWER);
             timer.reset();
         }
 
 
 
         @Override
-        public boolean isFinished() {return timer.seconds() > 0.1;}
+        public boolean isFinished() {return timer.seconds() > INTAKE_FORWARD_PULSE_SEC;}
     }
 
 //    public GoBildaPinpointDriver getOdo() {

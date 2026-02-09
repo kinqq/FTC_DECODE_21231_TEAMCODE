@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
+
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 
@@ -37,7 +39,6 @@ public class MagazineCommands {
     private boolean lock = false;
     private double lockedPos = 0.0;
     public void unlock() { lock = false; }
-    private static final double OFFSET = 0.518;
     public ElapsedTime timer;
     public double lastTime = 0, lastAngle, velocity;
     private String lastPickLog = "";
@@ -66,8 +67,8 @@ public class MagazineCommands {
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
 
-        indexer.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        indexer1.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        indexer.setPwmRange(new PwmControl.PwmRange(MAGAZINE_PWM_MIN_US, MAGAZINE_PWM_MAX_US));
+        indexer1.setPwmRange(new PwmControl.PwmRange(MAGAZINE_PWM_MIN_US, MAGAZINE_PWM_MAX_US));
 
         encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -83,7 +84,7 @@ public class MagazineCommands {
     }
 
     public void start() {
-        indexer.setPosition(0.1);
+        indexer.setPosition(MAGAZINE_SLOT_FIRST_POS);
         activeSlot = Slot.FIRST;
     }
 
@@ -92,17 +93,20 @@ public class MagazineCommands {
         double da = getAnalogAngle() - lastAngle;
         velocity = da/dt;
 
+        lastTime = timer.seconds();
+        lastAngle = getAnalogAngle();
+
         if (lock) {
             servoPos = lockedPos;
         }
         else {
             double base =
-                activeSlot == Slot.FIRST ? 0.1 :
-                    activeSlot == Slot.SECOND ? 0.273 :
-                        0.445;
+                activeSlot == Slot.FIRST ? MAGAZINE_SLOT_FIRST_POS :
+                    activeSlot == Slot.SECOND ? MAGAZINE_SLOT_SECOND_POS :
+                        MAGAZINE_SLOT_THIRD_POS;
 
             double cur = indexer.getPosition();
-            double alt = base + OFFSET;
+            double alt = base + MAGAZINE_SERVO_OFFSET;
             servoPos = Math.abs(cur - base) < Math.abs(cur - alt) ? base : alt;
         }
 
@@ -113,11 +117,17 @@ public class MagazineCommands {
     public boolean isBusy() {
         double currPos = lock ? lockedPos : servoPos;
 
-        if (Math.abs(currPos % OFFSET - 0.1) < 0.001) target = 176.94;
-        if (Math.abs(currPos % OFFSET - 0.273) < 0.001) target = 52.58;
-        if (Math.abs(currPos % OFFSET - 0.445) < 0.001) target = 299.78;
+        if (Math.abs(currPos % MAGAZINE_SERVO_OFFSET - MAGAZINE_SLOT_FIRST_POS) < MAGAZINE_SLOT_MATCH_EPS) {
+            target = MAGAZINE_TARGET_FIRST_DEG;
+        }
+        if (Math.abs(currPos % MAGAZINE_SERVO_OFFSET - MAGAZINE_SLOT_SECOND_POS) < MAGAZINE_SLOT_MATCH_EPS) {
+            target = MAGAZINE_TARGET_SECOND_DEG;
+        }
+        if (Math.abs(currPos % MAGAZINE_SERVO_OFFSET - MAGAZINE_SLOT_THIRD_POS) < MAGAZINE_SLOT_MATCH_EPS) {
+            target = MAGAZINE_TARGET_THIRD_DEG;
+        }
 
-        return Math.abs(target - getAnalogAngle()) > 10;
+        return Math.abs(target - getAnalogAngle()) > MAGAZINE_BUSY_TOLERANCE_DEG;
     }
 
     public double realServoPos() {
@@ -127,15 +137,10 @@ public class MagazineCommands {
 
     public double getAnalogAngle() {
         double voltage = analogInput.getVoltage();
-        return (voltage / 3.3) * 360.0;
+        return (voltage / MAGAZINE_ANALOG_MAX_VOLT) * 360.0;
     }
 
-//    public CommandBase zero() {
-//        return new InstantCommand(() -> {
-//            encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//            encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//        });
-//    }
+
 
     public class NextSlot extends CommandBase {
         @Override
@@ -209,13 +214,16 @@ public class MagazineCommands {
 
         @Override
         public void execute() {
-            if (periodicTimer.seconds() > 0.5 && encoder.getVelocity() < 100 && isBusy() && !stage) {
+            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
+                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
+                && isBusy()
+                && !stage) {
                 if (nextToReverse) new NextSlot().initialize();
                 else new PrevSlot().initialize();
                 stage = true;
                 periodicTimer.reset();
             }
-            if (periodicTimer.seconds() > 0.2 && stage) {
+            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
                 activeSlot = slot;
                 stage = false;
                 periodicTimer.reset();
@@ -224,7 +232,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !isBusy() || (timer.seconds() > 5.0);
+            return !isBusy() || (timer.seconds() > MAGAZINE_SET_SLOT_TIMEOUT_SEC);
         }
     }
 
@@ -250,7 +258,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !isBusy() || timer.seconds() > 2.0;
+            return !isBusy() || timer.seconds() > MAGAZINE_LOCK_TIMEOUT_SEC;
         }
     }
 
@@ -260,9 +268,9 @@ public class MagazineCommands {
 
 
     public CommandBase lockSlot(Slot slot) {
-        double pos = 0.1;
-        if (slot == Slot.SECOND) pos = 0.273;
-        if (slot == Slot.THIRD) pos = 0.445;
+        double pos = MAGAZINE_SLOT_FIRST_POS;
+        if (slot == Slot.SECOND) pos = MAGAZINE_SLOT_SECOND_POS;
+        if (slot == Slot.THIRD) pos = MAGAZINE_SLOT_THIRD_POS;
         return new LockSlot(pos);
     }
 
@@ -290,13 +298,13 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.45);
+            hammer.setPosition(MAGAZINE_HAMMER_UP_POS);
             timer.reset();
         }
 
         @Override
         public boolean isFinished() {
-            return timer.seconds() > 0.1;
+            return timer.seconds() > MAGAZINE_HAMMER_MOVE_SEC;
         }
     }
 
@@ -307,13 +315,13 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            hammer.setPosition(0.63);
+            hammer.setPosition(MAGAZINE_HAMMER_DOWN_POS);
             timer.reset();
         }
 
         @Override
         public boolean isFinished() {
-            return timer.seconds() > 0.1;
+            return timer.seconds() > MAGAZINE_HAMMER_MOVE_SEC;
         }
     }
 
@@ -336,7 +344,7 @@ public class MagazineCommands {
 
         @Override
         public void initialize() {
-            if (bob.getDistance(DistanceUnit.MM) < 44)
+            if (bob.getDistance(DistanceUnit.MM) < MAGAZINE_DISTANCE_INDEX_MM)
             {
                 setActive(DetectedColor.UNKNOWN);
                 newBall = true;
@@ -346,7 +354,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !newBall || timer.seconds() > 0.4;
+            return !newBall || timer.seconds() > MAGAZINE_DISTANCE_INDEX_TIMEOUT_SEC;
         }
 
     }
@@ -366,7 +374,8 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return bob.getDistance(DistanceUnit.MM) < 32 || timer.seconds() > 2.0;
+            return bob.getDistance(DistanceUnit.MM) < MAGAZINE_WAIT_ANY_ARTIFACT_MM
+                || timer.seconds() > MAGAZINE_WAIT_ANY_ARTIFACT_TIMEOUT_SEC;
         }
     }
 
@@ -398,19 +407,27 @@ public class MagazineCommands {
             float S = hsv[1];
             float V = hsv[2];
 
-            if (H > 142 && H < 147 && S > 0.45 && S < 0.48)
+            if (H > MAGAZINE_INDEX_EMPTY_HUE_MIN
+                && H < MAGAZINE_INDEX_EMPTY_HUE_MAX
+                && S > MAGAZINE_INDEX_EMPTY_SAT_MIN
+                && S < MAGAZINE_INDEX_EMPTY_SAT_MAX)
             {
                 slotColors.replace(activeSlot, DetectedColor.EMPTY);
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && H < 150 && S > 0.47 && S < 0.61)
+            else if (H > MAGAZINE_INDEX_GREEN_HUE_MIN
+                && H < MAGAZINE_INDEX_GREEN_HUE_MAX
+                && S > MAGAZINE_INDEX_GREEN_SAT_MIN
+                && S < MAGAZINE_INDEX_GREEN_SAT_MAX)
             {
                 slotColors.replace(activeSlot, DetectedColor.GREEN);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
                 newBall = true;
             }
-            else if (H > 142 && S > 0.34 && S < 0.4689)
+            else if (H > MAGAZINE_INDEX_PURPLE_HUE_MIN
+                && S > MAGAZINE_INDEX_PURPLE_SAT_MIN
+                && S < MAGAZINE_INDEX_PURPLE_SAT_MAX)
             {
                 slotColors.replace(activeSlot, DetectedColor.PURPLE);                    //else if (H < 163 && V >= 0.4) return 0; //When no conditions are met return 0
                 timer.reset();
@@ -421,7 +438,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return !newBall || timer.seconds() > 0.05;
+            return !newBall || timer.seconds() > MAGAZINE_INDEX_DETECTION_HOLD_SEC;
         }
 
         private float clamp01(float v) {
@@ -463,7 +480,11 @@ public class MagazineCommands {
         return m[0] + "," + m[1] + "," + m[2];
     }
 
-    private double baseOf(Slot s) { return s == Slot.FIRST ? 0.1 : (s == Slot.SECOND ? 0.273 : 0.445); }
+    private double baseOf(Slot s) {
+        return s == Slot.FIRST
+            ? MAGAZINE_SLOT_FIRST_POS
+            : (s == Slot.SECOND ? MAGAZINE_SLOT_SECOND_POS : MAGAZINE_SLOT_THIRD_POS);
+    }
     @SuppressLint("DefaultLocale")
     public Target[] pickTargetsForMotif(DetectedColor[] motif) {
         if (motif == null || motif.length != 3) return null;
@@ -501,7 +522,7 @@ public class MagazineCommands {
 
                     for (int i = 0; i < 3; i++) {
                         double b = baseOf(seq[i]);
-                        double pi = ((mask & (1 << i)) == 0) ? b : (b + OFFSET);
+                        double pi = ((mask & (1 << i)) == 0) ? b : (b + MAGAZINE_SERVO_OFFSET);
                         if (pi < 0.0 || pi > 1.0) { ok = false; break; }
                         p[i] = pi;
                         cand[i] = new Target(seq[i], pi);

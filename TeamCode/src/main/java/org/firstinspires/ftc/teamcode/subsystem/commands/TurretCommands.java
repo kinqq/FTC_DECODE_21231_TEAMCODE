@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.*;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.f;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
@@ -11,7 +12,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -24,11 +24,6 @@ public class TurretCommands {
     public final DcMotorEx launchMotor1;
     private final ServoImplEx launchAngle;
 
-    private static final double MOTOR_TO_TURRET_GEAR_RATIO = 5.6111111111;
-    private static final double TICKS_PER_REV = 537.7;
-
-    private static final double TURRET_POWER = 1;
-
     public double targetTurretDeg = 0.0;
     private double offset = 0.0;
     private double angle = 0.0;
@@ -39,7 +34,7 @@ public class TurretCommands {
         launchMotor1 = hwMap.get(DcMotorEx.class, "launcher1");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
 
-        launchAngle.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        launchAngle.setPwmRange(new PwmControl.PwmRange(LAUNCH_ANGLE_PWM_MIN_US, LAUNCH_ANGLE_PWM_MAX_US));
 
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -60,11 +55,11 @@ public class TurretCommands {
     }
 
     private double getMotorAngleDeg() {
-        return turretMotor.getCurrentPosition() * (360.0 / TICKS_PER_REV);
+        return turretMotor.getCurrentPosition() * (360.0 / TURRET_TICKS_PER_REV);
     }
 
     public double getAngleDeg() {
-        return getMotorAngleDeg() / MOTOR_TO_TURRET_GEAR_RATIO;
+        return getMotorAngleDeg() / TURRET_MOTOR_TO_TURRET_GEAR_RATIO;
     }
 
     public double getErrorDeg() {
@@ -73,14 +68,14 @@ public class TurretCommands {
 
 
     private void updateMotorTarget() {
-        double turretDeg = Range.clip(targetTurretDeg + offset, -90, 135);
+        double turretDeg = Range.clip(targetTurretDeg + offset, TURRET_MIN_DEG, TURRET_MAX_DEG);
 
-        double motorDeg = turretDeg * MOTOR_TO_TURRET_GEAR_RATIO;
-        int targetTicks = (int) Math.round(motorDeg * TICKS_PER_REV / 360.0);
+        double motorDeg = turretDeg * TURRET_MOTOR_TO_TURRET_GEAR_RATIO;
+        int targetTicks = (int) Math.round(motorDeg * TURRET_TICKS_PER_REV / 360.0);
 
         turretMotor.setTargetPosition(targetTicks);
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turretMotor.setPower(TURRET_POWER);
+        turretMotor.setPower(TURRET_RUN_TO_POSITION_POWER);
     }
 
     public void setTargetDeg(double turretDeg) {
@@ -102,9 +97,9 @@ public class TurretCommands {
     }
 
     public void setLaunchAngleDeg(double angleDeg) {
-        angle = Range.clip(angleDeg, 15, 60);
+        angle = Range.clip(angleDeg, LAUNCH_ANGLE_MIN_DEG, LAUNCH_ANGLE_MAX_DEG);
 
-        double pos = 0.815 - 0.003 * angle;
+        double pos = LAUNCH_ANGLE_SERVO_BASE_POS - LAUNCH_ANGLE_SERVO_PER_DEG * angle;
         launchAngle.setPosition(Range.clip(pos, 0.0, 1.0));
     }
 
@@ -118,7 +113,7 @@ public class TurretCommands {
 
     }
     public void activateLauncherRaw() {
-        activateLauncherRaw(1800);
+        activateLauncherRaw(LAUNCHER_DEFAULT_VELOCITY);
     }
 
     public void deactivateLauncherRaw() {
@@ -162,7 +157,7 @@ public class TurretCommands {
         @Override
         public boolean isFinished() {
             if (!started) return false;
-            return !turretMotor.isBusy() || Math.abs(getErrorDeg()) < 1.0;
+            return !turretMotor.isBusy() || Math.abs(getErrorDeg()) < TURRET_COMMAND_DONE_TOLERANCE_DEG;
         }
 
         @Override
@@ -196,7 +191,7 @@ public class TurretCommands {
         @Override
         public boolean isFinished() {
             if (!started) return false;
-            return !turretMotor.isBusy() || Math.abs(getErrorDeg()) < 1.0;
+            return !turretMotor.isBusy() || Math.abs(getErrorDeg()) < TURRET_COMMAND_DONE_TOLERANCE_DEG;
         }
 
         @Override
@@ -247,7 +242,7 @@ public class TurretCommands {
         @Override
         public void execute() {
             if (!started) {
-                activateLauncherRaw(1800 * power);
+                activateLauncherRaw(LAUNCHER_DEFAULT_VELOCITY * power);
                 timer.reset();
                 started = true;
             }
@@ -255,10 +250,10 @@ public class TurretCommands {
 
         @Override
         public boolean isFinished() {
-            double target = 1800 * power;
-            boolean motor0AtSpeed = Math.abs(launchMotor.getVelocity() - target) < 30;
-            boolean motor1AtSpeed = Math.abs(launchMotor1.getVelocity() - target) < 30;
-            return (motor0AtSpeed && motor1AtSpeed) || timer.seconds() > 3.0;
+            double target = LAUNCHER_DEFAULT_VELOCITY * power;
+            boolean motor0AtSpeed = Math.abs(launchMotor.getVelocity() - target) < LAUNCHER_AT_SPEED_TOLERANCE;
+            boolean motor1AtSpeed = Math.abs(launchMotor1.getVelocity() - target) < LAUNCHER_AT_SPEED_TOLERANCE;
+            return (motor0AtSpeed && motor1AtSpeed) || timer.seconds() > LAUNCHER_SPINUP_TIMEOUT_SEC;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

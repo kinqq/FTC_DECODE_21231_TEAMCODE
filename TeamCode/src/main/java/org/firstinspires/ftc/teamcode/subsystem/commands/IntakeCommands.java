@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.INTAKE_OFF_POWER;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 
 public class IntakeCommands {
     public DcMotorEx intake;
@@ -16,18 +19,11 @@ public class IntakeCommands {
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    private class IntakeOn extends CommandBase {
-        private final double p;
-        public IntakeOn(double p) { this.p = p; }
-        @Override public void execute() { intake.setPower(p); }
-        @Override public boolean isFinished() { return true; }
+    public CommandBase intakeOn(double power) {
+        return new InstantCommand(() -> intake.setPower(power));
     }
 
-    private class IntakeOff extends CommandBase {
-        @Override public void execute() { intake.setPower(0.0); }
-        @Override public boolean isFinished() { return true; }
+    public CommandBase intakeOff() {
+        return new InstantCommand(() -> intake.setPower(INTAKE_OFF_POWER));
     }
-
-    public CommandBase intakeOn(double power) { return new IntakeOn(power); }
-    public CommandBase intakeOff() { return new IntakeOff(); }
 }

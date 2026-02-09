@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.Constants.LAUNCH_INTER_SHOT_WAIT_MS;
+
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
@@ -43,11 +45,11 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             indexerCmds.lockSlot(Slot.FIRST),
             shoot(Slot.FIRST, power),
-            new WaitCommand(200),
+            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
             shoot(Slot.SECOND, power),
-            new WaitCommand(200),
+            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
             shoot(Slot.THIRD, power),
-            new WaitCommand(200),
+            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
             indexerCmds.hammerDown(),
             new InstantCommand(indexerCmds::unlock)
         );
@@ -76,11 +78,11 @@ public class LaunchCommands {
                 inner = new SequentialCommandGroup(
                     indexerCmds.lockSlot(t[0].pos),
                     shoot(t[0], power),
-                    new WaitCommand(200),
+                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
                     shoot(t[1], power),
-                    new WaitCommand(200),
+                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
                     shoot(t[2], power),
-                    new WaitCommand(200),
+                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
                     indexerCmds.hammerDown(),
                     new InstantCommand(indexerCmds::unlock)
                 );
