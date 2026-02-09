@@ -258,6 +258,7 @@ public class MagazineCommands {
         return new LockSlot(pos);
     }
 
+
     public CommandBase lockSlot(Slot slot) {
         double pos = 0.1;
         if (slot == Slot.SECOND) pos = 0.273;
@@ -365,7 +366,7 @@ public class MagazineCommands {
 
         @Override
         public boolean isFinished() {
-            return bob.getDistance(DistanceUnit.MM) < 44 || timer.seconds() > 2.0;
+            return bob.getDistance(DistanceUnit.MM) < 32 || timer.seconds() > 2.0;
         }
     }
 

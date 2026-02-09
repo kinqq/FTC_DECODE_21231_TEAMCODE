@@ -44,23 +44,23 @@ public class TwelveArtifactsPaths {
         Path3 = follower.pathBuilder().addPath(
                 new BezierLine(
                     T.pose(95.000, 86.000),
-                    T.pose(125.000, 86.000)
+                    T.pose(122.000, 86.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path4 = follower.pathBuilder().addPath(
                 new BezierCurve(
-                    T.pose(125.000, 86.000),
-                    T.pose(116.000, 77.000),
-                    T.pose(125.000, 76.000)
+                    T.pose(122.000, 86.000),
+                    T.pose(110, 76.000),
+                    T.pose(125.000, 77.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path5 = follower.pathBuilder().addPath(
                 new BezierLine(
-                    T.pose(125.000, 76.000),
+                    T.pose(125.000, 77.000),
                     T.pose(100.000, 104.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
@@ -69,24 +69,24 @@ public class TwelveArtifactsPaths {
         Path6 = follower.pathBuilder().addPath(
                 new BezierLine(
                     T.pose(100.000, 104.000),
-                    T.pose(96.000, 61.000)
+                    T.pose(95.000, 61.500)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path7 = follower.pathBuilder().addPath(
                 new BezierLine(
-                    T.pose(96.000, 61.000),
-                    T.pose(132, 61.000)
+                    T.pose(95.000, 61.500),
+                    T.pose(130, 61.500)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path8 = follower.pathBuilder().addPath(
                 new BezierCurve(
-                    T.pose(132, 61.000),
-                    T.pose(100, 61.000),
-                    T.pose(110, 61.000),
+                    T.pose(130, 61.500),
+                    T.pose(100, 61.500),
+                    T.pose(110, 61.500),
                     T.pose(100.000, 104.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
@@ -95,22 +95,22 @@ public class TwelveArtifactsPaths {
         Path9 = follower.pathBuilder().addPath(
                 new BezierLine(
                     T.pose(100.000, 104.000),
-                    T.pose(96.000, 36.000)
+                    T.pose(95.000, 37.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path10 = follower.pathBuilder().addPath(
                 new BezierLine(
-                    T.pose(96.000, 36.000),
-                    T.pose(132.000, 36.000)
+                    T.pose(95.000, 37.000),
+                    T.pose(130.000, 37.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
             .build();
 
         Path11 = follower.pathBuilder().addPath(
                 new BezierLine(
-                    T.pose(132.000, 36.000),
+                    T.pose(130.000, 37.000),
                     T.pose(100.000, 104.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))
@@ -119,7 +119,7 @@ public class TwelveArtifactsPaths {
         Path12 = follower.pathBuilder().addPath(
                 new BezierLine(
                     T.pose(100.000, 104.000),
-                    T.pose(125.000, 63.000)
+                    T.pose(122.000, 61.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(27.12))
             .build();

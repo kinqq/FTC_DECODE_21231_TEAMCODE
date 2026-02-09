@@ -366,7 +366,7 @@ public class DriveMeet2 extends CommandOpMode
         telemetry.addData("     Is Indexer at Expected Position", !indexerCmds.isBusy());
         telemetry.addData("     Shot Type", shotType);
         telemetry.addData("     Flywheel Power", power);
-        telemetry.addData("     Hood Angle", angle);
+        telemetry.addData("     Hood Angle", turretCmds.getLaunchAngle());
         telemetry.addData("     Expected Velocity", turretCmds.getExpectedVel());
         telemetry.addData("     Actual Velocity", turretCmds.getVel());
         telemetry.addData("     Distance From Goal", turretCmds.getDist());
@@ -564,7 +564,7 @@ public class DriveMeet2 extends CommandOpMode
                                     indexerCmds.new HammerDown(),
                                     new WaitUntilCommand(() -> turretCmds.motorToSpeed()),
                                     shoot(Slot.THIRD),
-                                    new WaitCommand(500)
+                                    new WaitCommand(800)
                             ),
                             new WaitUntilCommand(() -> gamepad2.left_trigger > 0)
                         ),
@@ -627,7 +627,7 @@ public class DriveMeet2 extends CommandOpMode
                                         new WaitUntilCommand(() -> turretCmds.motorToSpeed())
                                 ),
                                 indexerCmds.new SetSlot(Slot.THIRD),
-                                new WaitCommand(500)
+                                new WaitCommand(800)
                         ),
                         new WaitUntilCommand(() -> gamepad2.left_trigger > 0)
                 ),
