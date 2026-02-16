@@ -7,6 +7,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
@@ -15,7 +16,6 @@ import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="Servo Test", group="Test")
 @Configurable
-@Disabled
 
 public class servoTest extends LinearOpMode
 {
@@ -23,10 +23,10 @@ public class servoTest extends LinearOpMode
 
     @Override
     public void runOpMode() {
-        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "launchAngle");
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "light");
+        servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         //DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "leftFront");
 
-        //servo.scaleRange(0.189, 0.5);
         servo.setDirection(Servo.Direction.REVERSE);
 
         PanelsConfigurables.INSTANCE.refreshClass(servoTest.class);
@@ -41,7 +41,7 @@ public class servoTest extends LinearOpMode
             if (gamepad1.yWasPressed()) servoPos += 0.01;
             if (gamepad1.xWasPressed()) servoPos -= 0.01;
 
-            servoPos = Range.clip(servoPos, 0, 1);
+            servoPos = Range.clip(servoPos, 0.19, 0.85);
             servo.setPosition(servoPos);
 
             telemetry.addData("POS", servoPos);

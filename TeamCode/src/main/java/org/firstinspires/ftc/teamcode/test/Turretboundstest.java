@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "Test Turret Bounds")
-@Disabled
 public class Turretboundstest extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -22,20 +21,16 @@ public class Turretboundstest extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive()) {
-            odo.update();
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        while (opModeIsActive()) {
             if (gamepad1.bWasPressed()) deg += 5;
             if (gamepad1.aWasPressed()) deg -= 5;
 
-            deg = Range.clip(deg, -115, 215);
-            double target = deg;
-            ;//Range.clip(deg - 10, -235, 85);
-            double dTarget = target * 5.6111111111;
-            int fTarget = (int) Math.round(dTarget * 384.5 / 360.0);
+            deg = Range.clip(deg, -185, 185);
+            int targetReal = (int) Math.round((deg * 5.6111111111) * 384.5 / 360.0);
 
-
-            motor.setTargetPosition(fTarget);
+            motor.setTargetPosition(targetReal);
             motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             motor.setPower(1);
 

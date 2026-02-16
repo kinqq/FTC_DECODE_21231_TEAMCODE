@@ -27,7 +27,6 @@ public class IntakeCommands
 
     public void start()
     {
-        intakeMotor.setPower(1);
         hammerServo.setPosition(0.63);
     }
 
@@ -74,7 +73,7 @@ public class IntakeCommands
         @Override
         public void initialize()
         {
-            hammerServo.setPosition(0.63);
+            hammerPassive();
             timer.reset();
         }
 
@@ -92,7 +91,7 @@ public class IntakeCommands
         @Override
         public void initialize()
         {
-            hammerServo.setPosition(0.45);
+            hammerActive();
             timer.reset();
         }
 

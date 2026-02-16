@@ -7,10 +7,13 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.TEMP.Constants.Enums.ArtifactColors;
-import org.firstinspires.ftc.teamcode.TEMP.Constants.Enums.SlotName;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -21,9 +24,10 @@ public class IndexerCommands {
     private final ServoImplEx indexerSecondary;
     private final AnalogInput encoder;
     private final NormalizedColorSensor colorSensor;
+    private final RevColorSensorV3 rev;
 
     private final double POSITION_OFFSET;
-    private final Map<SlotName, ArtifactColors> indexerContents = new EnumMap<>(SlotName.class);
+    private final Map<Slot, DetectedColor> indexerContents = new EnumMap<>(Slot.class);
 
     private double indexerPosition;
     private double targetAngle;
@@ -33,7 +37,9 @@ public class IndexerCommands {
 
     private String lastPickLog;
 
-    private SlotName intakeSlot;
+    private Slot intakeSlot;
+
+    private boolean firstRev;
 
     public IndexerCommands(HardwareMap hwMap)
     {
@@ -43,13 +49,14 @@ public class IndexerCommands {
         encoder = hwMap.get(AnalogInput.class, "analog");
 
         colorSensor = hwMap.get(RevColorSensorV3.class, "color");
+        rev = hwMap.get(RevColorSensorV3.class, "color");
 
         indexerPrimary.setPwmRange(new PwmControl.PwmRange(500, 2500));
         indexerSecondary.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
         POSITION_OFFSET = 0.518;
-        for (SlotName s : SlotName.values()) {
-            indexerContents.put(s, ArtifactColors.UNKNOWN);
+        for (Slot s : Slot.values()) {
+            indexerContents.put(s, DetectedColor.UNKNOWN);
         }
 
         indexerPosition = 0.1;
@@ -60,7 +67,9 @@ public class IndexerCommands {
 
         lastPickLog = "";
 
-        intakeSlot = SlotName.FIRST;
+        intakeSlot = Slot.FIRST;
+
+        firstRev = true;
     }
 
     public void start()
@@ -76,34 +85,43 @@ public class IndexerCommands {
         {
             double currentPosition = indexerPrimary.getPosition();
             double newPositionPrimary;
-            if (intakeSlot == SlotName.FIRST) newPositionPrimary = 0.1;
-            else if (intakeSlot == SlotName.SECOND) newPositionPrimary = 0.273;
+            if (intakeSlot == Slot.FIRST) newPositionPrimary = 0.1;
+            else if (intakeSlot == Slot.SECOND) newPositionPrimary = 0.273;
             else newPositionPrimary = 0.445;
             double newPositionSecondary = newPositionPrimary + POSITION_OFFSET;
 
-            if (Math.abs(currentPosition - newPositionPrimary) < Math.abs(currentPosition - newPositionSecondary)) indexerPosition = newPositionPrimary;
-            else indexerPosition = newPositionSecondary;
+            if (Math.abs(currentPosition - newPositionPrimary) < Math.abs(currentPosition - newPositionSecondary))
+            {
+                indexerPosition = newPositionPrimary;
+                firstRev = true;
+            }
+            else
+            {
+                indexerPosition = newPositionSecondary;
+                firstRev = false;
+            }
         }
 
+        indexerPosition = Range.clip(indexerPosition, 0, 1);
         indexerPrimary.setPosition(indexerPosition);
         indexerSecondary.setPosition(indexerPosition);
     }
 
     public void nextSlot()
     {
-        if (intakeSlot == SlotName.FIRST) intakeSlot = SlotName.SECOND;
-        else if (intakeSlot == SlotName.SECOND) intakeSlot = SlotName.THIRD;
-        else if (intakeSlot == SlotName.THIRD) intakeSlot = SlotName.FIRST;
+        if (intakeSlot == Slot.FIRST) intakeSlot = Slot.SECOND;
+        else if (intakeSlot == Slot.SECOND) intakeSlot = Slot.THIRD;
+        else if (intakeSlot == Slot.THIRD) intakeSlot = Slot.FIRST;
     }
 
     public void prevSlot()
     {
-        if (intakeSlot == SlotName.FIRST) intakeSlot = SlotName.THIRD;
-        if (intakeSlot == SlotName.SECOND) intakeSlot = SlotName.FIRST;
-        if (intakeSlot == SlotName.THIRD) intakeSlot = SlotName.SECOND;
+        if (intakeSlot == Slot.FIRST) intakeSlot = Slot.THIRD;
+        else if (intakeSlot == Slot.SECOND) intakeSlot = Slot.FIRST;
+        else if (intakeSlot == Slot.THIRD) intakeSlot = Slot.SECOND;
     }
 
-    public void setSlot(SlotName slot)
+    public void setSlot(Slot slot)
     {
         intakeSlot = slot;
     }
@@ -119,38 +137,38 @@ public class IndexerCommands {
         lock = false;
     }
 
-    public void overrideSlot(SlotName slot, ArtifactColors color)
+    public void overrideSlot(Slot slot, DetectedColor color)
     {
         indexerContents.replace(slot, color);
     }
 
-    public void overrideActiveSlot(ArtifactColors color)
+    public void overrideActiveSlot(DetectedColor color)
     {
         indexerContents.replace(intakeSlot, color);
     }
 
-    public void setContents(ArtifactColors colorOne, ArtifactColors colorTwo, ArtifactColors colorThree)
+    public void setContents(DetectedColor colorOne, DetectedColor colorTwo, DetectedColor colorThree)
     {
-        indexerContents.replace(SlotName.FIRST, colorOne);
-        indexerContents.replace(SlotName.SECOND, colorTwo);
-        indexerContents.replace(SlotName.THIRD, colorThree);
+        indexerContents.replace(Slot.FIRST, colorOne);
+        indexerContents.replace(Slot.SECOND, colorTwo);
+        indexerContents.replace(Slot.THIRD, colorThree);
     }
 
     public void clearContents()
     {
-        indexerContents.replace(SlotName.FIRST, ArtifactColors.UNKNOWN);
-        indexerContents.replace(SlotName.SECOND, ArtifactColors.UNKNOWN);
-        indexerContents.replace(SlotName.THIRD, ArtifactColors.UNKNOWN);
+        indexerContents.replace(Slot.FIRST, DetectedColor.UNKNOWN);
+        indexerContents.replace(Slot.SECOND, DetectedColor.UNKNOWN);
+        indexerContents.replace(Slot.THIRD, DetectedColor.UNKNOWN);
     }
 
-    public ArtifactColors getDetectedColor()
+    public DetectedColor getDetectedColor()
     {
         NormalizedRGBA color = colorSensor.getNormalizedColors();
 
         float sum = color.red + color.green + color.blue;
         if (sum < 1e-6f) {
-            indexerContents.replace(intakeSlot, ArtifactColors.UNKNOWN);
-            return ArtifactColors.UNKNOWN;
+            indexerContents.replace(intakeSlot, DetectedColor.UNKNOWN);
+            return DetectedColor.UNKNOWN;
         }
 
         float r = color.red / sum;
@@ -175,20 +193,47 @@ public class IndexerCommands {
         }
         if (h < 0f) h += 360f;
 
+        double d = rev.getDistance(DistanceUnit.MM);
+
         if (s < 0.20f) {
-            indexerContents.replace(intakeSlot, ArtifactColors.UNKNOWN);
-            return ArtifactColors.UNKNOWN;
+            indexerContents.replace(intakeSlot, DetectedColor.UNKNOWN);
+            return DetectedColor.UNKNOWN;
         }
 
-        if (h >= 130f && h < 150f && s >= 0.45) {
-            indexerContents.replace(intakeSlot, ArtifactColors.GREEN);
-            return ArtifactColors.GREEN;
-        } else if (h >= 150f && h <= 170f && s < 0.4) {
-            indexerContents.replace(intakeSlot, ArtifactColors.PURPLE);
-            return ArtifactColors.PURPLE;
+        if (h <= 160f && s >= 0.5) {
+            indexerContents.replace(intakeSlot, DetectedColor.GREEN);
+            return DetectedColor.GREEN;
+        } else if (h >= 154) {
+            indexerContents.replace(intakeSlot, DetectedColor.PURPLE);
+            return DetectedColor.PURPLE;
         } else {
-            indexerContents.replace(intakeSlot, ArtifactColors.UNKNOWN);
-            return ArtifactColors.UNKNOWN;
+            indexerContents.replace(intakeSlot, DetectedColor.UNKNOWN);
+            return DetectedColor.UNKNOWN;
+        }
+    }
+
+    public boolean isFull()
+    {
+        boolean isFull = true;
+        if (getSlotColor(Slot.FIRST) == DetectedColor.UNKNOWN) isFull = false;
+        else if (getSlotColor(Slot.SECOND) == DetectedColor.UNKNOWN) isFull = false;
+        else if (getSlotColor(Slot.THIRD) == DetectedColor.UNKNOWN) isFull = false;
+
+        return isFull;
+    }
+
+    public void getNextEmptySlot()
+    {
+        if (getIntakeSlotColor() == DetectedColor.UNKNOWN) setSlot(intakeSlot);
+        else if (getSlotColor(Slot.FIRST) == DetectedColor.UNKNOWN)
+        {
+            setSlot(Slot.FIRST);
+        } else if (getSlotColor(Slot.SECOND) == DetectedColor.UNKNOWN)
+        {
+            setSlot(Slot.SECOND);
+        } else if (getSlotColor(Slot.THIRD) == DetectedColor.UNKNOWN)
+        {
+            setSlot(Slot.THIRD);
         }
     }
 
@@ -204,20 +249,30 @@ public class IndexerCommands {
         return (Math.abs(targetAngle - encoderAngle) > 10);
     }
 
+    public boolean isOnFirstRev()
+    {
+        return firstRev;
+    }
+
     public String getContents()
     {
         String contents;
-        contents = indexerContents.get(SlotName.FIRST) + ", " + indexerContents.get(SlotName.SECOND) + ", " + indexerContents.get(SlotName.THIRD);
+        contents = indexerContents.get(Slot.FIRST) + ", " + indexerContents.get(Slot.SECOND) + ", " + indexerContents.get(Slot.THIRD);
         return contents;
+    }
+
+    public DetectedColor getSlotColor(Slot slot)
+    {
+        return indexerContents.get(slot);
     }
 
     public double getIndexerPosition() {return indexerPosition;}
 
     public double getTargetAngle() {return targetAngle;}
 
-    public SlotName getIntakeSlot() {return intakeSlot;}
+    public Slot getIntakeSlot() {return intakeSlot;}
 
-    public ArtifactColors getIntakeSlotColor() {return indexerContents.get(intakeSlot);}
+    public DetectedColor getIntakeSlotColor() {return indexerContents.get(intakeSlot);}
 
     public class NextSlot extends CommandBase
     {
@@ -251,30 +306,33 @@ public class IndexerCommands {
 
     public class SetSlot extends CommandBase
     {
-        private final SlotName slot;
+        private final Slot slot;
+        private boolean isNew = true;
 
-        public SetSlot(SlotName slot) {
+        public SetSlot(Slot slot) {
             this.slot = slot;
         }
 
         @Override
         public void initialize()
         {
-            setSlot(slot);
+            if (intakeSlot != slot)
+                setSlot(slot);
+            else isNew = false;
         }
 
         @Override
         public boolean isFinished()
         {
-            return indexerIsMoving();
+            return !isNew || indexerIsMoving();
         }
     }
 
     public class SetContents extends CommandBase
     {
-        private final ArtifactColors one, two, three;
+        private final DetectedColor one, two, three;
 
-        public SetContents(ArtifactColors one, ArtifactColors two, ArtifactColors three)
+        public SetContents(DetectedColor one, DetectedColor two, DetectedColor three)
         {
             this.one = one;
             this.two = two;
