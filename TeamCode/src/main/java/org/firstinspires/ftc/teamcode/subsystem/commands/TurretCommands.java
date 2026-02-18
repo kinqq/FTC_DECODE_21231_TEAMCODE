@@ -48,9 +48,6 @@ public class TurretCommands
 
     private boolean spinFlywheel;
 
-    private boolean overrideAim;
-    private double overrideDegree;
-
     public TurretCommands(HardwareMap hwMap)
     {
         turretMotor = hwMap.get(DcMotorEx.class, "turret");
@@ -80,8 +77,6 @@ public class TurretCommands
         hoodAngle = 0.18;
         flywheelVelocity = 1220;
         turretOffset = 0;
-        overrideAim = false;
-        overrideDegree = 0;
         spinFlywheel = false;
     }
 
@@ -128,19 +123,13 @@ public class TurretCommands
         }
 
         double targetDegree;
-        if (!overrideAim)
-        {
-            if (autoAim) {
-                targetDegree = Math.toDegrees(Math.atan2(yDistance, xDistance));
-                targetDegree -= Math.toDegrees(robotH);
-                targetDegree += offset;
-                targetDegree = AngleUnit.normalizeDegrees(targetDegree);
-                targetDegree = Range.clip(targetDegree, -185, 185);
-            } else targetDegree = offset;
-        } else
-        {
-            targetDegree = overrideDegree;
-        }
+        if (autoAim) {
+            targetDegree = Math.toDegrees(Math.atan2(yDistance, xDistance));
+            targetDegree -= Math.toDegrees(robotH);
+            targetDegree += offset;
+            targetDegree = AngleUnit.normalizeDegrees(targetDegree);
+            targetDegree = Range.clip(targetDegree, -185, 185);
+        } else targetDegree = offset;
 
         turretTargetDeg = targetDegree;
 
@@ -174,12 +163,6 @@ public class TurretCommands
     public void zero()
     {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-
-    public void overrideTurret(double targetDegree)
-    {
-        overrideAim = true;
-        overrideDegree = targetDegree;
     }
 
     public void spinUpToVelocity()

@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
+import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
@@ -34,9 +35,9 @@ public class DriveSTATE extends CommandOpMode
     private IndexerCommands indexerCmds;
     private TurretCommands turretCmds;
     private IntakeCommands intakeCmds;
+    private LaunchCommands launchCmds;
     private Follower follower;
 
-    private Servo light;
     private ElapsedTime lightTimer;
 
     private boolean autoPower;
@@ -61,10 +62,14 @@ public class DriveSTATE extends CommandOpMode
         indexerCmds = new IndexerCommands(hardwareMap);
         turretCmds = new TurretCommands(hardwareMap);
         intakeCmds = new IntakeCommands(hardwareMap);
-        follower = Constants.createFollower(hardwareMap);
+        launchCmds = new LaunchCommands(
+                hardwareMap,
+                indexerCmds,
+                turretCmds,
+                intakeCmds
+        );
 
-        light = hardwareMap.get(Servo.class, "light");
-        light.setDirection(Servo.Direction.REVERSE);
+        follower = Constants.createFollower(hardwareMap);
 
         lightTimer = new ElapsedTime();
         lightTimer.reset();
@@ -127,7 +132,7 @@ public class DriveSTATE extends CommandOpMode
             lightPos = lightForward ? lightPos + 0.01 : lightPos - 0.01;
             lightTimer.reset();
         }
-        light.setPosition(lightPos);
+        launchCmds.setLight(lightPos);
     }
 
     private boolean started = false;
@@ -163,14 +168,14 @@ public class DriveSTATE extends CommandOpMode
         if (!shooting && !indexerCmds.indexerIsMoving())
         {
             if (lightTimer.seconds() < 0.25 && humanPlayer)
-                light.setPosition(0.58);
+                launchCmds.setLight(0.58);
             else if (lightTimer.seconds() < 0.5 && indexerCmds.isFull())
-                light.setPosition(0.48);
+                launchCmds.setLight(0.48);
             if (lightTimer.seconds() > 0.5)
             {
-                if (indexerCmds.getIntakeSlotColor() == DetectedColor.GREEN) light.setPosition(0.51);
-                else if (indexerCmds.getIntakeSlotColor() == DetectedColor.PURPLE) light.setPosition(0.32);
-                else light.setPosition(0);
+                if (indexerCmds.getIntakeSlotColor() == DetectedColor.GREEN) launchCmds.setLight(0.51);
+                else if (indexerCmds.getIntakeSlotColor() == DetectedColor.PURPLE) launchCmds.setLight(0.32);
+                else launchCmds.setLight(0);
             } if (lightTimer.seconds() > 1) lightTimer.reset();
 
             indexerCmds.getDetectedColor();
@@ -270,184 +275,14 @@ public class DriveSTATE extends CommandOpMode
         if (gamepad2.rightBumperWasPressed()) velocity += 10;
         if (gamepad2.dpadUpWasPressed()) angle += 0.01;
         if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
-        if (gamepad2.yWasPressed()) schedule(shootRapid());
+        if (gamepad2.yWasPressed()) schedule(launchCmds.shootRapid());
         if (gamepad2.dpadLeftWasPressed()) offset += 1;
         if (gamepad2.dpadRightWasPressed()) offset -= 1;
         if (gamepad2.startWasPressed()) turretCmds.deactivateLauncher();
     }
 
-    private CommandBase shootRapid()
-    {
-        boolean moveForward = false;
-        if (indexerCmds.isOnFirstRev())
-        {
-            if (indexerCmds.getIntakeSlot() == Slot.FIRST) moveForward = true;
-            if (indexerCmds.getIntakeSlot() == Slot.SECOND) moveForward = true;
-        }
 
-        shooting = true;
-        return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
-                ),
-                new WaitUntilCommand(() -> turretCmds.flywheelAtExpectedSpeed()),
-                //new SetLight(0.69),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(150),
-                !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
-                !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(500),
-                new ParallelCommandGroup(
-                        indexerCmds.new ClearContents(),
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown(),
-                        new InstantCommand(() -> shooting = false)
-                )
-        );
-    }
 
-    private CommandBase shootMotif()
-    {
-        Slot first;
-        Slot upOne;
-        Slot downOne;
-        boolean forward = false;
 
-        if (indexerCmds.getSlotColor(Slot.FIRST) == motifTranslated[0])
-            first = Slot.FIRST;
-        else if (indexerCmds.getSlotColor(Slot.SECOND) == motifTranslated[0])
-            first = Slot.SECOND;
-        else if (indexerCmds.getSlotColor(Slot.THIRD) == motifTranslated[0])
-            first = Slot.THIRD;
-        else first = Slot.FIRST;
-
-        if (first == Slot.FIRST)
-        {
-            upOne = Slot.SECOND;
-            downOne = Slot.THIRD;
-        }
-        else if (first == Slot.SECOND)
-        {
-            upOne = Slot.THIRD;
-            downOne = Slot.FIRST;
-        }
-        else
-        {
-            upOne = Slot.FIRST;
-            downOne= Slot.SECOND;
-        }
-
-        if (indexerCmds.getSlotColor(upOne) == motifTranslated[1]) forward = true;
-        else forward = indexerCmds.getSlotColor(downOne) != motifTranslated[1];
-
-        if (
-                (forward && (first == Slot.SECOND || first == Slot.THIRD) && !indexerCmds.isOnFirstRev())
-                ||
-                (!forward && (first == Slot.FIRST || first == Slot.SECOND) && indexerCmds.isOnFirstRev())
-        ) {
-            if (indexerCmds.getSlotColor(first) == DetectedColor.GREEN) forward = !forward;
-            else
-            {
-                if (indexerCmds.getSlotColor(Slot.FIRST) == motifTranslated[0] && first != Slot.FIRST)
-                    first = Slot.FIRST;
-                else if (indexerCmds.getSlotColor(Slot.SECOND) == motifTranslated[0] && first != Slot.SECOND)
-                    first = Slot.SECOND;
-                else if (indexerCmds.getSlotColor(Slot.THIRD) == motifTranslated[0] && first != Slot.THIRD)
-                    first = Slot.THIRD;
-                else first = Slot.SECOND;
-
-                if (first == Slot.FIRST)
-                {
-                    upOne = Slot.SECOND;
-                    downOne = Slot.THIRD;
-                }
-                else if (first == Slot.SECOND)
-                {
-                    upOne = Slot.THIRD;
-                    downOne = Slot.FIRST;
-                }
-                else
-                {
-                    upOne = Slot.FIRST;
-                    downOne= Slot.SECOND;
-                }
-
-                if (indexerCmds.getSlotColor(upOne) == motifTranslated[1]) forward = true;
-                else forward = indexerCmds.getSlotColor(upOne) != motifTranslated[1];
-            }
-        }
-
-        shooting = true;
-
-        return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        indexerCmds.new SetSlot(first),
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
-                ),
-                new WaitUntilCommand(() -> turretCmds.flywheelAtExpectedSpeed()),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(200),
-                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
-                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
-                new ParallelCommandGroup(
-                        indexerCmds.new ClearContents(),
-                        indexerCmds.new SetSlot(Slot.FIRST),
-                        intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown(),
-                        new InstantCommand(() -> shooting = false)
-                )
-        );
-    }
-
-    private CommandBase shootColor(DetectedColor color)
-    {
-        Slot slot;
-        if (indexerCmds.getIntakeSlotColor() == color) slot = indexerCmds.getIntakeSlot();
-        else if (indexerCmds.getSlotColor(Slot.FIRST) == color) slot = Slot.FIRST;
-        else if (indexerCmds.getSlotColor(Slot.SECOND) == color) slot = Slot.SECOND;
-        else if (indexerCmds.getSlotColor(Slot.THIRD) == color) slot = Slot.THIRD;
-        else return new InstantCommand();
-
-        shooting = true;
-        return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        indexerCmds.new SetSlot(slot),
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
-                ),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(200),
-                new ParallelCommandGroup(
-                        intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown(),
-                        new InstantCommand(() -> shooting = false)
-                )
-        );
-    }
-
-    private class SetLight extends CommandBase
-    {
-        double color;
-
-        public SetLight(double color) {this.color = color;}
-
-        @Override
-        public void initialize() {light.setPosition(color);}
-
-        @Override
-        public boolean isFinished() {return true;}
-    }
 
 }

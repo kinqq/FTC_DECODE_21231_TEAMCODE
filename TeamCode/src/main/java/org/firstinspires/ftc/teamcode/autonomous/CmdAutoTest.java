@@ -39,7 +39,7 @@ public class CmdAutoTest extends CommandOpMode {
 //        indexerCmds = new MagazineCommands(hardwareMap);
         intakeCmds = new IntakeCommands(hardwareMap);
         ll = new LimelightCommands(hardwareMap);
-        launchCmds = new LaunchCommands(ll, turretCommands);
+//        launchCmds = new LaunchCommands(ll, turretCommands);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
         PathChain path1 = follower
@@ -63,7 +63,7 @@ public class CmdAutoTest extends CommandOpMode {
         schedule(
             new SequentialCommandGroup(
 //                intakeCmds.intakeOn(1),
-                launchCmds.shootEachSlot(0.82)
+//                launchCmds.shootEachSlot(0.82)
             )
         );
 

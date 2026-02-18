@@ -48,7 +48,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 //        indexerCmds = new MagazineCommands(hardwareMap);
         llCmds = new LimelightCommands(hardwareMap);
         intakeCmds = new IntakeCommands(hardwareMap);
-        launchCmds = new LaunchCommands(llCmds, turretCmds);
+//        launchCmds = new LaunchCommands(llCmds, turretCmds);
 
 //        turretCmds.zeroHere();
 //        indexerCmds.update();
@@ -97,8 +97,8 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 //                    turretCmds.setTarget(preloadTurretTargetDeg),
 //                    indexerCmds.lockSlot(Slot.SECOND),
 //                    new InstantCommand(indexerCmds::unlock)
-                ),
-                launchCmds.shootMotifFromDetection(.82)
+                )
+//                launchCmds.shootMotifFromDetection(.82)
             );
 
 //        SequentialCommandGroup intakeFirstRow =
@@ -131,8 +131,8 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 //                    turretCmds.setLaunchAngle(35),
 //                    turretCmds.setTarget(volleyTurretTargetDeg),
 //                    followPath(paths.Path4)
-                ),
-                launchCmds.shootMotifFromDetection(.78)
+                )
+//                launchCmds.shootMotifFromDetection(.78)
             );
 
         SequentialCommandGroup intakeSecondRow =
