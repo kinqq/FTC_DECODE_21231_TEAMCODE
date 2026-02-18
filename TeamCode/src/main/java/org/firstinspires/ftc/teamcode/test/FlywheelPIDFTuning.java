@@ -52,10 +52,17 @@ public class FlywheelPIDFTuning extends OpMode {
         double kF = f;
         pid.setP(p);
 
-        double pidResult = pid.calculate(-launcher1.getVelocity(), vel);
-        double ff = kF * vel;
+        // Tuned from your data:
+        double kS = 0.0473;
+        double kV = 0.0003534;
 
-        double power = Range.clip(pidResult + ff, -1, 1);
+        double pidResult = pid.calculate(-launcher1.getVelocity(), vel);
+        double ff = kS + kV * vel;
+
+        double batt = voltage.getVoltage();   // REV Hub
+        double cmd = (pidResult + ff) * (12.74 / batt);
+
+        double power = Range.clip(cmd, -1, 1);
 
 
         if (gamepad1.a) {

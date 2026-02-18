@@ -8,7 +8,7 @@ import dev.frozenmilk.sinister.loading.Pinned;
 @Pinned
 public class LauncherPIDFConstants
 {
-    public static double p = 0.001;
+    public static double p = 0.0011;
     public static double i = 0;
     public static double d = 0;
     public static double f = 0.000388;

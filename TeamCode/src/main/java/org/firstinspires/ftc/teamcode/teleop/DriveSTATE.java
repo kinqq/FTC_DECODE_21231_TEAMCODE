@@ -183,7 +183,7 @@ public class DriveSTATE extends CommandOpMode
         telemetry.addData("Is Full", indexerCmds.isFull());
         telemetry.addData("Distance From Goal", turretCmds.getDistToGoal());
         telemetry.addData("Velocity", turretCmds.getExpectedVelocity());
-        telemetry.addData("Angle", angle);
+        telemetry.addData("Angle", turretCmds.getHoodAngle());
         telemetry.addData("Real Vel", turretCmds.getRealVelocity());
         telemetry.addData("Motor to Speed", turretCmds.flywheelAtExpectedSpeed());
         telemetry.addData("Indexer Busy", indexerCmds.indexerIsMoving());
@@ -238,27 +238,42 @@ public class DriveSTATE extends CommandOpMode
         if (gamepad1.rightStickButtonWasPressed()) robotCentric = !robotCentric;
 
 
-        if (gamepad2.backWasPressed())
-        {
-            intakeCmds.intakeReverse();
-            intakeCmds.intakeOn();
-        }
-        if (gamepad2.backWasReleased())
-        {
-            intakeCmds.intakeForward();
-            intakeCmds.intakeOn();
-        }
-        if (gamepad2.aWasPressed()) schedule(shootColor(DetectedColor.GREEN));
-        if (gamepad2.bWasPressed()) schedule(shootMotif());
-        if (gamepad2.xWasPressed()) schedule(shootColor(DetectedColor.PURPLE));
-        if (gamepad2.yWasPressed()) schedule(shootRapid());
-        if (gamepad2.dpadLeftWasPressed()) offset += 5;
-        if (gamepad2.dpadRightWasPressed()) offset -= 5;
+//        if (gamepad2.backWasPressed())
+//        {
+//            intakeCmds.intakeReverse();
+//            intakeCmds.intakeOn();
+//        }
+//        if (gamepad2.backWasReleased())
+//        {
+//            intakeCmds.intakeForward();
+//            intakeCmds.intakeOn();
+//        }
+//        if (gamepad2.aWasPressed()) schedule(shootColor(DetectedColor.GREEN));
+//        if (gamepad2.bWasPressed()) schedule(shootMotif());
+//        if (gamepad2.xWasPressed()) schedule(shootColor(DetectedColor.PURPLE));
+//        if (gamepad2.yWasPressed())
+//        {
+//            //if (turretCmds.getExpectedVelocity() > 1500)
+//            //    schedule(shootSlow());
+//            //else schedule(shootRapid());
+//            schedule(shootRapid());
+//        }
+//        if (gamepad2.dpadLeftWasPressed()) offset += 2.5;
+//        if (gamepad2.dpadRightWasPressed()) offset -= 2.5;
+//        if (gamepad2.dpadUpWasPressed()) angle += 0.01;
+//        if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
+//        if (gamepad2.leftBumperWasPressed()) schedule(shootColor(indexerCmds.getIntakeSlotColor()));
+//        if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
+//        if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
+
+        if (gamepad2.leftBumperWasPressed()) velocity -= 10;
+        if (gamepad2.rightBumperWasPressed()) velocity += 10;
         if (gamepad2.dpadUpWasPressed()) angle += 0.01;
         if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
-        if (gamepad2.leftBumperWasPressed()) schedule(shootColor(indexerCmds.getIntakeSlotColor()));
-        if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
-        if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
+        if (gamepad2.yWasPressed()) schedule(shootRapid());
+        if (gamepad2.dpadLeftWasPressed()) offset += 1;
+        if (gamepad2.dpadRightWasPressed()) offset -= 1;
+        if (gamepad2.startWasPressed()) turretCmds.deactivateLauncher();
     }
 
     private CommandBase shootRapid()
@@ -283,7 +298,7 @@ public class DriveSTATE extends CommandOpMode
                 intakeCmds.new HammerActive(),
                 new WaitCommand(150),
                 !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(150),
+                new WaitCommand(200),
                 !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                 new WaitCommand(500),
                 new ParallelCommandGroup(

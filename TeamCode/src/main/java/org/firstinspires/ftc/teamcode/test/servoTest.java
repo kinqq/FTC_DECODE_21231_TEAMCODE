@@ -23,7 +23,7 @@ public class servoTest extends LinearOpMode
 
     @Override
     public void runOpMode() {
-        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "light");
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "launchAngle");
         servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         //DcMotorEx encoder = hardwareMap.get(DcMotorEx.class, "leftFront");
 

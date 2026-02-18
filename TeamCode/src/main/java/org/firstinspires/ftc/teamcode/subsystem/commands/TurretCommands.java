@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import static org.firstinspires.ftc.teamcode.constant.AutoPowerData.Distances;
+import static org.firstinspires.ftc.teamcode.constant.AutoPowerData.HoodAngles;
+import static org.firstinspires.ftc.teamcode.constant.AutoPowerData.Velocities;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.p;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
@@ -36,7 +39,6 @@ public class TurretCommands
     PController pid;
     private double kF;
 
-
     private double turretTargetDeg;
     private double distToGoal;
 
@@ -48,7 +50,6 @@ public class TurretCommands
 
     private boolean overrideAim;
     private double overrideDegree;
-
 
     public TurretCommands(HardwareMap hwMap)
     {
@@ -106,16 +107,20 @@ public class TurretCommands
     {
         turretOffset = offset;
 
-        double targetX = alliance == AllianceColor.RED ? 144 : 0;
-        double targetY = 144;
+        double targetX = alliance == AllianceColor.RED ? 145 : 0;
+        double targetY = 145;
         double xDistance = targetX - robotX;
         double yDistance = targetY - robotY;
         distToGoal = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
 
         if (autoPower)
         {
-            flywheelVelocity = calculateAutoVelocity(distToGoal);
-            hoodAngle = calculateAutoHoodAngle(distToGoal);
+//            flywheelVelocity = calculateAutoVelocity(distToGoal);
+//            hoodAngle = calculateAutoHoodAngle(distToGoal);
+
+            double[] power = interpolatePower(distToGoal);
+            flywheelVelocity = power[0];
+            hoodAngle = power[1];
         } else
         {
             flywheelVelocity = velocity;
@@ -143,13 +148,19 @@ public class TurretCommands
         turretMotor.setTargetPosition(targetReal);
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(1);
-        hoodAngleServo.setPosition(Range.clip(hoodAngle, 0.19, 0.85));
+        hoodAngleServo.setPosition(Range.clip(hoodAngle, 0.19, 0.98));
+
+        double kS = 0.0473;
+        double kV = 0.0003534;
 
         double pidResult = pid.calculate(-launcherMotorSecondary.getVelocity(), flywheelVelocity);
-        double ff = kF * flywheelVelocity;
+        double ff = kS + kV * flywheelVelocity;
 
-        double power = Range.clip(pidResult + ff, -1, 1);
+        double batt = voltage.getVoltage();   // REV Hub
+        double cmd = (pidResult + ff) * (12.74 / batt);
 
+        double power = Range.clip(cmd, -1, 1);
+        
         if (spinFlywheel) {
             launcherMotorPrimary.setPower(power);
             launcherMotorSecondary.setPower(power);
@@ -185,12 +196,43 @@ public class TurretCommands
 
     public double calculateAutoVelocity(double goalDist)
     {
-        return Range.clip(((-0.0102645) * Math.pow(goalDist, 2)) + (7.49441 * goalDist) + 679.88926, 0, 2200);
+        return Range.clip(((-0.0102645) * Math.pow(goalDist, 2)) + (7.49441 * goalDist) + 710, 0, 2500);
     }
 
     public double calculateAutoHoodAngle(double goalDist)
     {
         return Range.clip(((-0.00000688104) * Math.pow(goalDist, 2)) + (0.00816319 * goalDist) - 0.145203, 0, 1);
+    }
+
+    public double[] interpolatePower(double goalDist)
+    {
+        int n = Distances.length;
+
+        if (goalDist <= Distances[0]) return new double[] {Velocities[0] + 10, HoodAngles[0]};
+        if (goalDist >= Distances[n - 1]) return new double[] {Velocities[n - 1] + 10, HoodAngles[n - 1]};
+
+        int low = 0;
+        int high = n - 1;
+        while (high - low > 1)
+        {
+            int mid = (low + high) >>> 1;
+            if (goalDist >= Distances[mid]) low = mid;
+            else high = mid;
+        }
+
+        double distance0 = Distances[low];
+        double distance1 = Distances[high];
+        double t = (goalDist - distance0) / (distance1 - distance0);
+
+        double velocity0 = Velocities[low];
+        double velocity1 = Velocities[high];
+        double hood0 = HoodAngles[low];
+        double hood1 = HoodAngles[high];
+
+        double velocity = velocity0 + (velocity1 - velocity0) * t;
+        double hoodAngle = hood0 + (hood1 - hood0) * t;
+
+        return new double[] {velocity + 10, hoodAngle};
     }
 
     public double getRealVelocity()
@@ -203,6 +245,11 @@ public class TurretCommands
         return flywheelVelocity;
     }
 
+    public double getHoodAngle()
+    {
+        return hoodAngle;
+    }
+
     public double getDistToGoal()
     {
         return distToGoal;
@@ -210,7 +257,7 @@ public class TurretCommands
 
     public boolean flywheelAtExpectedSpeed()
     {
-        return Math.abs((-launcherMotorSecondary.getVelocity()) - flywheelVelocity) < 20;
+        return (-launcherMotorSecondary.getVelocity()) - flywheelVelocity >= -10;
     }
 
     public class SpinUp extends CommandBase

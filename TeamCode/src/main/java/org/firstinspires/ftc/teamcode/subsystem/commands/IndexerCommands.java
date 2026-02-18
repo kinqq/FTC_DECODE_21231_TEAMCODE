@@ -203,7 +203,7 @@ public class IndexerCommands {
         if (h <= 160f && s >= 0.5) {
             indexerContents.replace(intakeSlot, DetectedColor.GREEN);
             return DetectedColor.GREEN;
-        } else if (h >= 154) {
+        } else if (h >= 155) {
             indexerContents.replace(intakeSlot, DetectedColor.PURPLE);
             return DetectedColor.PURPLE;
         } else {
