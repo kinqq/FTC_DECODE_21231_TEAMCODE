@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystem.commands;
 
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.ParallelRaceGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.command.WaitUntilCommand;
@@ -18,6 +20,8 @@ public class LaunchCommands {
     TurretCommands turretCmds;
     IntakeCommands intakeCmds;
 
+    private boolean shooting;
+
     public LaunchCommands(HardwareMap hwMap, IndexerCommands indCmds, TurretCommands tCmds, IntakeCommands intCmds)
     {
         light = hwMap.get(Servo.class, "light");
@@ -26,9 +30,13 @@ public class LaunchCommands {
         indexerCmds = indCmds;
         turretCmds = tCmds;
         intakeCmds = intCmds;
+
+        shooting = false;
     }
 
-    public CommandBase shootRapid()
+    public boolean isShooting() {return shooting;}
+
+    public CommandBase shootRapid(Gamepad gamepad)
     {
         boolean moveForward = false;
         if (indexerCmds.isOnFirstRev())
@@ -37,6 +45,8 @@ public class LaunchCommands {
             if (indexerCmds.getIntakeSlot() == Slot.SECOND) moveForward = true;
         }
 
+        shooting = true;
+
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
                         intakeCmds.new HammerPassive(),
@@ -44,23 +54,29 @@ public class LaunchCommands {
                         turretCmds.new SpinUp(),
                         new SetLight(0.4)
                 ),
-                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(150),
-                !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
-                !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(500),
+                new ParallelRaceGroup(
+                     new SequentialCommandGroup(
+                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                             intakeCmds.new HammerActive(),
+                             new WaitCommand(150),
+                             !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
+                             new WaitCommand(200),
+                             !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
+                             new WaitCommand(500)
+                     ),
+                    new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                ),
                 new ParallelCommandGroup(
                         indexerCmds.new ClearContents(),
                         indexerCmds.new SetSlot(Slot.FIRST),
                         intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown()
+                        turretCmds.new SpinDown(),
+                        new InstantCommand(() -> shooting = false)
                 )
         );
     }
 
-    public CommandBase shootMotif(DetectedColor[] motifTranslated)
+    public CommandBase shootMotif(Gamepad gamepad, DetectedColor[] motifTranslated)
     {
         Slot first;
         Slot upOne;
@@ -131,6 +147,8 @@ public class LaunchCommands {
             }
         }
 
+        shooting = true;
+
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
                         indexerCmds.new SetSlot(first),
@@ -139,23 +157,29 @@ public class LaunchCommands {
                         turretCmds.new SpinUp(),
                         new SetLight(0.4)
                 ),
-                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(200),
-                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
-                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                new WaitCommand(200),
+                new ParallelRaceGroup(
+                        new SequentialCommandGroup(
+                                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                intakeCmds.new HammerActive(),
+                                new WaitCommand(200),
+                                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
+                                new WaitCommand(200),
+                                !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
+                                new WaitCommand(200)
+                        ),
+                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                ),
                 new ParallelCommandGroup(
                         indexerCmds.new ClearContents(),
                         indexerCmds.new SetSlot(Slot.FIRST),
                         intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown()
+                        turretCmds.new SpinDown(),
+                        new InstantCommand(() -> shooting = false)
                 )
         );
     }
 
-    public CommandBase shootColor(DetectedColor color)
+    public CommandBase shootColor(Gamepad gamepad, DetectedColor color)
     {
         Slot slot;
         if (indexerCmds.getIntakeSlotColor() == color) slot = indexerCmds.getIntakeSlot();
@@ -163,6 +187,8 @@ public class LaunchCommands {
         else if (indexerCmds.getSlotColor(Slot.SECOND) == color) slot = Slot.SECOND;
         else if (indexerCmds.getSlotColor(Slot.THIRD) == color) slot = Slot.THIRD;
         else return new InstantCommand();
+
+        shooting = true;
 
         return new SequentialCommandGroup(
                 new ParallelCommandGroup(
@@ -172,11 +198,18 @@ public class LaunchCommands {
                         turretCmds.new SpinUp(),
                         new SetLight(0.4)
                 ),
-                intakeCmds.new HammerActive(),
-                new WaitCommand(200),
+                new ParallelRaceGroup(
+                        new SequentialCommandGroup(
+                                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                intakeCmds.new HammerActive(),
+                                new WaitCommand(200)
+                        ),
+                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                ),
                 new ParallelCommandGroup(
                         intakeCmds.new HammerPassive(),
-                        turretCmds.new SpinDown()
+                        turretCmds.new SpinDown(),
+                        new InstantCommand(() -> shooting = false)
                 )
         );
     }

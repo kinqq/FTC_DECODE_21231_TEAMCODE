@@ -6,19 +6,11 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
-import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
-import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
@@ -48,12 +40,12 @@ public class DriveSTATE extends CommandOpMode
     private double idlePower;
 
     private boolean robotCentric;
+    private double speedMultiplier;
 
     private AllianceColor alliance;
     private LimelightCommands.Motif motif;
     private DetectedColor[] motifTranslated;
 
-    private boolean shooting;
     private boolean humanPlayer;
 
     @Override
@@ -102,6 +94,8 @@ public class DriveSTATE extends CommandOpMode
             motifTranslated = new DetectedColor[] {DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE};
         }
 
+        speedMultiplier = 1;
+
         autoPower = false;
         autoAim = true;
         velocity = 1340;
@@ -111,7 +105,6 @@ public class DriveSTATE extends CommandOpMode
 
         robotCentric = false;
 
-        shooting = false;
         humanPlayer = false;
 
         //Enable Panels Telemetry
@@ -153,19 +146,20 @@ public class DriveSTATE extends CommandOpMode
         }
 
         super.run();
+
         follower.update();
         indexerCmds.update();
         turretCmds.update(autoPower, autoAim, velocity, angle, offset, idlePower, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), alliance);
         //light.setPosition(lightColor);
 
         follower.setTeleOpDrive(
-                alliance == AllianceColor.RED ? -gamepad1.left_stick_y : gamepad1.left_stick_y,
-                alliance == AllianceColor.RED ? -gamepad1.left_stick_x : gamepad1.left_stick_x,
-                -gamepad1.right_stick_x,
+                alliance == AllianceColor.RED ? -gamepad1.left_stick_y * speedMultiplier : gamepad1.left_stick_y * speedMultiplier,
+                alliance == AllianceColor.RED ? -gamepad1.left_stick_x * speedMultiplier : gamepad1.left_stick_x * speedMultiplier,
+                -gamepad1.right_stick_x * speedMultiplier,
                 robotCentric
         );
 
-        if (!shooting && !indexerCmds.indexerIsMoving())
+        if (!launchCmds.isShooting() && !indexerCmds.indexerIsMoving())
         {
             if (lightTimer.seconds() < 0.25 && humanPlayer)
                 launchCmds.setLight(0.58);
@@ -220,6 +214,7 @@ public class DriveSTATE extends CommandOpMode
             intakeCmds.intakeOn();
             intakeCmds.hammerPassive();
         }
+
         if (gamepad1.bWasPressed()) indexerCmds.prevSlot();
         if (gamepad1.xWasPressed()) indexerCmds.nextSlot();
         if (gamepad1.leftBumperWasPressed())
@@ -235,6 +230,8 @@ public class DriveSTATE extends CommandOpMode
             intakeCmds.hammerPassive();
         }
         if (gamepad1.rightBumperWasPressed()) intakeCmds.toggleIntake();
+        if (gamepad1.left_trigger > 0.5) speedMultiplier = 0.5;
+        else speedMultiplier = 1;
         if (gamepad1.leftStickButtonWasPressed())
         {
             if (alliance == AllianceColor.RED) alliance = AllianceColor.BLUE;
@@ -243,42 +240,36 @@ public class DriveSTATE extends CommandOpMode
         if (gamepad1.rightStickButtonWasPressed()) robotCentric = !robotCentric;
 
 
-//        if (gamepad2.backWasPressed())
-//        {
-//            intakeCmds.intakeReverse();
-//            intakeCmds.intakeOn();
-//        }
-//        if (gamepad2.backWasReleased())
-//        {
-//            intakeCmds.intakeForward();
-//            intakeCmds.intakeOn();
-//        }
-//        if (gamepad2.aWasPressed()) schedule(shootColor(DetectedColor.GREEN));
-//        if (gamepad2.bWasPressed()) schedule(shootMotif());
-//        if (gamepad2.xWasPressed()) schedule(shootColor(DetectedColor.PURPLE));
-//        if (gamepad2.yWasPressed())
-//        {
-//            //if (turretCmds.getExpectedVelocity() > 1500)
-//            //    schedule(shootSlow());
-//            //else schedule(shootRapid());
-//            schedule(shootRapid());
-//        }
-//        if (gamepad2.dpadLeftWasPressed()) offset += 2.5;
-//        if (gamepad2.dpadRightWasPressed()) offset -= 2.5;
-//        if (gamepad2.dpadUpWasPressed()) angle += 0.01;
-//        if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
-//        if (gamepad2.leftBumperWasPressed()) schedule(shootColor(indexerCmds.getIntakeSlotColor()));
-//        if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
-//        if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
-
-        if (gamepad2.leftBumperWasPressed()) velocity -= 10;
-        if (gamepad2.rightBumperWasPressed()) velocity += 10;
+        if (gamepad2.backWasPressed())
+        {
+            intakeCmds.intakeReverse();
+            intakeCmds.intakeOn();
+        }
+        if (gamepad2.backWasReleased())
+        {
+            intakeCmds.intakeForward();
+            intakeCmds.intakeOn();
+        }
+        if (gamepad2.aWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.GREEN));
+        if (gamepad2.bWasPressed()) schedule(launchCmds.shootMotif(gamepad2, motifTranslated));
+        if (gamepad2.xWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.PURPLE));
+        if (gamepad2.yWasPressed()) schedule(launchCmds.shootRapid(gamepad2));
+        if (gamepad2.dpadLeftWasPressed()) offset += 2.5;
+        if (gamepad2.dpadRightWasPressed()) offset -= 2.5;
         if (gamepad2.dpadUpWasPressed()) angle += 0.01;
         if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
-        if (gamepad2.yWasPressed()) schedule(launchCmds.shootRapid());
-        if (gamepad2.dpadLeftWasPressed()) offset += 1;
-        if (gamepad2.dpadRightWasPressed()) offset -= 1;
-        if (gamepad2.startWasPressed()) turretCmds.deactivateLauncher();
+        if (gamepad2.leftBumperWasPressed()) schedule(launchCmds.shootColor(gamepad2, indexerCmds.getIntakeSlotColor()));
+        if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
+        if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
+
+//        if (gamepad2.leftBumperWasPressed()) velocity -= 10;
+//        if (gamepad2.rightBumperWasPressed()) velocity += 10;
+//        if (gamepad2.dpadUpWasPressed()) angle += 0.01;
+//        if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
+//        if (gamepad2.yWasPressed()) schedule(launchCmds.shootRapid());
+//        if (gamepad2.dpadLeftWasPressed()) offset += 1;
+//        if (gamepad2.dpadRightWasPressed()) offset -= 1;
+//        if (gamepad2.startWasPressed()) turretCmds.deactivateLauncher();
     }
 
 

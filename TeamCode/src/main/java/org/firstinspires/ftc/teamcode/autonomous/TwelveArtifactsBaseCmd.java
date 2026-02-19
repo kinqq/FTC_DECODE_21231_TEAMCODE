@@ -96,8 +96,8 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 //                    indexerCmds.lockSlot(Slot.FIRST),
 //                    new InstantCommand(indexerCmds::unlock),
 //                    intakeCmds.intakeOn(INTAKE_POWER)
-                ),
-                launchCmds.shootEachSlot(0.74)
+                )
+//                launchCmds.shootEachSlot(0.74)
             );
 
         SequentialCommandGroup intakeFirstRow =
@@ -139,8 +139,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 //                        new WaitCommand(800),
 //                        intakeCmds.intakeOn(INTAKE_POWER)
                     )
-                ),
-                launchCmds.shootMotifFromDetection(.74)
+                )
             );
 
         SequentialCommandGroup intakeSecondRow =
@@ -180,8 +179,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 //                        new WaitCommand(800),
 //                        intakeCmds.intakeOn(INTAKE_POWER)
 //                    )
-                ),
-                launchCmds.shootMotifFromDetection(.74)
+                )
             );
 
         SequentialCommandGroup intakeThirdRow =
@@ -220,8 +218,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 //                    new WaitCommand(800),
 //                    intakeCmds.intakeOn(INTAKE_POWER)
                 )
-            ),
-            launchCmds.shootMotifFromDetection(.74)
+            )
         );
 
         ParallelCommandGroup park =

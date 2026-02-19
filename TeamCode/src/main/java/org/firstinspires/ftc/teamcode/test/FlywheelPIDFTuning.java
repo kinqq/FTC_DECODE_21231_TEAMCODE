@@ -19,7 +19,7 @@ import com.seattlesolvers.solverslib.controller.PController;
 
 import org.firstinspires.ftc.teamcode.teleop.DriveMeet2;
 
-@TeleOp (name = "Flywheel PIDF Tuning")
+@TeleOp (name = "Flywheel PIDF Tuning", group = "Tuning")
 @Configurable
 public class FlywheelPIDFTuning extends OpMode {
 
@@ -52,9 +52,8 @@ public class FlywheelPIDFTuning extends OpMode {
         double kF = f;
         pid.setP(p);
 
-        // Tuned from your data:
-        double kS = 0.0473;
-        double kV = 0.0003534;
+        double kS = 0.07630;
+        double kV = 0.00037270;
 
         double pidResult = pid.calculate(-launcher1.getVelocity(), vel);
         double ff = kS + kV * vel;

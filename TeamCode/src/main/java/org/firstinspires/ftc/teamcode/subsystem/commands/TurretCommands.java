@@ -8,6 +8,8 @@ import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.f;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,7 +17,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImpl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -37,7 +38,6 @@ public class TurretCommands
     private final VoltageSensor voltage;
 
     PController pid;
-    private double kF;
 
     private double turretTargetDeg;
     private double distToGoal;
@@ -58,9 +58,9 @@ public class TurretCommands
 
         pid = new PController(p);
         pid.setP(p);
-        kF = f;
 
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         launcherMotorPrimary.setDirection(DcMotorSimple.Direction.FORWARD);
         launcherMotorSecondary.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -139,8 +139,8 @@ public class TurretCommands
         turretMotor.setPower(1);
         hoodAngleServo.setPosition(Range.clip(hoodAngle, 0.19, 0.98));
 
-        double kS = 0.0473;
-        double kV = 0.0003534;
+        double kS = 0.10377;
+        double kV = 0.00038567;
 
         double pidResult = pid.calculate(-launcherMotorSecondary.getVelocity(), flywheelVelocity);
         double ff = kS + kV * flywheelVelocity;

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
-@TeleOp(group = "Test")
+@TeleOp(name = "Limelight Test", group = "Test")
 @Disabled
 
 public class TestLimelight extends OpMode {
