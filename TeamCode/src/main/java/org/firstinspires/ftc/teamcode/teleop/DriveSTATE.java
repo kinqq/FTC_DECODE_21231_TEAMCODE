@@ -8,6 +8,10 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
@@ -17,6 +21,7 @@ import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
+import org.firstinspires.ftc.teamcode.subsystem.commands.PTOCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
 import org.firstinspires.ftc.teamcode.util.MotifUtil;
@@ -28,6 +33,7 @@ public class DriveSTATE extends CommandOpMode
     private TurretCommands turretCmds;
     private IntakeCommands intakeCmds;
     private LaunchCommands launchCmds;
+    private PTOCommands ptoCmds;
     private Follower follower;
 
     private ElapsedTime lightTimer;
@@ -43,10 +49,11 @@ public class DriveSTATE extends CommandOpMode
     private double speedMultiplier;
 
     private AllianceColor alliance;
-    private LimelightCommands.Motif motif;
     private DetectedColor[] motifTranslated;
 
     private boolean humanPlayer;
+    private boolean basing;
+    private boolean basingBegun;
 
     @Override
     public void initialize()
@@ -60,6 +67,7 @@ public class DriveSTATE extends CommandOpMode
                 turretCmds,
                 intakeCmds
         );
+        ptoCmds = new PTOCommands(hardwareMap);
 
         follower = Constants.createFollower(hardwareMap);
 
@@ -87,7 +95,7 @@ public class DriveSTATE extends CommandOpMode
 
         if (GlobalState.lastMotif != LimelightCommands.Motif.UNKNOWN)
         {
-            motif = GlobalState.lastMotif;
+            LimelightCommands.Motif motif = GlobalState.lastMotif;
             motifTranslated = MotifUtil.motifToColors(motif);
         } else
         {
@@ -106,6 +114,8 @@ public class DriveSTATE extends CommandOpMode
         robotCentric = false;
 
         humanPlayer = false;
+        basing = false;
+        basingBegun = false;
 
         //Enable Panels Telemetry
         PanelsConfigurables.INSTANCE.refreshClass(DriveSTATE.class);
@@ -144,8 +154,34 @@ public class DriveSTATE extends CommandOpMode
 
             started = true;
         }
-
         super.run();
+
+        if (!basing) mainLoop();
+        else if (!basingBegun)
+        {
+            schedule(new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                        new InstantCommand(() -> launchCmds.killAll()),
+                        new InstantCommand(() -> indexerCmds.killPower()),
+                        new InstantCommand(() -> turretCmds.killPower()),
+                        new InstantCommand(() -> intakeCmds.killPower()),
+                        launchCmds.new SetLight(0.72)
+                ),
+                ptoCmds.new EngageClutch(),
+                new ParallelCommandGroup(
+                        ptoCmds.new ThrottleFront(),
+                        ptoCmds.new ThrottleBack()
+                ),
+                ptoCmds.new KillFront(),
+                new WaitCommand(5000),
+                ptoCmds.new IdleBack()
+            ));
+            basingBegun = true;
+        }
+    }
+
+    private void mainLoop()
+    {
 
         follower.update();
         indexerCmds.update();

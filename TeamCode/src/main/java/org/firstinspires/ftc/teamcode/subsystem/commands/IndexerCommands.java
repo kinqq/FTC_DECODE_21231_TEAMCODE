@@ -161,6 +161,14 @@ public class IndexerCommands {
         indexerContents.replace(Slot.THIRD, DetectedColor.UNKNOWN);
     }
 
+    public void killPower()
+    {
+        indexerPrimary.setPwmDisable();
+        indexerSecondary.setPwmDisable();
+        rev.enableLed(false);
+        rev.close();
+    }
+
     public DetectedColor getDetectedColor()
     {
         NormalizedRGBA color = colorSensor.getNormalizedColors();
@@ -366,6 +374,5 @@ public class IndexerCommands {
             return true;
         }
     }
-
 
 }

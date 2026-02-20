@@ -66,6 +66,12 @@ public class IntakeCommands
         intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    public void killPower()
+    {
+        intakeMotor.setPower(0);
+        hammerServo.setPwmDisable();
+    }
+
     public class HammerPassive extends CommandBase
     {
         private final ElapsedTime timer = new ElapsedTime();

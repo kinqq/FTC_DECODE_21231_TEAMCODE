@@ -177,6 +177,14 @@ public class TurretCommands
         launcherMotorSecondary.setPower(0);
     }
 
+    public void killPower()
+    {
+        turretMotor.setPower(0);
+        launcherMotorPrimary.setPower(0);
+        launcherMotorPrimary.setPower(0);
+        hoodAngleServo.setPwmDisable();
+    }
+
     public double calculateAutoVelocity(double goalDist)
     {
         return Range.clip(((-0.0102645) * Math.pow(goalDist, 2)) + (7.49441 * goalDist) + 710, 0, 2500);

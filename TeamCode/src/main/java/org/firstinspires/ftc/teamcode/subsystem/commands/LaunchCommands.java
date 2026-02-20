@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystem.commands;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
@@ -21,6 +22,7 @@ public class LaunchCommands {
     IntakeCommands intakeCmds;
 
     private boolean shooting;
+    private boolean killNow;
 
     public LaunchCommands(HardwareMap hwMap, IndexerCommands indCmds, TurretCommands tCmds, IntakeCommands intCmds)
     {
@@ -32,6 +34,7 @@ public class LaunchCommands {
         intakeCmds = intCmds;
 
         shooting = false;
+        killNow = false;
     }
 
     public boolean isShooting() {return shooting;}
@@ -64,7 +67,8 @@ public class LaunchCommands {
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                              new WaitCommand(500)
                      ),
-                    new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                    new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
+                    new WaitUntilCommand(() -> killNow)
                 ),
                 new ParallelCommandGroup(
                         indexerCmds.new ClearContents(),
@@ -167,7 +171,8 @@ public class LaunchCommands {
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                                 new WaitCommand(200)
                         ),
-                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
+                        new WaitUntilCommand(() -> killNow)
                 ),
                 new ParallelCommandGroup(
                         indexerCmds.new ClearContents(),
@@ -204,7 +209,8 @@ public class LaunchCommands {
                                 intakeCmds.new HammerActive(),
                                 new WaitCommand(200)
                         ),
-                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1)
+                        new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
+                        new WaitUntilCommand(() -> killNow)
                 ),
                 new ParallelCommandGroup(
                         intakeCmds.new HammerPassive(),
@@ -217,6 +223,11 @@ public class LaunchCommands {
     public void setLight(double color)
     {
         light.setPosition(color);
+    }
+
+    public void killAll()
+    {
+        killNow = true;
     }
 
     public class SetLight extends CommandBase
