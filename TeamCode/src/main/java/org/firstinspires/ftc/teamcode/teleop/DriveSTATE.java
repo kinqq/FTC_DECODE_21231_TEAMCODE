@@ -15,6 +15,8 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Motif;
+import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
@@ -49,6 +51,7 @@ public class DriveSTATE extends CommandOpMode
     private double speedMultiplier;
 
     private AllianceColor alliance;
+    private Motif motif;
     private DetectedColor[] motifTranslated;
 
     private boolean humanPlayer;
@@ -93,7 +96,7 @@ public class DriveSTATE extends CommandOpMode
             alliance = AllianceColor.RED;
         }
 
-        if (GlobalState.lastMotif != LimelightCommands.Motif.UNKNOWN)
+        if (GlobalState.lastMotif != Motif.UNKNOWN)
         {
             LimelightCommands.Motif motif = GlobalState.lastMotif;
             motifTranslated = MotifUtil.motifToColors(motif);

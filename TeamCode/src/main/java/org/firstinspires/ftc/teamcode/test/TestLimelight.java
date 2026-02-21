@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.constant.Motif;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 @TeleOp(name = "Limelight Test", group = "Test")
@@ -13,7 +14,7 @@ import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 public class TestLimelight extends OpMode {
     LimelightCommands ll;
-    LimelightCommands.Motif motif;
+    Motif motif;
 
     @Override
     public void init() {

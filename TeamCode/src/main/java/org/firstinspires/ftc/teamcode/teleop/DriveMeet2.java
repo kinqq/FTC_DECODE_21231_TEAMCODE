@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Motif;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
@@ -130,29 +131,29 @@ public class DriveMeet2 extends CommandOpMode
             }
 
             //Motif
-            LimelightCommands.Motif motif;
+            Motif motif;
 
-            if (GlobalState.lastMotif != LimelightCommands.Motif.UNKNOWN) {
+            if (GlobalState.lastMotif != Motif.UNKNOWN) {
                 motif = GlobalState.lastMotif;
             }
             else {
-                motif = LimelightCommands.Motif.PPG;
+                motif = Motif.PPG;
             }
 
         //Translate Motif
-        if (motif == LimelightCommands.Motif.PPG)
+        if (motif == Motif.PPG)
         {
             motifTranslated[0] = DetectedColor.PURPLE;
             motifTranslated[1] = DetectedColor.PURPLE;
             motifTranslated[2] = DetectedColor.GREEN;
         }
-        if (motif == LimelightCommands.Motif.PGP)
+        if (motif == Motif.PGP)
         {
             motifTranslated[0] = DetectedColor.PURPLE;
             motifTranslated[1] = DetectedColor.GREEN;
             motifTranslated[2] = DetectedColor.PURPLE;
         }
-        if (motif == LimelightCommands.Motif.GPP)
+        if (motif == Motif.GPP)
         {
             motifTranslated[0] = DetectedColor.GREEN;
             motifTranslated[1] = DetectedColor.PURPLE;

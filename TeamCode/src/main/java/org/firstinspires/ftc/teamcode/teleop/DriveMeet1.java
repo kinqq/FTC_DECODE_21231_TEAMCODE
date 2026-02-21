@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.constant.Motif;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
@@ -55,7 +56,7 @@ public class DriveMeet1 extends CommandOpMode {
     private boolean isRobotCentric = false;
     private double launchAngleDeg = 25.0;
     private Slot currentSlot = Slot.FIRST;
-    private LimelightCommands.Motif motif = LimelightCommands.Motif.UNKNOWN;
+    private Motif motif = Motif.UNKNOWN;
 
     private NormalizedColorSensor cs;
     private float[] hHistory = new float[20];
@@ -89,11 +90,11 @@ public class DriveMeet1 extends CommandOpMode {
         else {
             allianceColor = AllianceColor.RED;
         }
-        if (GlobalState.lastMotif != LimelightCommands.Motif.UNKNOWN) {
+        if (GlobalState.lastMotif != Motif.UNKNOWN) {
             motif = GlobalState.lastMotif;
         }
         else {
-            motif = LimelightCommands.Motif.PPG;
+            motif = Motif.PPG;
         }
         follower.update();
 

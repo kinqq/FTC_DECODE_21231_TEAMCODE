@@ -1,18 +1,18 @@
 package org.firstinspires.ftc.teamcode.util;
 
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.constant.Motif;
 import org.firstinspires.ftc.teamcode.constant.Slot;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 
 public class MotifUtil {
-    public static DetectedColor[] motifToColors(LimelightCommands.Motif motif) {
-        if (motif == LimelightCommands.Motif.GPP) {
+    public static DetectedColor[] motifToColors(Motif motif) {
+        if (motif == Motif.GPP) {
             return new DetectedColor[]{DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE};
         }
-        if (motif == LimelightCommands.Motif.PGP) {
+        if (motif == Motif.PGP) {
             return new DetectedColor[]{DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE};
         }
-        if (motif == LimelightCommands.Motif.PPG){
+        if (motif == Motif.PPG){
             return new DetectedColor[]{DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN};
         }
         return null;
