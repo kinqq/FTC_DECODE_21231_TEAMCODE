@@ -30,6 +30,14 @@ public class PTOCommands
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        rightClutch.setDirection(Servo.Direction.REVERSE);
+    }
+
+    public void disengageClutch()
+    {
+        leftClutch.setPosition(0.06);
+        rightClutch.setPosition(0);
     }
 
     public class EngageClutch extends CommandBase
@@ -39,8 +47,8 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            leftClutch.setPosition(0.5);
-            rightClutch.setPosition(0.5);
+            leftClutch.setPosition(0.25);
+            rightClutch.setPosition(0.15);
             timer.reset();
         }
 
@@ -56,8 +64,8 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            backLeft.setPower(1);
-            backRight.setPower(1);
+            backLeft.setPower(-1);
+            backRight.setPower(-1);
         }
 
         @Override
@@ -74,8 +82,8 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            frontLeft.setPower(-1);
-            frontRight.setPower(-1);
+            frontLeft.setPower(1);
+            frontRight.setPower(1);
             timer.reset();
         }
 
@@ -102,13 +110,29 @@ public class PTOCommands
         }
     }
 
+    public class KillBack extends CommandBase
+    {
+        @Override
+        public void initialize()
+        {
+            backLeft.setPower(0);
+            backRight.setPower(0);
+        }
+
+        @Override
+        public boolean isFinished()
+        {
+            return true;
+        }
+    }
+
     public class IdleBack extends CommandBase
     {
         @Override
         public void initialize()
         {
-            backLeft.setPower(0.5);
-            backRight.setPower(0.5);
+            backLeft.setPower(-0.5);
+            backRight.setPower(-0.5);
         }
 
         @Override

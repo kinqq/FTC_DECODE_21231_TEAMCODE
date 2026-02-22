@@ -7,6 +7,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
@@ -104,7 +105,7 @@ public class DriveSTATE extends CommandOpMode
 
         speedMultiplier = 1;
 
-        autoPower = false;
+        autoPower = true;
         autoAim = true;
         velocity = 1340;
         angle = 0.59;
@@ -120,6 +121,9 @@ public class DriveSTATE extends CommandOpMode
         //Enable Panels Telemetry
         PanelsConfigurables.INSTANCE.refreshClass(DriveSTATE.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+
+        telemetry.speak("We have the go ahead: Prepare for Tele Operation");
+        telemetry.update();
     }
 
     private double lightPos = 0.3;
@@ -152,6 +156,9 @@ public class DriveSTATE extends CommandOpMode
             follower.startTeleopDrive();
             follower.update();
 
+            telemetry.speak("Green light: All systems go!");
+            telemetry.update();
+
             started = true;
         }
         super.run();
@@ -159,24 +166,52 @@ public class DriveSTATE extends CommandOpMode
         if (!basing) mainLoop();
         else if (!basingBegun)
         {
-            schedule(new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        new InstantCommand(() -> launchCmds.killAll()),
-                        new InstantCommand(() -> indexerCmds.killPower()),
-                        new InstantCommand(() -> turretCmds.killPower()),
-                        new InstantCommand(() -> intakeCmds.killPower()),
-                        launchCmds.new SetLight(0.72)
-                ),
-                ptoCmds.new EngageClutch(),
-                new ParallelCommandGroup(
-                        ptoCmds.new ThrottleFront(),
-                        ptoCmds.new ThrottleBack()
-                ),
-                ptoCmds.new KillFront(),
-                new WaitCommand(5000),
-                ptoCmds.new IdleBack()
+            schedule(new ParallelCommandGroup(
+                    new SequentialCommandGroup(
+                            new InstantCommand(() -> turretCmds.update(false,false, 0, 0, 180, 0, 0, 0, 0, AllianceColor.BLUE)),
+                            new WaitCommand(2000),
+                            new ParallelCommandGroup(
+                                    new InstantCommand(() -> launchCmds.killAll()),
+                                    new InstantCommand(() -> indexerCmds.killPower()),
+                                    new InstantCommand(() -> turretCmds.killPower()),
+                                    new InstantCommand(() -> intakeCmds.killPower())
+                            ),
+                            ptoCmds.new EngageClutch(),
+                            new ParallelCommandGroup(
+                                    ptoCmds.new ThrottleFront(),
+                                    ptoCmds.new ThrottleBack()
+                            ),
+                            ptoCmds.new KillFront()
+                    ),
+                    new CommandBase()
+                    {
+                            final ElapsedTime timer = new ElapsedTime();
+                            @Override
+                            public void initialize() {timer.reset();}
+                            @Override
+                            public void execute()
+                            {
+                                if (timer.milliseconds() < 100) launchCmds.setLight(0.72);
+                                if (timer.milliseconds() > 100) launchCmds.setLight(0.611);
+                                if (timer.milliseconds() > 200) timer.reset();
+
+                                if (gamepad1.aWasPressed())
+                                {
+                                    ptoCmds.new ThrottleBack().initialize();
+                                    ptoCmds.new KillFront().initialize();
+                                }
+                                if (gamepad1.bWasPressed()) ptoCmds.new KillBack().initialize();
+                                if (gamepad1.guideWasPressed()) terminateOpModeNow();
+                            }
+                    }
             ));
             basingBegun = true;
+            telemetry.addLine("RAISING | PRESS CENTER BUTTON TO KILL OP MODE");
+            telemetry.speak("Engaging Power Take Off: //////////// WEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+            telemetry.update();
+        } else
+        {
+            if (gamepad1.xWasPressed()) terminateOpModeNow();
         }
     }
 
@@ -186,7 +221,7 @@ public class DriveSTATE extends CommandOpMode
         follower.update();
         indexerCmds.update();
         turretCmds.update(autoPower, autoAim, velocity, angle, offset, idlePower, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), alliance);
-        //light.setPosition(lightColor);
+        //turretCmds.updateWithPhysics(autoPower, autoAim, velocity, angle, offset, idlePower, follower, alliance);
 
         follower.setTeleOpDrive(
                 alliance == AllianceColor.RED ? -gamepad1.left_stick_y * speedMultiplier : gamepad1.left_stick_y * speedMultiplier,
@@ -298,6 +333,8 @@ public class DriveSTATE extends CommandOpMode
         if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
         if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
 
+
+        if (gamepad1.guideWasPressed()) basing = true;
 //        if (gamepad2.leftBumperWasPressed()) velocity -= 10;
 //        if (gamepad2.rightBumperWasPressed()) velocity += 10;
 //        if (gamepad2.dpadUpWasPressed()) angle += 0.01;
