@@ -98,7 +98,7 @@ public class DriveSTATE extends CommandOpMode
 
         if (GlobalState.lastMotif != Motif.UNKNOWN)
         {
-            LimelightCommands.Motif motif = GlobalState.lastMotif;
+            Motif motif = GlobalState.lastMotif;
             motifTranslated = MotifUtil.motifToColors(motif);
         } else
         {
