@@ -32,6 +32,9 @@ import org.firstinspires.ftc.teamcode.constant.ShooterConstants;
 
 public class TurretCommands
 {
+    private static final double TURRET_GEAR_RATIO = 5.6111111111;
+    private static final double TURRET_TICKS_PER_REV = 384.5;
+
     private final DcMotorEx turretMotor;
     private final DcMotorEx launcherMotorPrimary;
     private final DcMotorEx launcherMotorSecondary;
@@ -356,6 +359,22 @@ public class TurretCommands
     public double getDistToGoal()
     {
         return distToGoal;
+    }
+
+    public double getTurretTargetDeg()
+    {
+        return turretTargetDeg;
+    }
+
+    public double getTurretCurrentDeg()
+    {
+        double motorDeg = turretMotor.getCurrentPosition() * (360.0 / TURRET_TICKS_PER_REV);
+        return motorDeg / TURRET_GEAR_RATIO;
+    }
+
+    public double getTurretErrorDeg()
+    {
+        return AngleUnit.normalizeDegrees(turretTargetDeg - getTurretCurrentDeg());
     }
 
     public boolean flywheelAtExpectedSpeed()

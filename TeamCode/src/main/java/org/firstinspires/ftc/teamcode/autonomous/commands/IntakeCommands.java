@@ -23,6 +23,10 @@ public class IntakeCommands {
         return new InstantCommand(() -> intake.setPower(power));
     }
 
+    public CommandBase intakeOn() {
+        return intakeOn(1.0);
+    }
+
     public CommandBase intakeOff() {
         return new InstantCommand(() -> intake.setPower(INTAKE_OFF_POWER));
     }

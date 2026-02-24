@@ -20,9 +20,9 @@ public class Constants {
     public static double MAGAZINE_SLOT_SECOND_POS = 0.273;
     public static double MAGAZINE_SLOT_THIRD_POS = 0.445;
 
-    public static double MAGAZINE_TARGET_FIRST_DEG = 176.94;
-    public static double MAGAZINE_TARGET_SECOND_DEG = 52.58;
-    public static double MAGAZINE_TARGET_THIRD_DEG = 299.78;
+    public static double MAGAZINE_TARGET_FIRST_DEG = 174.98;
+    public static double MAGAZINE_TARGET_SECOND_DEG = 54.11;
+    public static double MAGAZINE_TARGET_THIRD_DEG = 298.04;
     public static double MAGAZINE_SLOT_MATCH_EPS = 0.001;
     public static double MAGAZINE_BUSY_TOLERANCE_DEG = 10.0;
 
@@ -62,16 +62,16 @@ public class Constants {
 
     // Turret + launcher
     public static double TURRET_MOTOR_TO_TURRET_GEAR_RATIO = 5.6111111111;
-    public static double TURRET_TICKS_PER_REV = 537.7;
+    public static double TURRET_TICKS_PER_REV = 384.5;
     public static double TURRET_RUN_TO_POSITION_POWER = 1.0;
-    public static double TURRET_MIN_DEG = -90.0;
-    public static double TURRET_MAX_DEG = 135.0;
+    public static double TURRET_MIN_DEG = -180.0;
+    public static double TURRET_MAX_DEG = 180.0;
     public static double TURRET_COMMAND_DONE_TOLERANCE_DEG = 1.0;
 
-    public static double LAUNCH_ANGLE_MIN_DEG = 15.0;
-    public static double LAUNCH_ANGLE_MAX_DEG = 60.0;
-    public static double LAUNCH_ANGLE_SERVO_BASE_POS = 0.815;
-    public static double LAUNCH_ANGLE_SERVO_PER_DEG = 0.003;
+    public static double LAUNCH_ANGLE_MIN_DEG = 22.5;
+    public static double LAUNCH_ANGLE_MAX_DEG = 40;
+    public static double LAUNCH_ANGLE_SERVO_BASE_POS = 0.19;
+    public static double LAUNCH_ANGLE_SERVO_PER_DEG = 0.0377142857;
 
     public static int LAUNCH_ANGLE_PWM_MIN_US = 500;
     public static int LAUNCH_ANGLE_PWM_MAX_US = 2500;
@@ -84,5 +84,5 @@ public class Constants {
     public static final int LIMELIGHT_TAG_GPP = 21;
     public static final int LIMELIGHT_TAG_PGP = 22;
     public static final int LIMELIGHT_TAG_PPG = 23;
-    public static double LIMELIGHT_WAIT_MOTIF_TIMEOUT_SEC = 4.0;
+    public static double LIMELIGHT_WAIT_MOTIF_TIMEOUT_SEC = 0.0; //TODO: change this to 4.0
 }

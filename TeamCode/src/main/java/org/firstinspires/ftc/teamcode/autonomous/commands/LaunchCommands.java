@@ -46,11 +46,9 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             indexerCmds.lockSlot(Slot.FIRST),
             shoot(Slot.FIRST, power),
-            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
             shoot(Slot.SECOND, power),
-            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
             shoot(Slot.THIRD, power),
-            new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+            new WaitCommand(400),
             indexerCmds.hammerDown(),
             new InstantCommand(indexerCmds::unlock)
         );
@@ -79,11 +77,11 @@ public class LaunchCommands {
                 inner = new SequentialCommandGroup(
                     indexerCmds.lockSlot(t[0].pos),
                     shoot(t[0], power),
-                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+//                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
                     shoot(t[1], power),
-                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+//                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
                     shoot(t[2], power),
-                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+                    new WaitCommand(400),
                     indexerCmds.hammerDown(),
                     new InstantCommand(indexerCmds::unlock)
                 );

@@ -23,6 +23,7 @@ import com.seattlesolvers.solverslib.controller.wpilibcontroller.RamseteControll
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
+import org.firstinspires.ftc.teamcode.subsystem.commands.BreakBeamCommands;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class IndexerCommands {
     private final AnalogInput analogInput;
 
     public RevColorSensorV3 bob;
+    BreakBeamCommands beam;
 
     private double servoPos = 0;
     private double target = 0;
@@ -69,6 +71,7 @@ public class IndexerCommands {
         analogInput = hwMap.get(AnalogInput.class, "analog");
 
         bob = hwMap.get(RevColorSensorV3.class, "color");
+        beam = new BreakBeamCommands(hwMap);
 
         indexer.setPwmRange(new PwmControl.PwmRange(MAGAZINE_PWM_MIN_US, MAGAZINE_PWM_MAX_US));
         indexer1.setPwmRange(new PwmControl.PwmRange(MAGAZINE_PWM_MIN_US, MAGAZINE_PWM_MAX_US));
@@ -374,7 +377,7 @@ public class IndexerCommands {
 
         @Override
         public boolean isFinished() {
-            return bob.getDistance(DistanceUnit.MM) < MAGAZINE_WAIT_ANY_ARTIFACT_MM
+            return beam.isArtifactPresent()
                 || timer.seconds() > MAGAZINE_WAIT_ANY_ARTIFACT_TIMEOUT_SEC;
         }
     }

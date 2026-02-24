@@ -19,18 +19,24 @@ import dev.frozenmilk.sinister.loading.Pinned;
 
 @Configurable
 @Pinned
-public class Constants {
+public class PedroConstants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-        .mass(13)
-        .forwardZeroPowerAcceleration(-34.07191846121948)
-        .lateralZeroPowerAcceleration(-69.48189711179306)
-        .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.005, 0.0))
-        .headingPIDFCoefficients(new PIDFCoefficients(2, 0, 0.2, 0.0))
-        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0, 0.8, 0))
-        .centripetalScaling(0.002);
+        .mass(14.52)
+        .forwardZeroPowerAcceleration(-52.59001607765112)
+        .lateralZeroPowerAcceleration(-75.95069102915481)
+        .useSecondaryTranslationalPIDF(true)
+        .useSecondaryHeadingPIDF(true)
+        .useSecondaryDrivePIDF(true)
+        .translationalPIDFCoefficients(new PIDFCoefficients(0.11, 0, 0.011, 0.0))
+        .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.15,0,0.01,0))
+        .headingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.15, 0.0))
+        .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.15, 0.0))
+        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.001, 0.8, 0))
+        .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.0005, 0.6, 0))
+        .centripetalScaling(0.0003);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 2, .7);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
         .maxPower(1)
@@ -39,12 +45,12 @@ public class Constants {
         .leftRearMotorName("leftBack")
         .leftFrontMotorName("leftFront")
         .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-        .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-        .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+        .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+        .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
         .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-        .xVelocity(60.65308914785311)
-        .yVelocity(58.99270750030759)
-            .useBrakeModeInTeleOp(true);
+        .xVelocity(71.86471293291709)
+        .yVelocity(64.43372399037278)
+        .useBrakeModeInTeleOp(true);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
         .forwardPodY(4.181)

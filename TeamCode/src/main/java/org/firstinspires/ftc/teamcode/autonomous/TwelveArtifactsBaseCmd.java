@@ -13,7 +13,7 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.autonomous.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.autonomous.commands.LimelightCommands;
@@ -58,7 +58,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
 
         llCmds.start(0);
 
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
 
         follower.setStartingPose(
             alliance == AllianceColor.RED
@@ -251,6 +251,7 @@ public abstract class TwelveArtifactsBaseCmd extends CommandOpMode {
         super.run();
         follower.update();
         indexerCmds.update();
+        turretCmds.update();
         Draw.drawDebug(follower);
 
 //        telemetry.addData("X", follower.getPose().getX());

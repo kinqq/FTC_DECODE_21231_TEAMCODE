@@ -14,15 +14,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.constant.Motif;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import static org.firstinspires.ftc.teamcode.constant.Constants.*;
 
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
@@ -33,7 +31,6 @@ import org.firstinspires.ftc.teamcode.constant.Slot;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 @TeleOp(name = "DriveMeet1")
@@ -78,7 +75,7 @@ public class DriveMeet1 extends CommandOpMode {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
         if (GlobalState.teleOpStartPose != null) {
             follower.setStartingPose(GlobalState.teleOpStartPose);
         } else {

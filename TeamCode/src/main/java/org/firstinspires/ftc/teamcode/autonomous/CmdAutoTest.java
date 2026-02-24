@@ -12,13 +12,10 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
-//import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
+import org.firstinspires.ftc.teamcode.autonomous.commands.IntakeCommands;
+import org.firstinspires.ftc.teamcode.autonomous.commands.LaunchCommands;
+import org.firstinspires.ftc.teamcode.autonomous.commands.TurretCommands;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 
 @Autonomous(name = "TestAuto")
@@ -28,7 +25,7 @@ public class CmdAutoTest extends CommandOpMode {
 //    private MagazineCommands indexerCmds;
     private IntakeCommands intakeCmds;
     private LaunchCommands launchCmds;
-    LimelightCommands ll = new LimelightCommands(hardwareMap);
+//    LimelightCommands ll = new LimelightCommands(hardwareMap);
     protected Follower follower;
     private CommandBase activeIndexerCmd;
     private Slot currentSlot = Slot.FIRST;
@@ -36,11 +33,9 @@ public class CmdAutoTest extends CommandOpMode {
     @Override
     public void initialize() {
         turretCommands = new TurretCommands(hardwareMap);
-//        indexerCmds = new MagazineCommands(hardwareMap);
         intakeCmds = new IntakeCommands(hardwareMap);
-        ll = new LimelightCommands(hardwareMap);
-//        launchCmds = new LaunchCommands(ll, turretCommands);
-        follower = Constants.createFollower(hardwareMap);
+//        ll = new LimelightCommands(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
         PathChain path1 = follower
             .pathBuilder()
@@ -62,8 +57,7 @@ public class CmdAutoTest extends CommandOpMode {
 
         schedule(
             new SequentialCommandGroup(
-//                intakeCmds.intakeOn(1),
-//                launchCmds.shootEachSlot(0.82)
+                turretCommands.activateLauncher(1.0)
             )
         );
 
@@ -73,17 +67,12 @@ public class CmdAutoTest extends CommandOpMode {
 
     @Override
     public void run() {
-//        super.run();
+        super.run();
 //        indexerCmds.update();
-//        follower.update();
-//
-//        telemetry.addData("CurrentSlot", currentSlot);
-//        telemetry.addData("Servo Pos", indexerCmds.getServoPos());
-//        telemetry.addData("Current Target", indexerCmds.getTarget());
-//        telemetry.addData("Current Pos", indexerCmds.getAnalogAngle());
-//        telemetry.addData("isBusy", indexerCmds.isBusy());
-//        telemetry.addData("vel", indexerCmds.velocity);
-//        telemetry.addData("dist", indexerCmds.bob.getDistance(DistanceUnit.MM));
-//        telemetry.update();
+        turretCommands.update();
+        follower.update();
+
+        telemetry.addData("vel", turretCommands.launchMotor1.getVelocity());
+        telemetry.update();
     }
 }

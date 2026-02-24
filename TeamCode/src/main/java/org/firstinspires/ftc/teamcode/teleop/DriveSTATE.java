@@ -17,13 +17,11 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.Motif;
-import org.firstinspires.ftc.teamcode.constant.Slot;
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.PTOCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
@@ -59,6 +57,11 @@ public class DriveSTATE extends CommandOpMode
     private boolean basing;
     private boolean basingBegun;
 
+    private ElapsedTime loopTimer;
+    private double lastLoopSec;
+    private double loopDtMs;
+    private double loopHz;
+
     @Override
     public void initialize()
     {
@@ -73,10 +76,15 @@ public class DriveSTATE extends CommandOpMode
         );
         ptoCmds = new PTOCommands(hardwareMap);
 
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
 
         lightTimer = new ElapsedTime();
         lightTimer.reset();
+        loopTimer = new ElapsedTime();
+        loopTimer.reset();
+        lastLoopSec = 0.0;
+        loopDtMs = 0.0;
+        loopHz = 0.0;
 
         turretCmds.zero();
 
@@ -220,6 +228,19 @@ public class DriveSTATE extends CommandOpMode
 
     private void mainLoop()
     {
+        double nowSec = loopTimer.seconds();
+        double dtSec = nowSec - lastLoopSec;
+        lastLoopSec = nowSec;
+
+        if (dtSec > 1e-6) {
+            loopDtMs = dtSec * 1000.0;
+            double instantHz = 1.0 / dtSec;
+            if (loopHz == 0.0) {
+                loopHz = instantHz;
+            } else {
+                loopHz = 0.85 * loopHz + 0.15 * instantHz;
+            }
+        }
 
         follower.update();
         indexerCmds.update();
@@ -262,6 +283,11 @@ public class DriveSTATE extends CommandOpMode
         telemetry.addData("Indexer Busy", indexerCmds.indexerIsMoving());
         telemetry.addData("First Rev", indexerCmds.isOnFirstRev());
         telemetry.addData("Active Slot", indexerCmds.getIntakeSlot());
+        telemetry.addData("Loop dt (ms)", "%.2f", loopDtMs);
+        telemetry.addData("Loop Hz", "%.1f", loopHz);
+        telemetry.addData("Turret Target Deg", "%.2f", turretCmds.getTurretTargetDeg());
+        telemetry.addData("Turret Current Deg", "%.2f", turretCmds.getTurretCurrentDeg());
+        telemetry.addData("Turret Error Deg", "%.2f", turretCmds.getTurretErrorDeg());
         telemetry.update();
     }
 

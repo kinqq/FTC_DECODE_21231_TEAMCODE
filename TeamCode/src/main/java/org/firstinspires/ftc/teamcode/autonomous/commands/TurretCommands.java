@@ -1,43 +1,50 @@
 package org.firstinspires.ftc.teamcode.autonomous.commands;
 
 import static org.firstinspires.ftc.teamcode.constant.Constants.*;
-import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.d;
-import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.f;
-import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.i;
 import static org.firstinspires.ftc.teamcode.constant.LauncherPIDFConstants.p;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.CommandBase;
-
-import com.seattlesolvers.solverslib.controller.wpilibcontroller.SimpleMotorFeedforward;
+import com.seattlesolvers.solverslib.controller.PController;
 
 public class TurretCommands {
+    private static final double LAUNCHER_KS = 0.07630;
+    private static final double LAUNCHER_KV = 0.00037270;
+    private static final double NOMINAL_BATTERY_VOLTAGE = 12.74;
 
     public final DcMotorEx turretMotor;
     public final DcMotorEx launchMotor;
     public final DcMotorEx launchMotor1;
     private final ServoImplEx launchAngle;
-    SimpleMotorFeedforward ff = new SimpleMotorFeedforward(p, i, d);
+    private final VoltageSensor voltageSensor;
+    private final PController launcherPid;
 
     public double targetTurretDeg = 0.0;
     private double offset = 0.0;
     private double angle = 0.0;
+    private double launcherTargetVelocity = 0.0;
+    private boolean launcherPidEnabled = false;
 
     public TurretCommands(HardwareMap hwMap) {
         turretMotor = hwMap.get(DcMotorEx.class, "turret");
         launchMotor = hwMap.get(DcMotorEx.class, "launcher");
         launchMotor1 = hwMap.get(DcMotorEx.class, "launcher1");
         launchAngle = hwMap.get(ServoImplEx.class, "launchAngle");
+        voltageSensor = hwMap.get(VoltageSensor.class, "Control Hub");
+        launcherPid = new PController(p);
+        launcherPid.setP(p);
 
         launchAngle.setPwmRange(new PwmControl.PwmRange(LAUNCH_ANGLE_PWM_MIN_US, LAUNCH_ANGLE_PWM_MAX_US));
+        launchAngle.setDirection(Servo.Direction.REVERSE);
 
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -46,11 +53,8 @@ public class TurretCommands {
 
         launchMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         launchMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
-        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        PIDFCoefficients pidf = new PIDFCoefficients(p, i, d, f);
-        launchMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
-        launchMotor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
+        launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        launchMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         launchMotor.setPower(0);
         launchMotor1.setPower(0);
 
@@ -102,29 +106,26 @@ public class TurretCommands {
     public void setLaunchAngleDeg(double angleDeg) {
         angle = Range.clip(angleDeg, LAUNCH_ANGLE_MIN_DEG, LAUNCH_ANGLE_MAX_DEG);
 
-        double pos = LAUNCH_ANGLE_SERVO_BASE_POS - LAUNCH_ANGLE_SERVO_PER_DEG * angle;
+        double pos = LAUNCH_ANGLE_SERVO_BASE_POS + LAUNCH_ANGLE_SERVO_PER_DEG * (angle - LAUNCH_ANGLE_MIN_DEG);
         launchAngle.setPosition(Range.clip(pos, 0.0, 1.0));
     }
 
     public void activateLauncherRaw(double velocity) {
-        launchMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launchMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launchMotor.setPower(1.0);
-        launchMotor1.setPower(1);
-        launchMotor.setVelocity(velocity);
-        launchMotor1.setVelocity(velocity);
-
+        launcherTargetVelocity = velocity;
+        launcherPidEnabled = true;
+        launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        launchMotor1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        updateLauncherPid();
     }
     public void activateLauncherRaw() {
         activateLauncherRaw(LAUNCHER_DEFAULT_VELOCITY);
     }
 
     public void deactivateLauncherRaw() {
+        launcherPidEnabled = false;
+        launcherTargetVelocity = 0.0;
         launchMotor.setPower(0.0);
-        launchMotor1.setPower(0);
-        launchMotor.setVelocity(0);
-        launchMotor1.setVelocity(0);
-
+        launchMotor1.setPower(0.0);
     }
 
     public void toggleLauncherRaw() {
@@ -134,6 +135,31 @@ public class TurretCommands {
 
     public void stopTurretMotor() {
         turretMotor.setPower(0);
+    }
+
+    public void update() {
+        updateLauncherPid();
+    }
+
+    private void updateLauncherPid() {
+        if (!launcherPidEnabled) {
+            launchMotor.setPower(0.0);
+            launchMotor1.setPower(0.0);
+            return;
+        }
+
+        double measuredVelocity = -launchMotor1.getVelocity();
+        double pidResult = launcherPid.calculate(measuredVelocity, launcherTargetVelocity);
+        double ff = LAUNCHER_KS + LAUNCHER_KV * launcherTargetVelocity;
+        double batteryVoltage = voltageSensor.getVoltage();
+        if (!Double.isFinite(batteryVoltage) || batteryVoltage < 1.0) {
+            batteryVoltage = NOMINAL_BATTERY_VOLTAGE;
+        }
+        double cmd = (pidResult + ff) * (NOMINAL_BATTERY_VOLTAGE / batteryVoltage);
+        double power = Range.clip(cmd, -1.0, 1.0);
+
+        launchMotor.setPower(power);
+        launchMotor1.setPower(power);
     }
 
     // --- Commands ---
@@ -230,7 +256,6 @@ public class TurretCommands {
 
     public class ActivateLauncher extends CommandBase {
         private final ElapsedTime timer = new ElapsedTime();
-        private boolean started = false;
         private final double power;
 
         public ActivateLauncher(double power) {
@@ -239,24 +264,20 @@ public class TurretCommands {
 
         @Override
         public void initialize() {
-            started = false;
+            activateLauncherRaw(LAUNCHER_DEFAULT_VELOCITY * power);
+            timer.reset();
         }
 
         @Override
         public void execute() {
-            if (!started) {
-                activateLauncherRaw(LAUNCHER_DEFAULT_VELOCITY * power);
-                timer.reset();
-                started = true;
-            }
+            updateLauncherPid();
         }
 
         @Override
         public boolean isFinished() {
             double target = LAUNCHER_DEFAULT_VELOCITY * power;
-            boolean motor0AtSpeed = Math.abs(launchMotor.getVelocity() - target) < LAUNCHER_AT_SPEED_TOLERANCE;
-            boolean motor1AtSpeed = Math.abs(launchMotor1.getVelocity() - target) < LAUNCHER_AT_SPEED_TOLERANCE;
-            return (motor0AtSpeed && motor1AtSpeed) || timer.seconds() > LAUNCHER_SPINUP_TIMEOUT_SEC;
+            boolean motor1AtSpeed = Math.abs((-launchMotor1.getVelocity()) - target) < LAUNCHER_AT_SPEED_TOLERANCE;
+            return (motor1AtSpeed) || timer.seconds() > LAUNCHER_SPINUP_TIMEOUT_SEC;
         }
     }
     public CommandBase activateLauncher() { return new ActivateLauncher(1.0); }

@@ -9,8 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
-import org.firstinspires.ftc.teamcode.pedropathing.*;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 
 @Configurable
 @TeleOp
@@ -25,7 +24,7 @@ public class PedroDrive extends OpMode {
     private double slowModeMultiplier = 0.5;
     @Override
     public void init() {
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();

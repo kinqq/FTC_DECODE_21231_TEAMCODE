@@ -12,16 +12,14 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.pedroCommand.FollowPathCommand;
 
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 //import org.firstinspires.ftc.teamcode.subsystem.commands.MagazineCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
-import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
-import org.firstinspires.ftc.teamcode.constant.Slot;
 
 public abstract class NineArtifactsBaseCmd extends CommandOpMode {
     private static final double INTAKE_POWER = 1.0;
@@ -56,7 +54,7 @@ public abstract class NineArtifactsBaseCmd extends CommandOpMode {
 
         llCmds.start(0);
 
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
 
         follower.setStartingPose(
             getAllianceColor() == AllianceColor.RED

@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.util.Range;
 
 public class HoodAngleTest extends LinearOpMode
 {
-    private double servoPos = 0;
+    public static double servoPos = 0;
 
     @Override
     public void runOpMode() {
