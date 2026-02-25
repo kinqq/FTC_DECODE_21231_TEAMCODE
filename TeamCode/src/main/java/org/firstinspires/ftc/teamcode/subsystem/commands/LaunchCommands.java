@@ -64,9 +64,9 @@ public class LaunchCommands {
                      new SequentialCommandGroup(
                              new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
                              intakeCmds.new HammerActive(),
-                             new WaitCommand(150),
+                             new WaitCommand(100),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                             new WaitCommand(200),
+                             new WaitCommand(100),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                              new WaitCommand(500)
                      ),
@@ -168,11 +168,11 @@ public class LaunchCommands {
                         new SequentialCommandGroup(
                                 new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
                                 intakeCmds.new HammerActive(),
-                                new WaitCommand(200),
+                                new WaitCommand(350),
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                                new WaitCommand(200),
+                                new WaitCommand(350),
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                                new WaitCommand(200)
+                                new WaitCommand(500)
                         ),
                         new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
                         new WaitUntilCommand(() -> killNow)

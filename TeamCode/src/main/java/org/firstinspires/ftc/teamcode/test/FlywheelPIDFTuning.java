@@ -52,8 +52,8 @@ public class FlywheelPIDFTuning extends OpMode {
         double kF = f;
         pid.setP(p);
 
-        double kS = 0.07630;
-        double kV = 0.00037270;
+        double kS = 0.07439;
+        double kV = 0.00035733;
 
         double pidResult = pid.calculate(-launcher1.getVelocity(), vel);
         double ff = kS + kV * vel;

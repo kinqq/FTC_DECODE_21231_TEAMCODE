@@ -3,35 +3,65 @@ package org.firstinspires.ftc.teamcode.test;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.command.CommandOpMode;
 
 import org.firstinspires.ftc.teamcode.subsystem.commands.PTOCommands;
 
 @TeleOp (name = "Full PTO Test", group = "Test")
-public class PTOTest extends OpMode
+public class PTOTest extends CommandOpMode
 {
     PTOCommands ptoCommands;
 
     @Override
-    public void init()
+    public void initialize()
     {
         ptoCommands = new PTOCommands(hardwareMap);
-        ptoCommands.disengageClutch();
+        ptoCommands.new DisengageClutch().initialize();
+        ptoCommands.new Zero().initialize();
     }
 
+    boolean clutchEngaged = false;
+    boolean lifting = false;
+
     @Override
-    public void loop()
+    public void run()
     {
+        super.run();
+
         if (gamepad1.yWasPressed()) ptoCommands.new EngageClutch().initialize();
-        if (gamepad1.xWasPressed()) ptoCommands.disengageClutch();
+        if (gamepad1.xWasPressed()) ptoCommands.new DisengageClutch().initialize();
         if (gamepad1.guideWasPressed())
         {
-            ptoCommands.new ThrottleBack().initialize();
+            //ptoCommands.new ThrottleBack().initialize();
             ptoCommands.new ThrottleFront().initialize();
+            //schedule(ptoCommands.new PositionLift());
+            schedule(ptoCommands.new VelLift());
         }
         if (gamepad1.bWasPressed()) ptoCommands.new ThrottleBack().initialize();
         if (gamepad1.aWasPressed()) ptoCommands.new KillBack().initialize();
 
         if (gamepad1.backWasPressed()) ptoCommands.new KillFront().initialize();
         if (gamepad1.startWasPressed()) terminateOpModeNow();
+
+        if (gamepad2.startWasPressed())
+        {
+            ptoCommands.new Zero().initialize();
+        }
+
+        telemetry.addData("Engaged", clutchEngaged);
+        telemetry.addData("Lifting", lifting);
+        telemetry.addLine();
+
+        telemetry.addData("Pos Error", Math.abs(ptoCommands.getRightPos() - ptoCommands.getLeftPos()));
+        telemetry.addData("Left Pos", ptoCommands.getLeftPos());
+        telemetry.addData("Right Pos", ptoCommands.getRightPos());
+        telemetry.addLine();
+
+        telemetry.addData("Vel Error", Math.abs(ptoCommands.getRightVel() - ptoCommands.getLeftVel()));
+        telemetry.addData("Left Vel", ptoCommands.getLeftVel());
+        telemetry.addData("Right Vel", ptoCommands.getRightVel());
+        telemetry.addLine();
+
+        telemetry.update();
     }
 }

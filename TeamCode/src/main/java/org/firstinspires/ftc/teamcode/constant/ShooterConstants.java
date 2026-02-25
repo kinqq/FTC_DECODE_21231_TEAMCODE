@@ -18,6 +18,6 @@ public class ShooterConstants
     public static double SCORE_ANGLE = Math.toRadians(-45); //TUNE
     public static double PASS_THROUGH_POINT_RADIUS = 10; //TUNE
 
-    public static double HOOD_MAX_ANGLE = 46; //TUNE
-    public static double HOOD_MIN_ANGLE = 22;
+    public static double HOOD_MAX_ANGLE = Math.toRadians(46); //TUNE
+    public static double HOOD_MIN_ANGLE = Math.toRadians(22);
 }
