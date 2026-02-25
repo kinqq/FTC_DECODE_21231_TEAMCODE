@@ -39,7 +39,7 @@ public class HoodAngleTest extends LinearOpMode
             if (gamepad1.yWasPressed()) servoPos += 0.01;
             if (gamepad1.xWasPressed()) servoPos -= 0.01;
 
-            servoPos = Range.clip(servoPos, 0.19, 0.85);
+            servoPos = Range.clip(servoPos, 0.19, 0.98);
             servo.setPosition(servoPos);
 
             telemetry.addData("POS", servoPos);

@@ -20,13 +20,12 @@ public class ClutchTest extends OpMode
     public void init()
     {
         servo = hardwareMap.get(Servo.class, "rightClutch");
-        servo.setDirection(Servo.Direction.REVERSE);
 
         servo1 = hardwareMap.get(Servo.class, "leftClutch");
         servo1.setDirection(Servo.Direction.FORWARD);
 
         ptoCommands = new PTOCommands(hardwareMap);
-        ptoCommands.disengageClutch();
+        //ptoCommands.disengageClutch();
     }
 
     double pos = 0.0;
@@ -41,7 +40,7 @@ public class ClutchTest extends OpMode
         if (gamepad1.xWasPressed()) pos1 -= 0.01;
         if (gamepad1.yWasPressed()) pos1 += 0.01;
 
-        if (gamepad1.startWasPressed()) ptoCommands.disengageClutch();
+        //if (gamepad1.startWasPressed()) ptoCommands.disengageClutch();
         if (gamepad1.backWasPressed()) ptoCommands.new EngageClutch().initialize();
 
         if (gamepad1.guideWasPressed())

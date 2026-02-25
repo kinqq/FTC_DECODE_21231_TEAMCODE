@@ -37,7 +37,7 @@ public class IntakeCommands
 
     public void hammerActive()
     {
-        hammerServo.setPosition(0.45);
+        hammerServo.setPosition(0.43);
     }
 
     public void intakeOn()
@@ -97,7 +97,7 @@ public class IntakeCommands
         @Override
         public void initialize()
         {
-            hammerServo.setPosition(0.45);
+            hammerServo.setPosition(0.43);
             timer.reset();
         }
 

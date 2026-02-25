@@ -12,7 +12,7 @@ public class BreakBeamCommands {
     }
 
     public boolean isArtifactPresent() {
-        return !(beam1.getState() && beam2.getState());
+        return !(beam1.getState() || beam2.getState());
     }
 
     public boolean beam1State() {

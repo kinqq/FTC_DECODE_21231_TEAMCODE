@@ -17,13 +17,11 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.Motif;
-import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.LaunchCommands;
-import org.firstinspires.ftc.teamcode.subsystem.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.PTOCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.util.GlobalState;
@@ -52,7 +50,6 @@ public class DriveSTATE extends CommandOpMode
     private double speedMultiplier;
 
     private AllianceColor alliance;
-    private Motif motif;
     private DetectedColor[] motifTranslated;
 
     private boolean humanPlayer;
@@ -124,9 +121,6 @@ public class DriveSTATE extends CommandOpMode
         //Enable Panels Telemetry
         PanelsConfigurables.INSTANCE.refreshClass(DriveSTATE.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
-
-        telemetry.speak("We have the go ahead: Prepare for Tele Operation");
-        telemetry.update();
     }
 
     private double lightPos = 0.3;
@@ -159,8 +153,7 @@ public class DriveSTATE extends CommandOpMode
             follower.startTeleopDrive();
             follower.update();
 
-            telemetry.speak("Green light: All systems go!");
-            telemetry.update();
+            ptoCmds.new DisengageClutch().initialize();
 
             started = true;
         }
@@ -195,7 +188,7 @@ public class DriveSTATE extends CommandOpMode
                             public void execute()
                             {
                                 if (timer.milliseconds() < 100) launchCmds.setLight(0.72);
-                                if (timer.milliseconds() > 100) launchCmds.setLight(0.611);
+                                if (timer.milliseconds() > 100) launchCmds.setLight(0.9);
                                 if (timer.milliseconds() > 200) timer.reset();
 
                                 if (gamepad1.aWasPressed())
@@ -203,24 +196,19 @@ public class DriveSTATE extends CommandOpMode
                                     ptoCmds.new ThrottleBack().initialize();
                                     ptoCmds.new KillFront().initialize();
                                 }
-                                if (gamepad1.bWasPressed()) ptoCmds.new KillBack().initialize();
                                 if (gamepad1.guideWasPressed()) terminateOpModeNow();
+
+                                telemetry.addLine("RAISING | PRESS CENTER BUTTON TO KILL OP MODE");
+                                telemetry.update();
                             }
                     }
             ));
             basingBegun = true;
-            telemetry.addLine("RAISING | PRESS CENTER BUTTON TO KILL OP MODE");
-            telemetry.speak("Engaging Power Take Off: //////////// WEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-            telemetry.update();
-        } else
-        {
-            if (gamepad1.xWasPressed()) terminateOpModeNow();
         }
     }
 
     private void mainLoop()
     {
-
         follower.update();
         indexerCmds.update();
         turretCmds.update(autoPower, autoAim, velocity, angle, offset, idlePower, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), alliance);
@@ -273,11 +261,12 @@ public class DriveSTATE extends CommandOpMode
         {
             autoPower = false;
             humanPlayer = true;
-            idlePower = -0.2;
+            idlePower = -0.4;
             angle = 0.19;
             intakeCmds.intakeReverse();
             intakeCmds.intakeOn();
             intakeCmds.hammerActive();
+            turretCmds.deactivateLauncher();
         }
         if (gamepad1.aWasReleased())
         {
@@ -288,7 +277,6 @@ public class DriveSTATE extends CommandOpMode
             intakeCmds.intakeOn();
             intakeCmds.hammerPassive();
         }
-
         if (gamepad1.bWasPressed()) indexerCmds.prevSlot();
         if (gamepad1.xWasPressed()) indexerCmds.nextSlot();
         if (gamepad1.leftBumperWasPressed())
@@ -312,7 +300,7 @@ public class DriveSTATE extends CommandOpMode
             else if (alliance == AllianceColor.BLUE) alliance = AllianceColor.RED;
         }
         if (gamepad1.rightStickButtonWasPressed()) robotCentric = !robotCentric;
-
+        if (gamepad1.guideWasPressed()) basing = true;
 
         if (gamepad2.backWasPressed())
         {
@@ -334,10 +322,9 @@ public class DriveSTATE extends CommandOpMode
         if (gamepad2.dpadDownWasPressed()) angle -= 0.01;
         if (gamepad2.leftBumperWasPressed()) schedule(launchCmds.shootColor(gamepad2, indexerCmds.getIntakeSlotColor()));
         if (gamepad2.rightBumperWasPressed()) turretCmds.spinUpToVelocity();
+        if (gamepad2.right_trigger > 0.1) turretCmds.deactivateLauncher();
         if (gamepad2.leftStickButtonWasPressed()) autoAim = !autoAim;
 
-
-        if (gamepad1.guideWasPressed()) basing = true;
 //        if (gamepad2.leftBumperWasPressed()) velocity -= 10;
 //        if (gamepad2.rightBumperWasPressed()) velocity += 10;
 //        if (gamepad2.dpadUpWasPressed()) angle += 0.01;
