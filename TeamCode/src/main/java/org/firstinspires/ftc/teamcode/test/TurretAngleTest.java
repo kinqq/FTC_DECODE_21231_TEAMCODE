@@ -14,26 +14,38 @@ public class TurretAngleTest extends LinearOpMode {
         DcMotorEx motor = hardwareMap.get(DcMotorEx.class, "turret");
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        GoBildaPinpointDriver odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-
         double deg = 0;
+        boolean run = false;
 
         waitForStart();
 
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         while (opModeIsActive()) {
-            if (gamepad1.bWasPressed()) deg += 5;
-            if (gamepad1.aWasPressed()) deg -= 5;
+            if (gamepad1.rightBumperWasPressed()) deg += 5;
+            if (gamepad1.leftBumperWasPressed()) deg -= 5;
 
-            deg = Range.clip(deg, -185, 185);
+            deg = Range.clip(deg, -175, 175);
             int targetReal = (int) Math.round((deg * 5.6111111111) * 384.5 / 360.0);
 
-            motor.setTargetPosition(targetReal);
-            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            motor.setPower(1);
+            if (gamepad1.aWasPressed()) run = true;
+            if (gamepad1.bWasPressed()) run = false;
+
+            if (gamepad1.startWasPressed())
+            {
+                run = false;
+                motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+
+            if (run)
+            {
+                motor.setTargetPosition(targetReal);
+                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                motor.setPower(1);
+            }
+            else motor.setPower(0);
 
             telemetry.addData("Position", deg);
+            telemetry.addData("Ticks", motor.getCurrentPosition());
             telemetry.update();
         }
 

@@ -32,7 +32,7 @@ public class IntakeCommands
 
     public void hammerPassive()
     {
-        hammerServo.setPosition(0.63);
+        hammerServo.setPosition(0.61);
     }
 
     public void hammerActive()
@@ -79,7 +79,7 @@ public class IntakeCommands
         @Override
         public void initialize()
         {
-            hammerServo.setPosition(0.63);
+            hammerServo.setPosition(0.64);
             timer.reset();
         }
 
@@ -97,7 +97,7 @@ public class IntakeCommands
         @Override
         public void initialize()
         {
-            hammerServo.setPosition(0.43);
+            hammerServo.setPosition(0.44);
             timer.reset();
         }
 
