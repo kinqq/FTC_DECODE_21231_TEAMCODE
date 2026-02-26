@@ -36,7 +36,7 @@ public class PedroConstants {
         .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.0005, 0.6, 0))
         .centripetalScaling(0.0003);
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 2, .7);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
         .maxPower(1)

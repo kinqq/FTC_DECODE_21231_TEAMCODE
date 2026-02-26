@@ -12,8 +12,10 @@ import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
+import org.firstinspires.ftc.teamcode.autonomous.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.autonomous.commands.IntakeCommands;
 import org.firstinspires.ftc.teamcode.autonomous.commands.LaunchCommands;
+import org.firstinspires.ftc.teamcode.autonomous.commands.LimelightCommands;
 import org.firstinspires.ftc.teamcode.autonomous.commands.TurretCommands;
 import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.constant.Slot;
@@ -22,10 +24,10 @@ import org.firstinspires.ftc.teamcode.constant.Slot;
 public class CmdAutoTest extends CommandOpMode {
 
     private TurretCommands turretCommands;
-//    private MagazineCommands indexerCmds;
+    private IndexerCommands indexerCmds;
     private IntakeCommands intakeCmds;
     private LaunchCommands launchCmds;
-//    LimelightCommands ll = new LimelightCommands(hardwareMap);
+    private LimelightCommands ll;
     protected Follower follower;
     private CommandBase activeIndexerCmd;
     private Slot currentSlot = Slot.FIRST;
@@ -33,8 +35,10 @@ public class CmdAutoTest extends CommandOpMode {
     @Override
     public void initialize() {
         turretCommands = new TurretCommands(hardwareMap);
+        indexerCmds = new IndexerCommands(hardwareMap);
         intakeCmds = new IntakeCommands(hardwareMap);
-//        ll = new LimelightCommands(hardwareMap);
+        ll = new LimelightCommands(hardwareMap);
+        launchCmds = new LaunchCommands(ll, indexerCmds, turretCommands);
         follower = PedroConstants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0, 0, 0));
         PathChain path1 = follower
@@ -57,7 +61,10 @@ public class CmdAutoTest extends CommandOpMode {
 
         schedule(
             new SequentialCommandGroup(
-                turretCommands.activateLauncher(1.0)
+                intakeCmds.intakeOn(),
+                turretCommands.activateLauncher(1.0),
+                turretCommands.setLaunchAngle(40),
+                launchCmds.shootEachSlot(1.0)
             )
         );
 
@@ -68,7 +75,7 @@ public class CmdAutoTest extends CommandOpMode {
     @Override
     public void run() {
         super.run();
-//        indexerCmds.update();
+        indexerCmds.update();
         turretCommands.update();
         follower.update();
 

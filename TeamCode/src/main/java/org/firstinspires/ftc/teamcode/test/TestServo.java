@@ -17,7 +17,7 @@ public class TestServo extends OpMode {
 
     @Override
     public void init() {
-        servo = hardwareMap.get(ServoImplEx.class, "turntable");
+        servo = hardwareMap.get(ServoImplEx.class, "hammer");
         analogInput = hardwareMap.get(AnalogInput.class, "analog");
         servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }

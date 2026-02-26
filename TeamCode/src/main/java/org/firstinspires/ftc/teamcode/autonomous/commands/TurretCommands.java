@@ -269,11 +269,6 @@ public class TurretCommands {
         }
 
         @Override
-        public void execute() {
-            updateLauncherPid();
-        }
-
-        @Override
         public boolean isFinished() {
             double target = LAUNCHER_DEFAULT_VELOCITY * power;
             boolean motor1AtSpeed = Math.abs((-launchMotor1.getVelocity()) - target) < LAUNCHER_AT_SPEED_TOLERANCE;

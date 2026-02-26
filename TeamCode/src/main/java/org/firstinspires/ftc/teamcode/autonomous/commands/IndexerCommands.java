@@ -37,7 +37,7 @@ public class IndexerCommands {
     private final AnalogInput analogInput;
 
     public RevColorSensorV3 bob;
-    BreakBeamCommands beam;
+    public BreakBeamCommands beam;
 
     private double servoPos = 0;
     private double target = 0;
@@ -217,20 +217,20 @@ public class IndexerCommands {
 
         @Override
         public void execute() {
-            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
-                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
-                && isBusy()
-                && !stage) {
-                if (nextToReverse) new NextSlot().initialize();
-                else new PrevSlot().initialize();
-                stage = true;
-                periodicTimer.reset();
-            }
-            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
-                activeSlot = slot;
-                stage = false;
-                periodicTimer.reset();
-            }
+//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
+//                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
+//                && isBusy()
+//                && !stage) {
+//                if (nextToReverse) new NextSlot().initialize();
+//                else new PrevSlot().initialize();
+//                stage = true;
+//                periodicTimer.reset();
+//            }
+//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
+//                activeSlot = slot;
+//                stage = false;
+//                periodicTimer.reset();
+//            }
         }
 
         @Override

@@ -46,13 +46,30 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             indexerCmds.lockSlot(Slot.FIRST),
             shoot(Slot.FIRST, power),
+            new WaitCommand(50),
             shoot(Slot.SECOND, power),
+            new WaitCommand(50),
             shoot(Slot.THIRD, power),
             new WaitCommand(400),
             indexerCmds.hammerDown(),
             new InstantCommand(indexerCmds::unlock)
         );
     }
+//
+//    public CommandBase shootEachSlot(double p1, double p2, double p3, int t1, int t2, int t3) {
+//        return new SequentialCommandGroup(
+//            indexerCmds.lockSlot(Slot.FIRST),
+//            new WaitCommand(t1),
+//            shoot(Slot.FIRST, p1),
+//            new WaitCommand(t2),
+//            shoot(Slot.SECOND, p2),
+//            new WaitCommand(t3),
+//            shoot(Slot.THIRD, p3),
+//            new WaitCommand(500),
+//            indexerCmds.hammerDown(),
+//            new InstantCommand(indexerCmds::unlock)
+//        );
+//    }
 
     public CommandBase shootMotifFromDetection(double power) {
         return new CommandBase() {
@@ -68,24 +85,25 @@ public class LaunchCommands {
                     inner.initialize();
                     return;
                 }
+
                 IndexerCommands.Target[] t = indexerCmds.pickTargetsForMotif(motifTranslated);
                 if (t == null) {
                     inner = new InstantCommand(() -> {});
                     inner.initialize();
                     return;
                 }
+
                 inner = new SequentialCommandGroup(
                     indexerCmds.lockSlot(t[0].pos),
                     shoot(t[0], power),
-//                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+                    new WaitCommand(50),
                     shoot(t[1], power),
-//                    new WaitCommand(LAUNCH_INTER_SHOT_WAIT_MS),
+                    new WaitCommand(50),
                     shoot(t[2], power),
                     new WaitCommand(400),
                     indexerCmds.hammerDown(),
                     new InstantCommand(indexerCmds::unlock)
                 );
-
                 inner.initialize();
             }
 

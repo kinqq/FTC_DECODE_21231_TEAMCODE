@@ -87,7 +87,7 @@ public abstract class Base15 extends CommandOpMode {
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.4),
+                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.SECOND),
                         indexerCmds.waitForAnyArtifact(),
@@ -149,40 +149,42 @@ public abstract class Base15 extends CommandOpMode {
                 launchCmds.shootMotifFromDetection(0.65)
             );
 
-        SequentialCommandGroup intakeSecondRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path4),
-                    turretCmds.activateLauncher(0.5),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    intakeCmds.intakeOn(),
-                    new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.THIRD),
-                        indexerCmds.waitForAnyArtifact()
+        {
+            SequentialCommandGroup intakeSecondRamp =
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        followPath(paths.Path4),
+                        turretCmds.activateLauncher(0.5),
+                        indexerCmds.setSlot(Slot.FIRST),
+                        intakeCmds.intakeOn(),
+                        new SequentialCommandGroup(
+                            new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                            indexerCmds.waitForAnyArtifact(),
+                            indexerCmds.setSlot(Slot.SECOND),
+                            indexerCmds.waitForAnyArtifact(),
+                            indexerCmds.setSlot(Slot.THIRD),
+                            indexerCmds.waitForAnyArtifact()
+                        )
                     )
-                )
-            );
+                );
 
-        SequentialCommandGroup shootSecondRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path5),
-                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(0.65),
-                    turretCmds.setLaunchAngle(35),
-                    turretCmds.setTarget(50),
-                    new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-1),
-                        new WaitCommand(800),
-                        intakeCmds.intakeOn()
-                    )
-                ),
-                launchCmds.shootMotifFromDetection(0.65)
-            );
+            SequentialCommandGroup shootSecondRamp =
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        followPath(paths.Path5),
+                        indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                        turretCmds.activateLauncher(0.65),
+                        turretCmds.setLaunchAngle(35),
+                        turretCmds.setTarget(50),
+                        new SequentialCommandGroup(
+                            intakeCmds.intakeOn(-1),
+                            new WaitCommand(800),
+                            intakeCmds.intakeOn()
+                        )
+                    ),
+                    launchCmds.shootMotifFromDetection(0.65)
+                );
+        }
 
         SequentialCommandGroup intakeFirstRow =
             new SequentialCommandGroup(
@@ -243,7 +245,7 @@ public abstract class Base15 extends CommandOpMode {
                     indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
                     turretCmds.activateLauncher(0.65),
                     turretCmds.setLaunchAngle(35),
-                    turretCmds.setTarget(95),
+                    turretCmds.setTarget(105),
                     new SequentialCommandGroup(
                         intakeCmds.intakeOn(-1),
                         new WaitCommand(800),
@@ -261,8 +263,8 @@ public abstract class Base15 extends CommandOpMode {
                 shootSecondRow,
                 intakeFirstRamp,
                 shootFirstRamp,
-                intakeSecondRamp,
-                shootSecondRamp,
+//                intakeSecondRamp,
+//                shootSecondRamp,
                 intakeFirstRow,
                 shootFirstRow,
                 intakeThirdRow,
@@ -280,9 +282,11 @@ public abstract class Base15 extends CommandOpMode {
         Draw.drawDebug(follower);
 
         telemetry.addData("Pose", follower.getPose());
+        telemetry.addData("Launcher velocity", turretCmds.launchMotor1.getVelocity());
         telemetry.addData("Path Completion", follower.getPathCompletion());
         telemetry.addData("Motif Detected", llCmds.getLastDetectedMotif());
         telemetry.addData("Pick log", indexerCmds.getLastPickLog());
+        telemetry.addData("Beam", indexerCmds.beam.isArtifactPresent());
         telemetry.update();
     }
 }

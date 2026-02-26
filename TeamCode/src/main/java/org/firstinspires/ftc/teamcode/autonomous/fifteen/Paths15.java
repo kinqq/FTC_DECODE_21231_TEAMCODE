@@ -19,6 +19,7 @@ public class Paths15 {
                     T.pose(92.480, 84.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(38.177), T.headingDeg(0))
+            .setBrakingStrength(1)
             .build();
 
         Path2 = follower.pathBuilder().addPath(
@@ -43,14 +44,14 @@ public class Paths15 {
                 new BezierCurve(
                     T.pose(92.480, 84.000),
                     T.pose(102.000, 64.000),
-                    T.pose(130.000, 60.000)
+                    T.pose(131.000, 62.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(27.12))
             .build();
 
         Path5 = follower.pathBuilder().addPath(
                 new BezierCurve(
-                    T.pose(130.000, 60.000),
+                    T.pose(131.000, 62.000),
                     T.pose(102.000, 64.000),
                     T.pose(92.480, 84.000)
                 )
@@ -90,6 +91,7 @@ public class Paths15 {
                 )
             ).setTangentHeadingInterpolation()
             .setReversed()
+            .setBrakingStrength(1)
             .build();
     }
 }

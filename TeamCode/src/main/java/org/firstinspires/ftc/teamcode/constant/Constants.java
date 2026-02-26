@@ -33,7 +33,7 @@ public class Constants {
     public static double MAGAZINE_SET_SLOT_STALL_CHECK_SEC = 0.5;
     public static double MAGAZINE_SET_SLOT_STAGE_HOLD_SEC = 0.2;
     public static double MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD = 100.0;
-    public static double MAGAZINE_SET_SLOT_TIMEOUT_SEC = 5.0;
+    public static double MAGAZINE_SET_SLOT_TIMEOUT_SEC = 2.0;
     public static double MAGAZINE_LOCK_TIMEOUT_SEC = 2.0;
 
     public static double MAGAZINE_HAMMER_UP_POS = 0.45;
