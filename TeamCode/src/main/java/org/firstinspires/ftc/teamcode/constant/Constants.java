@@ -16,13 +16,13 @@ public class Constants {
 
     // Magazine (turntable + hammer + color)
     public static double MAGAZINE_SERVO_OFFSET = 0.518;
-    public static double MAGAZINE_SLOT_FIRST_POS = 0.1;
-    public static double MAGAZINE_SLOT_SECOND_POS = 0.273;
-    public static double MAGAZINE_SLOT_THIRD_POS = 0.445;
+    public static double MAGAZINE_SLOT_FIRST_POS = 0.085;
+    public static double MAGAZINE_SLOT_SECOND_POS = 0.258;
+    public static double MAGAZINE_SLOT_THIRD_POS = 0.435;
 
-    public static double MAGAZINE_TARGET_FIRST_DEG = 174.98;
-    public static double MAGAZINE_TARGET_SECOND_DEG = 54.11;
-    public static double MAGAZINE_TARGET_THIRD_DEG = 298.04;
+    public static double MAGAZINE_TARGET_FIRST_DEG = 186;
+    public static double MAGAZINE_TARGET_SECOND_DEG = 62.29;
+    public static double MAGAZINE_TARGET_THIRD_DEG = 306.22;
     public static double MAGAZINE_SLOT_MATCH_EPS = 0.001;
     public static double MAGAZINE_BUSY_TOLERANCE_DEG = 10.0;
 
@@ -36,7 +36,7 @@ public class Constants {
     public static double MAGAZINE_SET_SLOT_TIMEOUT_SEC = 2.0;
     public static double MAGAZINE_LOCK_TIMEOUT_SEC = 2.0;
 
-    public static double MAGAZINE_HAMMER_UP_POS = 0.45;
+    public static double MAGAZINE_HAMMER_UP_POS = 0.43;
     public static double MAGAZINE_HAMMER_DOWN_POS = 0.63;
     public static double MAGAZINE_HAMMER_MOVE_SEC = 0.1;
 
@@ -76,7 +76,7 @@ public class Constants {
     public static int LAUNCH_ANGLE_PWM_MIN_US = 500;
     public static int LAUNCH_ANGLE_PWM_MAX_US = 2500;
     public static double LAUNCHER_DEFAULT_VELOCITY = 1800.0;
-    public static double LAUNCHER_AT_SPEED_TOLERANCE = 30.0;
+    public static double LAUNCHER_AT_SPEED_TOLERANCE = 45.0;
     public static double LAUNCHER_SPINUP_TIMEOUT_SEC = 3.0;
     public static int LAUNCH_INTER_SHOT_WAIT_MS = 200;
 

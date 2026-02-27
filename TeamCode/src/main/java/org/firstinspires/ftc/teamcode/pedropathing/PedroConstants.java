@@ -32,8 +32,8 @@ public class PedroConstants {
         .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.15,0,0.01,0))
         .headingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.15, 0.0))
         .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.15, 0.0))
-        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.001, 0.8, 0))
-        .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.0005, 0.6, 0))
+        .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.0015, 0.6, 0))
+        .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.0005, 0.6, 0))
         .centripetalScaling(0.0003);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);

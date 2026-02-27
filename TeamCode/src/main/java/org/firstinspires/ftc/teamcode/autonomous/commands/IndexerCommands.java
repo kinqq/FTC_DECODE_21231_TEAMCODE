@@ -91,6 +91,7 @@ public class IndexerCommands {
 
     public void start() {
         indexer.setPosition(MAGAZINE_SLOT_FIRST_POS);
+        indexer1.setPosition(MAGAZINE_SLOT_FIRST_POS + 0.03);
         activeSlot = Slot.FIRST;
     }
 
@@ -217,20 +218,20 @@ public class IndexerCommands {
 
         @Override
         public void execute() {
-//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
-//                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
-//                && isBusy()
-//                && !stage) {
-//                if (nextToReverse) new NextSlot().initialize();
-//                else new PrevSlot().initialize();
-//                stage = true;
-//                periodicTimer.reset();
-//            }
-//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
-//                activeSlot = slot;
-//                stage = false;
-//                periodicTimer.reset();
-//            }
+            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
+                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
+                && isBusy()
+                && !stage) {
+                if (nextToReverse) new NextSlot().initialize();
+                else new PrevSlot().initialize();
+                stage = true;
+                periodicTimer.reset();
+            }
+            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
+                activeSlot = slot;
+                stage = false;
+                periodicTimer.reset();
+            }
         }
 
         @Override
@@ -364,8 +365,17 @@ public class IndexerCommands {
 
     public class WaitForAnyArtifact extends CommandBase {
         ElapsedTime timer = new ElapsedTime();
+        double timeoutSec;
 
         boolean start = false;
+
+        public WaitForAnyArtifact(double timeoutSec) {
+            this.timeoutSec = timeoutSec;
+        }
+
+        public WaitForAnyArtifact() {
+            this.timeoutSec = MAGAZINE_WAIT_ANY_ARTIFACT_TIMEOUT_SEC;
+        }
 
         @Override
         public void execute() {
@@ -378,11 +388,12 @@ public class IndexerCommands {
         @Override
         public boolean isFinished() {
             return beam.isArtifactPresent()
-                || timer.seconds() > MAGAZINE_WAIT_ANY_ARTIFACT_TIMEOUT_SEC;
+                || timer.seconds() > timeoutSec;
         }
     }
 
     public CommandBase waitForAnyArtifact() { return new WaitForAnyArtifact(); }
+    public CommandBase waitForAnyArtifact(double timeoutSec) { return new WaitForAnyArtifact(timeoutSec); }
 
     public class Index extends CommandBase {
         RevColorSensorV3 color;

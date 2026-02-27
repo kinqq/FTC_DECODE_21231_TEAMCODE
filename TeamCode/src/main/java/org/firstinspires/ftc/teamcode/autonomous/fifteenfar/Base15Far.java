@@ -1,11 +1,13 @@
-package org.firstinspires.ftc.teamcode.autonomous.fifteen;
+package org.firstinspires.ftc.teamcode.autonomous.fifteenfar;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.paths.PathChain;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -25,20 +27,14 @@ import org.firstinspires.ftc.teamcode.constant.Slot;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 
-public abstract class Base15 extends CommandOpMode {
-    private enum AutoRangeMode {
-        FULL_RANGE,
-        CLOSE_RANGE
-    }
-
+public abstract class Base15Far extends CommandOpMode {
     private TurretCommands turretCmds;
     private IndexerCommands indexerCmds;
     private LimelightCommands llCmds;
     private IntakeCommands intakeCmds;
     private LaunchCommands launchCmds;
     private Follower follower;
-    private Paths15 paths;
-    private AutoRangeMode selectedRangeMode = AutoRangeMode.FULL_RANGE;
+    private Paths15Far paths;
 
     abstract AllianceColor getAllianceColor();
 
@@ -59,24 +55,22 @@ public abstract class Base15 extends CommandOpMode {
         turretCmds.zeroHere();
         indexerCmds.update();
         indexerCmds.hammer.setPosition(Constants.MAGAZINE_HAMMER_DOWN_POS);
+        indexerCmds.indexer.setPosition(Constants.MAGAZINE_SLOT_FIRST_POS);
 
         llCmds.start(0);
 
         follower = PedroConstants.createFollower(hardwareMap);
-        follower.setStartingPose(new AllianceTransform(alliance).pose(116.8, 130.35, Math.toRadians(38.177)));
+        follower.setStartingPose(new AllianceTransform(alliance).pose(88.0, 8.0, Math.toRadians(0)));
+
 
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
-        paths = new Paths15(follower, alliance);
-
-        double obeliskTurretTargetDeg = 95;
-        double defaultTurretTargetDeg = 50;
-        double endTurretTargetDeg = 105;
-        double launchAngleDeg = 35;
-        double launchPower = 0.65;
+        paths = new Paths15Far(follower, alliance);
+        double defaultTurretTargetDeg = 68, endTurretTargetDeg = 25;
+        double launchAngleDeg = 40;
+        double launchPower = .85;
 
         if (alliance == AllianceColor.BLUE) {
-            obeliskTurretTargetDeg *= -1;
             defaultTurretTargetDeg *= -1;
             endTurretTargetDeg *= -1;
         }
@@ -84,167 +78,24 @@ public abstract class Base15 extends CommandOpMode {
         SequentialCommandGroup shootPreload = new SequentialCommandGroup(
             new ParallelCommandGroup(
                 followPath(paths.Path1),
-                turretCmds.setTarget(obeliskTurretTargetDeg),
-                llCmds.waitForAnyMotif(),
-                turretCmds.setLaunchAngle(launchAngleDeg),
-                turretCmds.activateLauncher(launchPower)
-            ),
-            new ParallelCommandGroup(
                 indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
                 turretCmds.setTarget(defaultTurretTargetDeg),
+                turretCmds.setLaunchAngle(launchAngleDeg),
+                new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
                 intakeCmds.intakeOn()
             ),
             launchCmds.shootEachSlot(launchPower)
         );
 
-        SequentialCommandGroup intakeSecondRow =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path2),
-                    turretCmds.activateLauncher(0.5),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    intakeCmds.intakeOn(),
-                    new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.THIRD),
-                        indexerCmds.waitForAnyArtifact()
-                    )
-                )
-            );
-
-        SequentialCommandGroup shootSecondRow =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path3),
-                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
-                    turretCmds.setLaunchAngle(launchAngleDeg),
-                    turretCmds.setTarget(defaultTurretTargetDeg),
-                    new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-1),
-                        new WaitCommand(800),
-                        intakeCmds.intakeOn()
-                    )
-                ),
-                launchCmds.shootMotifFromDetection(launchPower)
-            );
-
-        SequentialCommandGroup intakeFirstRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path4),
-                    turretCmds.activateLauncher(0.5),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    intakeCmds.intakeOn(),
-                    new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.THIRD),
-                        indexerCmds.waitForAnyArtifact()
-                    )
-                )
-            );
-
-        SequentialCommandGroup shootFirstRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path5),
-                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
-                    turretCmds.setLaunchAngle(launchAngleDeg),
-                    turretCmds.setTarget(defaultTurretTargetDeg),
-                    new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-1),
-                        new WaitCommand(800),
-                        intakeCmds.intakeOn()
-                    )
-                ),
-                launchCmds.shootMotifFromDetection(launchPower)
-            );
-
-        SequentialCommandGroup intakeSecondRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path4),
-                    turretCmds.activateLauncher(0.5),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    intakeCmds.intakeOn(),
-                    new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.THIRD),
-                        indexerCmds.waitForAnyArtifact()
-                    )
-                )
-            );
-
-        SequentialCommandGroup shootSecondRamp =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path5),
-                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
-                    turretCmds.setLaunchAngle(launchAngleDeg),
-                    turretCmds.setTarget(defaultTurretTargetDeg),
-                    new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-1),
-                        new WaitCommand(800),
-                        intakeCmds.intakeOn()
-                    )
-                ),
-                launchCmds.shootMotifFromDetection(launchPower)
-            );
-
-        SequentialCommandGroup intakeFirstRow =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path6),
-                    turretCmds.activateLauncher(0.5),
-                    indexerCmds.setSlot(Slot.FIRST),
-                    intakeCmds.intakeOn(),
-                    new SequentialCommandGroup(
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.SECOND),
-                        indexerCmds.waitForAnyArtifact(),
-                        indexerCmds.setSlot(Slot.THIRD),
-                        indexerCmds.waitForAnyArtifact()
-                    )
-                )
-            );
-
-        SequentialCommandGroup shootFirstRow =
-            new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                    followPath(paths.Path7),
-                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
-                    turretCmds.activateLauncher(launchPower),
-                    turretCmds.setLaunchAngle(launchAngleDeg),
-                    turretCmds.setTarget(defaultTurretTargetDeg),
-                    new SequentialCommandGroup(
-                        intakeCmds.intakeOn(-1),
-                        new WaitCommand(800),
-                        intakeCmds.intakeOn()
-                    )
-                ),
-                launchCmds.shootMotifFromDetection(launchPower)
-            );
-
         SequentialCommandGroup intakeThirdRow =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
-                    followPath(paths.Path8),
-                    turretCmds.activateLauncher(0.5),
+                    followPath(paths.Path2),
+                    new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
-                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.5),
                         indexerCmds.waitForAnyArtifact(),
                         indexerCmds.setSlot(Slot.SECOND),
                         indexerCmds.waitForAnyArtifact(),
@@ -257,88 +108,190 @@ public abstract class Base15 extends CommandOpMode {
         SequentialCommandGroup shootThirdRow =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
+                    followPath(paths.Path3),
+                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                    turretCmds.setLaunchAngle(launchAngleDeg),
+                    turretCmds.setTarget(defaultTurretTargetDeg),
+                    new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
+                    new SequentialCommandGroup(
+                        intakeCmds.intakeOn(-1),
+                        new WaitCommand(800),
+                        indexerCmds.hammerUp(),
+                        new WaitCommand(200),
+                        indexerCmds.hammerDown(),
+                        intakeCmds.intakeOn()
+                    )
+                ),
+                launchCmds.shootEachSlot(launchPower)
+            );
+
+        SequentialCommandGroup intakeHumanPlayer =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    followPath(paths.Path4),
+                    new InstantCommand(() -> turretCmds.activateLauncher(0.7).initialize()),
+                    indexerCmds.setSlot(Slot.FIRST),
+                    intakeCmds.intakeOn(),
+                    new SequentialCommandGroup(
+                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                        indexerCmds.waitForAnyArtifact(1),
+                        indexerCmds.setSlot(Slot.SECOND),
+                        indexerCmds.waitForAnyArtifact(0.7),
+                        indexerCmds.setSlot(Slot.THIRD),
+                        indexerCmds.waitForAnyArtifact(0.7)
+                    )
+                )
+            );
+
+        SequentialCommandGroup shootHumanPlayer =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    followPath(paths.Path5),
+                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                    turretCmds.setLaunchAngle(launchAngleDeg),
+                    turretCmds.setTarget(defaultTurretTargetDeg),
+                    new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
+                    new SequentialCommandGroup(
+                        intakeCmds.intakeOn(-1),
+                        new WaitCommand(800),
+                        indexerCmds.hammerUp(),
+                        new WaitCommand(200),
+                        indexerCmds.hammerDown(),
+                        intakeCmds.intakeOn()
+                    )
+                ),
+                launchCmds.shootEachSlot(launchPower)
+            );
+
+        {
+            SequentialCommandGroup intakeSecondRamp =
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        followPath(paths.Path4),
+                        turretCmds.activateLauncher(0.7),
+                        indexerCmds.setSlot(Slot.FIRST),
+                        intakeCmds.intakeOn(),
+                        new SequentialCommandGroup(
+                            new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                            indexerCmds.waitForAnyArtifact(),
+                            indexerCmds.setSlot(Slot.SECOND),
+                            indexerCmds.waitForAnyArtifact(),
+                            indexerCmds.setSlot(Slot.THIRD),
+                            indexerCmds.waitForAnyArtifact()
+                        )
+                    )
+                );
+
+            SequentialCommandGroup shootSecondRamp =
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        followPath(paths.Path5),
+                        indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
+                        turretCmds.activateLauncher(0.65),
+                        turretCmds.setLaunchAngle(35),
+                        turretCmds.setTarget(50),
+                        new SequentialCommandGroup(
+                            intakeCmds.intakeOn(-1),
+                            new WaitCommand(800),
+                            intakeCmds.intakeOn()
+                        )
+                    ),
+                    launchCmds.shootEachSlot(0.65)
+                );
+        }
+
+        SequentialCommandGroup intakeFirstSecretTunnel =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    followPath(paths.Path6),
+                    new InstantCommand(() -> turretCmds.activateLauncher(0.7).initialize()),
+                    indexerCmds.setSlot(Slot.FIRST),
+                    intakeCmds.intakeOn(),
+                    new SequentialCommandGroup(
+                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                        indexerCmds.waitForAnyArtifact(1),
+                        indexerCmds.setSlot(Slot.SECOND),
+                        indexerCmds.waitForAnyArtifact(0.7),
+                        indexerCmds.setSlot(Slot.THIRD),
+                        indexerCmds.waitForAnyArtifact(0.7)
+                    )
+                )
+            );
+
+        SequentialCommandGroup shootFirstSecretTunnel =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    followPath(paths.Path7),
+                    indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
+                    new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
+                    turretCmds.setLaunchAngle(launchAngleDeg),
+                    turretCmds.setTarget(defaultTurretTargetDeg),
+                    new SequentialCommandGroup(
+                        intakeCmds.intakeOn(-1),
+                        new WaitCommand(800),
+                        indexerCmds.hammerUp(),
+                        new WaitCommand(200),
+                        indexerCmds.hammerDown(),
+                        intakeCmds.intakeOn()
+                    )
+                ),
+                launchCmds.shootEachSlot(launchPower)
+            );
+
+        SequentialCommandGroup intakeSecondSecretTunnel =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    followPath(paths.Path8),
+                    new InstantCommand(() -> turretCmds.activateLauncher(0.7).initialize()),
+                    indexerCmds.setSlot(Slot.FIRST),
+                    intakeCmds.intakeOn(),
+                    new SequentialCommandGroup(
+                        new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
+                        indexerCmds.waitForAnyArtifact(1),
+                        indexerCmds.setSlot(Slot.SECOND),
+                        indexerCmds.waitForAnyArtifact(0.7),
+                        indexerCmds.setSlot(Slot.THIRD),
+                        indexerCmds.waitForAnyArtifact(0.7)
+                    )
+                )
+            );
+
+        SequentialCommandGroup shootSecondSecretTunnel =
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
                     followPath(paths.Path9),
                     indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
+                    new InstantCommand(() -> turretCmds.activateLauncher(launchPower).initialize()),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(endTurretTargetDeg),
                     new SequentialCommandGroup(
                         intakeCmds.intakeOn(-1),
                         new WaitCommand(800),
+                        indexerCmds.hammerUp(),
+                        new WaitCommand(200),
+                        indexerCmds.hammerDown(),
                         intakeCmds.intakeOn()
                     )
                 ),
-                launchCmds.shootMotifFromDetection(launchPower)
+                launchCmds.shootEachSlot(launchPower)
             );
 
         schedule(
             new SequentialCommandGroup(
                 new WaitUntilCommand(this::isStarted),
-                new CommandBase() {
-                    private CommandBase selectedAuto;
-
-                    @Override
-                    public void initialize() {
-                        if (selectedRangeMode == AutoRangeMode.FULL_RANGE) {
-                            selectedAuto = new SequentialCommandGroup(
-                                shootPreload,
-                                intakeSecondRow,
-                                shootSecondRow,
-                                intakeFirstRamp,
-                                shootFirstRamp,
-                                intakeFirstRow,
-                                shootFirstRow,
-                                intakeThirdRow,
-                                shootThirdRow
-                            );
-                        }
-                        else {
-                            selectedAuto = new SequentialCommandGroup(
-                                shootPreload,
-                                intakeSecondRow,
-                                shootSecondRow,
-                                intakeFirstRamp,
-                                shootFirstRamp,
-                                intakeSecondRamp,
-                                shootSecondRamp,
-                                intakeFirstRow,
-                                shootFirstRow
-                            );
-                        }
-                        selectedAuto.initialize();
-                    }
-
-                    @Override
-                    public void execute() {
-                        selectedAuto.execute();
-                    }
-
-                    @Override
-                    public boolean isFinished() {
-                        return selectedAuto.isFinished();
-                    }
-
-                    @Override
-                    public void end(boolean interrupted) {
-                        selectedAuto.end(interrupted);
-                    }
-                }
+                shootPreload,
+                intakeThirdRow,
+                shootThirdRow,
+                intakeHumanPlayer,
+                shootHumanPlayer,
+//                intakeSecondRamp,
+//                shootSecondRamp,
+                intakeFirstSecretTunnel,
+                shootFirstSecretTunnel,
+                intakeSecondSecretTunnel,
+                shootSecondSecretTunnel
             )
         );
-    }
-
-    public void initialize_loop() {
-        if (gamepad1.dpadUpWasPressed()) {
-            selectedRangeMode = AutoRangeMode.FULL_RANGE;
-        }
-        if (gamepad1.dpadDownWasPressed()) {
-            selectedRangeMode = AutoRangeMode.CLOSE_RANGE;
-        }
-
-        telemetry.addLine("Auto Range Select (init)");
-        telemetry.addLine((selectedRangeMode == AutoRangeMode.FULL_RANGE ? ">" : "  ") + "[1] full range");
-        telemetry.addLine((selectedRangeMode == AutoRangeMode.CLOSE_RANGE ? ">" : "  ") + "[2] close range");
-        telemetry.update();
     }
 
     @Override

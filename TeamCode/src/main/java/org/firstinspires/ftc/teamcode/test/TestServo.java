@@ -12,18 +12,21 @@ import org.firstinspires.ftc.teamcode.constant.ConstantsServo;
 @TeleOp(name = "TestServo", group = "Test")
 @Configurable
 public class TestServo extends OpMode {
-    ServoImplEx servo;
+    ServoImplEx servo, servo1;
     AnalogInput analogInput;
 
     @Override
     public void init() {
-        servo = hardwareMap.get(ServoImplEx.class, "hammer");
+        servo = hardwareMap.get(ServoImplEx.class, "turntable");
+        servo1 = hardwareMap.get(ServoImplEx.class, "turntable1");
         analogInput = hardwareMap.get(AnalogInput.class, "analog");
         servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        servo1.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }
     @Override
     public void loop() {
         servo.setPosition(ConstantsServo.targetDeg);
+        servo1.setPosition(ConstantsServo.targetDeg);
 
         telemetry.addData("targetDeg", ConstantsServo.targetDeg);
         telemetry.addData("analog", analogInput.getVoltage());
