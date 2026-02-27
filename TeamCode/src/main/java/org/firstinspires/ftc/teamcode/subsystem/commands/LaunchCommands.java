@@ -71,8 +71,10 @@ public class LaunchCommands {
                              ),
                              intakeCmds.new HammerActive(),
                              new WaitCommand(100),
+                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                              new WaitCommand(100),
+                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                              new WaitCommand(500)
                      ),
