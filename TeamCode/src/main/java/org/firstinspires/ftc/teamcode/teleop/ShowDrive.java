@@ -10,11 +10,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "Not so Basic Drive")
+@TeleOp(name = "Show Drive")
 @Configurable
 @Disabled
 
-public class showTeleop extends OpMode
+public class ShowDrive extends OpMode
 {
     private DcMotorEx motor1;
     private DcMotorEx motor2;

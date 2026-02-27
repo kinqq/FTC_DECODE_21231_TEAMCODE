@@ -54,15 +54,21 @@ public class LaunchCommands {
         shooting = true;
 
         return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
+                new ParallelRaceGroup(
+                        new ParallelCommandGroup(
+                                intakeCmds.new HammerPassive(),
+                                intakeCmds.new IntakeOn(),
+                                turretCmds.new SpinUp(),
+                                new SetLight(0.4)
+                        ),
+                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
                 ),
                 new ParallelRaceGroup(
                      new SequentialCommandGroup(
-                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                             new ParallelRaceGroup(
+                                     new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                     new WaitUntilCommand(gamepad::rightBumperWasPressed)
+                             ),
                              intakeCmds.new HammerActive(),
                              new WaitCommand(100),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
@@ -157,16 +163,22 @@ public class LaunchCommands {
         shooting = true;
 
         return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        indexerCmds.new SetSlot(first),
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
+                new ParallelRaceGroup(
+                        new ParallelCommandGroup(
+                                indexerCmds.new SetSlot(first),
+                                intakeCmds.new HammerPassive(),
+                                intakeCmds.new IntakeOn(),
+                                turretCmds.new SpinUp(),
+                                new SetLight(0.4)
+                        ),
+                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
                 ),
                 new ParallelRaceGroup(
                         new SequentialCommandGroup(
-                                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                new ParallelRaceGroup(
+                                        new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
+                                ),
                                 intakeCmds.new HammerActive(),
                                 new WaitCommand(350),
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),

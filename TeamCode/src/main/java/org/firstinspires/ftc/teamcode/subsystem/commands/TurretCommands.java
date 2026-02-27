@@ -111,7 +111,7 @@ public class TurretCommands
         Pose red = new Pose(145, 145);
         Pose blue = red.mirror();
         double targetX = alliance == AllianceColor.RED ? red.getX() : blue.getX();
-        double targetY = 145;
+        double targetY = red.getY();
         double xDistance = targetX - robotX;
         double yDistance = targetY - robotY;
         distToGoal = Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
@@ -132,16 +132,21 @@ public class TurretCommands
 
         double targetDegree;
         if (autoAim) {
-            targetDegree = Math.toDegrees(Math.atan2(yDistance, xDistance));
+            Pose redPoint = new Pose(136, 136);
+            Pose bluePoint = redPoint.mirror();
+            Pose aimingPoint = alliance == AllianceColor.RED ? redPoint : bluePoint;
+            double yPart = aimingPoint.getY() - robotY;
+            double xPart = aimingPoint.getX() - robotX;
+            targetDegree = Math.toDegrees(Math.atan(yPart / xPart));
             targetDegree -= Math.toDegrees(robotH);
             targetDegree += offset;
             targetDegree = AngleUnit.normalizeDegrees(targetDegree);
-            targetDegree = Range.clip(targetDegree, -185, 185);
+            targetDegree = Range.clip(targetDegree, -175, 175);
         } else targetDegree = offset;
 
         turretTargetDeg = targetDegree;
 
-        int targetReal = (int) Math.round((targetDegree * 5.6111111111) * 384.5 / 360.0);
+        int targetReal = (int) Math.round(targetDegree / 360.0 * 384.5 * (235.0/24.0));
         turretMotor.setTargetPosition(targetReal);
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(1);
@@ -354,7 +359,6 @@ public class TurretCommands
 
         double velocity = velocity0 + (velocity1 - velocity0) * t;
         double hoodAngle = hood0 + (hood1 - hood0) * t;
-
         return new double[] {velocity, hoodAngle};
     }
 
@@ -396,7 +400,7 @@ public class TurretCommands
 
     public boolean flywheelAtExpectedSpeed()
     {
-        return (-launcherMotorSecondary.getVelocity()) - flywheelVelocity >= -10;
+        return (-launcherMotorSecondary.getVelocity()) - flywheelVelocity >= -45;
     }
 
     public class SpinUp extends CommandBase
