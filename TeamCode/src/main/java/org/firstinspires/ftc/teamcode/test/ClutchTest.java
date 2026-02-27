@@ -40,7 +40,7 @@ public class ClutchTest extends OpMode
         if (gamepad1.xWasPressed()) pos1 -= 0.01;
         if (gamepad1.yWasPressed()) pos1 += 0.01;
 
-        //if (gamepad1.startWasPressed()) ptoCommands.disengageClutch();
+        if (gamepad1.startWasPressed()) ptoCommands.new DisengageClutch().initialize();
         if (gamepad1.backWasPressed()) ptoCommands.new EngageClutch().initialize();
 
         if (gamepad1.guideWasPressed())

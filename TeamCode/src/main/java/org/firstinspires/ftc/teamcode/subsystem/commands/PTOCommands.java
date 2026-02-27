@@ -88,7 +88,7 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            leftClutch.setPosition(0.06);
+            leftClutch.setPosition(0.43);
             rightClutch.setPosition(0);
         }
 
@@ -103,7 +103,7 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            leftClutch.setPosition(0.18);
+            leftClutch.setPosition(0.86);
             rightClutch.setPosition(0.11);
             timer.reset();
         }
@@ -220,15 +220,15 @@ public class PTOCommands
         @Override
         public void initialize()
         {
-            backRight.setTargetPosition(-6100);
-            backLeft.setTargetPosition(-6100);
+            backRight.setTargetPosition(-10000);
+            backLeft.setTargetPosition(-10000);
             backLeft.setVelocity(-2200);
             backRight.setVelocity(-2200);
-            backLeft.setTargetPositionTolerance(0);
-            backRight.setTargetPositionTolerance(0);
-            backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+
+        boolean stop = false;
 
         @Override
         public void execute()
@@ -236,8 +236,8 @@ public class PTOCommands
             double rightP = Math.abs(backRight.getCurrentPosition());
             double leftP = Math.abs(backLeft.getCurrentPosition());
 
-            if (rightP - leftP > 150) backRight.setVelocity(0);
-            else if (leftP - rightP > 150) backLeft.setVelocity(0);
+            if (rightP - leftP > 100) backRight.setVelocity(0);
+            else if (leftP - rightP > 100) backLeft.setVelocity(0);
             else if (rightP > leftP) {
                 backRight.setVelocity(-2200 + 200);
                 backLeft.setVelocity(-2200 - 200);
@@ -247,15 +247,29 @@ public class PTOCommands
                 backLeft.setVelocity(-2200 + 200);
                 backRight.setVelocity(-2200 - 200);
             }
+            else
+            {
+                backLeft.setVelocity(-2200);
+                backRight.setVelocity(-2200);
+            }
 
-
-
+            if (rightP > 9500 || leftP > 9500) {
+                backLeft.setVelocity(0);
+                backRight.setVelocity(0);
+                backRight.setTargetPosition(-10000);
+                backLeft.setTargetPosition(-10000);
+                backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                backRight.setPower(1);
+                backLeft.setPower(1);
+                stop = true;
+            }
         }
 
         @Override
         public boolean isFinished()
         {
-            return Math.abs(-6100 - backLeft.getCurrentPosition()) < 50 ;
+            return stop;
         }
     }
 }

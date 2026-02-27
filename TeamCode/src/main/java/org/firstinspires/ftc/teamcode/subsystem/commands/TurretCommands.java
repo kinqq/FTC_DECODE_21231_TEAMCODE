@@ -67,6 +67,7 @@ public class TurretCommands
 
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setTargetPositionTolerance(0);
 
         launcherMotorPrimary.setDirection(DcMotorSimple.Direction.FORWARD);
         launcherMotorSecondary.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -132,21 +133,23 @@ public class TurretCommands
 
         double targetDegree;
         if (autoAim) {
-            Pose redPoint = new Pose(136, 136);
-            Pose bluePoint = redPoint.mirror();
+            Pose redPoint = new Pose(140, 140);
+            if (distToGoal > 130) redPoint = new Pose(137.5, 155);
+            Pose bluePoint = new Pose(5, 140);
+            if (distToGoal > 130) bluePoint = new Pose(6.5, 155);
             Pose aimingPoint = alliance == AllianceColor.RED ? redPoint : bluePoint;
             double yPart = aimingPoint.getY() - robotY;
             double xPart = aimingPoint.getX() - robotX;
-            targetDegree = Math.toDegrees(Math.atan(yPart / xPart));
+            targetDegree = Math.toDegrees(Math.atan2(yPart, xPart));
             targetDegree -= Math.toDegrees(robotH);
-            targetDegree += offset;
+            targetDegree += offset - 4;
             targetDegree = AngleUnit.normalizeDegrees(targetDegree);
             targetDegree = Range.clip(targetDegree, -175, 175);
         } else targetDegree = offset;
 
         turretTargetDeg = targetDegree;
 
-        int targetReal = (int) Math.round(targetDegree / 360.0 * 384.5 * (235.0/24.0));
+        int targetReal = (int)Math.round((targetDegree - 90.0) * (1088.0 - 550.0) / (180.0 - 90.0) + 550.0);
         turretMotor.setTargetPosition(targetReal);
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(1);
@@ -164,110 +167,6 @@ public class TurretCommands
         double power = Range.clip(cmd, -1, 1);
 
         if (spinFlywheel) {
-            launcherMotorPrimary.setPower(power);
-            launcherMotorSecondary.setPower(power);
-        } else
-        {
-            launcherMotorPrimary.setPower(idlePower);
-            launcherMotorSecondary.setPower(idlePower);
-        }
-    }
-
-    public void updateWithPhysics(
-            boolean autoPower,
-            boolean autoAim,
-            double velocity,
-            double angle,
-            double offset,
-            double idlePower,
-            Follower follower,
-            AllianceColor alliance)
-    {
-        Pose goalPose = alliance == AllianceColor.RED ? ShooterConstants.GOAL_POS_RED : ShooterConstants.GOAL_POS_BLUE;
-        double distX = goalPose.getX() - follower.getPose().getX();
-        double distY = goalPose.getY() - follower.getPose().getY();
-        double angleToGoal = Math.atan2(distY, distX);
-        //angleToGoal -= follower.getPose().getHeading();
-        //angleToGoal = AngleUnit.normalizeRadians(angleToGoal);
-
-        double distToGoal = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-        this.distToGoal = distToGoal;
-
-        Vector robotToGoalVector = new Vector(distToGoal, angleToGoal);
-
-        double g = 32.174 * 12;
-        double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
-        double y = ShooterConstants.SCORE_HEIGHT;
-        double a = ShooterConstants.SCORE_ANGLE;
-
-        //double hoodAngle = MathFunctions.clamp(Math.atan(2 * y / x - Math.tan(a)), ShooterConstants.HOOD_MIN_ANGLE,
-        //        ShooterConstants.HOOD_MAX_ANGLE);
-        double hoodAngle = MathFunctions.clamp(getRadFromServoTicks(interpolatePower(robotToGoalVector.getMagnitude())[1]), ShooterConstants.HOOD_MIN_ANGLE,
-                ShooterConstants.HOOD_MAX_ANGLE);
-
-        double flywheelSpeed = Math.sqrt(g * x * x / (2 * Math.pow(Math.cos(hoodAngle), 2) * (x * Math.tan(hoodAngle) - y)));
-
-        Vector robotVelocity = follower.getVelocity();
-
-        double coordinateTheta = robotVelocity.getTheta() - robotToGoalVector.getTheta();
-
-        double parallelComponent = -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
-        double perpendicularComponent = Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
-
-        double vz = flywheelSpeed * Math.sin(hoodAngle);
-        double time = x / (flywheelSpeed * Math.cos(hoodAngle));
-        double ivr = x / time + parallelComponent;
-        double nvr = Math.sqrt(ivr * ivr + perpendicularComponent * perpendicularComponent);
-        double ndr = nvr * time;
-
-        hoodAngle = MathFunctions.clamp(Math.atan2(vz, nvr), ShooterConstants.HOOD_MIN_ANGLE,
-                ShooterConstants.HOOD_MAX_ANGLE);
-        flywheelSpeed = Math.sqrt(g * ndr * ndr / (2 * Math.pow(Math.cos(hoodAngle), 2) * (ndr * Math.tan(hoodAngle) - y)));
-        double kExit = 1300.0 / 800;  // start with ~2.24 from your observation
-        flywheelSpeed *= kExit;
-
-        double turretVelCompOffset = Math.atan2(perpendicularComponent, ivr);
-        double turretAngle = Math.toDegrees(follower.getPose().getHeading() - robotToGoalVector.getTheta() + turretVelCompOffset);
-
-        if (autoPower)
-        {
-            flywheelVelocity = flywheelTicksFromVelocity(flywheelSpeed);
-            this.hoodAngle = getServoTicksFromDeg(Math.toDegrees(hoodAngle));
-        } else
-        {
-            flywheelVelocity = velocity;
-            this.hoodAngle = angle;
-        }
-
-        int turretTarget;
-
-        if (autoAim) {
-            turretAngle = AngleUnit.normalizeDegrees(turretAngle);
-            turretAngle = Range.clip(turretAngle, -185, 185);
-
-            turretTarget = (int) Math.round((turretAngle * 5.6111111111) * 384.5 / 360.0);
-        }
-        else turretTarget = (int) Math.round((offset * 5.6111111111) * 384.5 / 360.0);
-
-        turretMotor.setTargetPosition(-turretTarget);
-        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turretMotor.setPower(1);
-
-        hoodAngleServo.setPosition(Range.clip(this.hoodAngle, 0.19, 0.98));
-
-        double kS = 0.07439;
-        double kV = 0.00035733;
-
-        double pidResult = pid.calculate(-launcherMotorSecondary.getVelocity(), flywheelVelocity);
-        double ff = Math.signum(flywheelVelocity) * kS + kV * flywheelVelocity;
-
-        double batt = voltage.getVoltage();
-        double cmd = (pidResult + ff) * (12.74 / batt);
-
-        double power = Range.clip(cmd, -1, 1);
-
-        if (spinFlywheel)
-        {
             launcherMotorPrimary.setPower(power);
             launcherMotorSecondary.setPower(power);
         } else
@@ -359,7 +258,7 @@ public class TurretCommands
 
         double velocity = velocity0 + (velocity1 - velocity0) * t;
         double hoodAngle = hood0 + (hood1 - hood0) * t;
-        return new double[] {velocity, hoodAngle};
+        return new double[] {velocity - 50, hoodAngle};
     }
 
     public double getRealVelocity()
