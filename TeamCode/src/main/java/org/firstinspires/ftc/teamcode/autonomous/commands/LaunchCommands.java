@@ -5,8 +5,11 @@ import static org.firstinspires.ftc.teamcode.constant.Constants.LAUNCH_INTER_SHO
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
+import com.seattlesolvers.solverslib.command.ParallelDeadlineGroup;
+import com.seattlesolvers.solverslib.command.ParallelRaceGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
+import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.Motif;
@@ -46,15 +49,23 @@ public class LaunchCommands {
         return new SequentialCommandGroup(
             indexerCmds.setSlot(Slot.FIRST),
             shoot(Slot.FIRST, power),
-            new WaitCommand(100),
+            waitForLaunch(),
             shoot(Slot.SECOND, power),
-            new WaitCommand(100),
+            waitForLaunch(),
             shoot(Slot.THIRD, power),
-            new WaitCommand(400),
+            waitForLaunch(),
+            new WaitCommand(100),
             indexerCmds.hammerDown()
         );
     }
-//
+
+    public CommandBase waitForLaunch() {
+        return new ParallelRaceGroup(
+                new WaitCommand(200),
+                new WaitUntilCommand(() -> !indexerCmds.beam.isArtifactPresent())
+            );
+    }
+
 //    public CommandBase shootEachSlot(double p1, double p2, double p3, int t1, int t2, int t3) {
 //        return new SequentialCommandGroup(
 //            indexerCmds.lockSlot(Slot.FIRST),
@@ -80,9 +91,7 @@ public class LaunchCommands {
                 DetectedColor[] motifTranslated = MotifUtil.motifToColors(motif);
 
                 if (motifTranslated == null) {
-                    inner = new InstantCommand(() -> {});
-                    inner.initialize();
-                    return;
+                    motifTranslated = MotifUtil.motifToColors(Motif.PPG);
                 }
 
                 IndexerCommands.Target[] t = indexerCmds.pickTargetsForMotif(motifTranslated);
@@ -95,11 +104,12 @@ public class LaunchCommands {
                 inner = new SequentialCommandGroup(
                     indexerCmds.lockSlot(t[0].pos),
                     shoot(t[0], power),
-                    new WaitCommand(50),
+                    waitForLaunch(),
                     shoot(t[1], power),
-                    new WaitCommand(50),
+                    waitForLaunch(),
                     shoot(t[2], power),
-                    new WaitCommand(400),
+                    waitForLaunch(),
+                    new WaitCommand(100),
                     indexerCmds.hammerDown(),
                     new InstantCommand(indexerCmds::unlock)
                 );

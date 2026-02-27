@@ -17,7 +17,7 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import org.firstinspires.ftc.teamcode.constant.AllianceColor;
 import org.firstinspires.ftc.teamcode.constant.DetectedColor;
 import org.firstinspires.ftc.teamcode.constant.Motif;
-import org.firstinspires.ftc.teamcode.pedropathing.Constants;
+import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.pedropathing.Draw;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IndexerCommands;
 import org.firstinspires.ftc.teamcode.subsystem.commands.IntakeCommands;
@@ -70,7 +70,7 @@ public class Presentation extends CommandOpMode
         );
         ptoCmds = new PTOCommands(hardwareMap);
 
-        follower = Constants.createFollower(hardwareMap);
+        follower = PedroConstants.createFollower(hardwareMap);
 
         lightTimer = new ElapsedTime();
         lightTimer.reset();

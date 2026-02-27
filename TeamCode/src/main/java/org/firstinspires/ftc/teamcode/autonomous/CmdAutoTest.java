@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.pedropathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.constant.Slot;
 
 @Autonomous(name = "TestAuto")
+@Disabled
 public class CmdAutoTest extends CommandOpMode {
 
     private TurretCommands turretCommands;
