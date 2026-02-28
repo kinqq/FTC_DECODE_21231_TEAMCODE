@@ -32,12 +32,12 @@ public class IntakeCommands
 
     public void hammerPassive()
     {
-        hammerServo.setPosition(0.61);
+        hammerServo.setPosition(0.60);
     }
 
     public void hammerActive()
     {
-        hammerServo.setPosition(0.43);
+        hammerServo.setPosition(0.42);
     }
 
     public void intakeOn()

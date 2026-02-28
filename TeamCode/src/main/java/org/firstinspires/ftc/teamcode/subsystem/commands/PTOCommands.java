@@ -12,6 +12,7 @@ import static org.firstinspires.ftc.teamcode.constant.PTOPIDFConstants.rightP;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -184,6 +185,43 @@ public class PTOCommands
         }
     }
 
+    public class Recover extends CommandBase
+    {
+        Gamepad gm;
+
+        public Recover(Gamepad gm)
+        {
+            this.gm = gm;
+        }
+
+        @Override
+        public void initialize()
+        {
+            //new EngageClutch().initialize();
+            backLeft.setPower(0.5);
+            backRight.setPower(0.5);
+        }
+
+        boolean done = false;
+
+        @Override
+        public void execute()
+        {
+            if (gm.startWasPressed())
+            {
+                backLeft.setPower(0);
+                backRight.setPower(0);
+                done = true;
+            }
+        }
+
+        @Override
+        public boolean isFinished()
+        {
+            return done;
+        }
+    }
+
     public class PositionLift extends CommandBase
     {
         @Override
@@ -233,16 +271,16 @@ public class PTOCommands
         @Override
         public void execute()
         {
-            double rightP = Math.abs(backRight.getCurrentPosition());
-            double leftP = Math.abs(backLeft.getCurrentPosition());
+            double rightP = backRight.getCurrentPosition();
+            double leftP = backLeft.getCurrentPosition();
 
-            if (rightP - leftP > 100) backRight.setVelocity(0);
-            else if (leftP - rightP > 100) backLeft.setVelocity(0);
-            else if (rightP > leftP) {
+            if (rightP - leftP < -100) backRight.setVelocity(0);
+            else if (leftP - rightP < -100) backLeft.setVelocity(0);
+            else if (rightP < leftP) {
                 backRight.setVelocity(-2200 + 200);
                 backLeft.setVelocity(-2200 - 200);
             }
-            else if (leftP > rightP)
+            else if (leftP < rightP)
             {
                 backLeft.setVelocity(-2200 + 200);
                 backRight.setVelocity(-2200 - 200);
@@ -253,7 +291,7 @@ public class PTOCommands
                 backRight.setVelocity(-2200);
             }
 
-            if (rightP > 9500 || leftP > 9500) {
+            if (rightP < -9500 || leftP < -9500) {
                 backLeft.setVelocity(0);
                 backRight.setVelocity(0);
                 backRight.setTargetPosition(-10000);

@@ -104,7 +104,7 @@ public class IndexerCommands {
 
         indexerPosition = Range.clip(indexerPosition, 0, 1);
         indexerPrimary.setPosition(indexerPosition);
-        indexerSecondary.setPosition(indexerPosition);
+        indexerSecondary.setPosition(indexerPosition- 0.02);
     }
 
     public void nextSlot()

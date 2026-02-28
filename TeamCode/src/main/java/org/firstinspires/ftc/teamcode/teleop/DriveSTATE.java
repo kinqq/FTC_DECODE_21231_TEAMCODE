@@ -38,6 +38,7 @@ public class DriveSTATE extends CommandOpMode
     private Follower follower;
 
     private ElapsedTime lightTimer;
+    private ElapsedTime gameTimer;
 
     private boolean autoPower;
     private boolean autoAim;
@@ -52,14 +53,10 @@ public class DriveSTATE extends CommandOpMode
     private AllianceColor alliance;
     private DetectedColor[] motifTranslated;
 
+    private boolean hasBeenFull;
     private boolean humanPlayer;
     private boolean basing;
     private boolean basingBegun;
-
-    private ElapsedTime loopTimer;
-    private double lastLoopSec;
-    private double loopDtMs;
-    private double loopHz;
 
     @Override
     public void initialize()
@@ -79,11 +76,9 @@ public class DriveSTATE extends CommandOpMode
 
         lightTimer = new ElapsedTime();
         lightTimer.reset();
-        loopTimer = new ElapsedTime();
-        loopTimer.reset();
-        lastLoopSec = 0.0;
-        loopDtMs = 0.0;
-        loopHz = 0.0;
+
+        gameTimer = new ElapsedTime();
+        gameTimer.reset();
 
         turretCmds.zero();
 
@@ -124,6 +119,7 @@ public class DriveSTATE extends CommandOpMode
 
         robotCentric = false;
 
+        hasBeenFull = false;
         humanPlayer = false;
         basing = false;
         basingBegun = false;
@@ -131,10 +127,16 @@ public class DriveSTATE extends CommandOpMode
         //Enable Panels Telemetry
         PanelsConfigurables.INSTANCE.refreshClass(DriveSTATE.class);
         telemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+
+        telemetry.speak("Suga Pie is READY TO GO!!!");
+        telemetry.update();
     }
 
     private double lightPos = 0.3;
     private boolean lightForward = true;
+    private boolean endGame = false;
+    private boolean tenS = false;
+    private boolean fiveS = false;
 
     @Override
     public void initialize_loop()
@@ -165,7 +167,11 @@ public class DriveSTATE extends CommandOpMode
 
             ptoCmds.new DisengageClutch().initialize();
 
+            gameTimer.reset();
+
             started = true;
+            telemetry.speak("Finally, yall suck");
+            telemetry.update();
         }
         super.run();
 
@@ -215,24 +221,26 @@ public class DriveSTATE extends CommandOpMode
             ));
             basingBegun = true;
         }
+
+        if (gameTimer.seconds() >= 100 && !endGame)
+        {
+            gamepad1.rumble(1000);
+            endGame = true;
+        }
+        if (gameTimer.seconds() >= 110 && !tenS)
+        {
+            gamepad1.rumble(1000);
+            tenS = true;
+        }
+        if (gameTimer.seconds() >= 115 && !fiveS)
+        {
+            gamepad1.rumble(5000);
+            fiveS = true;
+        }
     }
 
     private void mainLoop()
     {
-        double nowSec = loopTimer.seconds();
-        double dtSec = nowSec - lastLoopSec;
-        lastLoopSec = nowSec;
-
-        if (dtSec > 1e-6) {
-            loopDtMs = dtSec * 1000.0;
-            double instantHz = 1.0 / dtSec;
-            if (loopHz == 0.0) {
-                loopHz = instantHz;
-            } else {
-                loopHz = 0.85 * loopHz + 0.15 * instantHz;
-            }
-        }
-
         follower.update();
         indexerCmds.update();
         turretCmds.update(autoPower, autoAim, velocity, angle, offset, idlePower, follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), alliance);
@@ -250,7 +258,10 @@ public class DriveSTATE extends CommandOpMode
             if (lightTimer.seconds() < 0.25 && humanPlayer)
                 launchCmds.setLight(0.58);
             else if (lightTimer.seconds() < 0.5 && indexerCmds.isFull())
+            {
                 launchCmds.setLight(0.48);
+                gamepad2.rumble(50);
+            }
             if (lightTimer.seconds() > 0.5)
             {
                 if (indexerCmds.getIntakeSlotColor() == DetectedColor.GREEN) launchCmds.setLight(0.51);
@@ -261,9 +272,16 @@ public class DriveSTATE extends CommandOpMode
             indexerCmds.getDetectedColor();
         }
 
+        if (indexerCmds.isFull() && !hasBeenFull)
+        {
+            hasBeenFull = true;
+            gamepad1.rumble(500);
+        } if (!indexerCmds.isFull()) hasBeenFull = false;
+
         controls();
 
         Draw.drawDebug(follower);
+        telemetry.addData("Time", gameTimer.seconds());
         telemetry.addData("Contents", indexerCmds.getContents());
         telemetry.addData("Is Full", indexerCmds.isFull());
         telemetry.addData("Distance From Goal", turretCmds.getDistToGoal());
@@ -274,19 +292,14 @@ public class DriveSTATE extends CommandOpMode
         telemetry.addData("Indexer Busy", indexerCmds.indexerIsMoving());
         telemetry.addData("First Rev", indexerCmds.isOnFirstRev());
         telemetry.addData("Active Slot", indexerCmds.getIntakeSlot());
-        telemetry.addData("Loop dt (ms)", "%.2f", loopDtMs);
-        telemetry.addData("Loop Hz", "%.1f", loopHz);
-        telemetry.addData("Turret Target Deg", "%.2f", turretCmds.getTurretTargetDeg());
-        telemetry.addData("Turret Current Deg", "%.2f", turretCmds.getTurretCurrentDeg());
-        telemetry.addData("Turret Error Deg", "%.2f", turretCmds.getTurretErrorDeg());
         telemetry.update();
     }
 
     private void controls()
     {
-        if (gamepad1.backWasPressed()) indexerCmds.clearContents();
-        if (gamepad1.startWasPressed()) follower.setPose(new Pose(72, 144, Math.toRadians(90)));
-        if (gamepad1.aWasPressed())
+        if (gamepad1.backWasPressed() || gamepad1.shareWasPressed()) indexerCmds.clearContents();
+        if (gamepad1.startWasPressed() || gamepad1.optionsWasPressed()) follower.setPose(new Pose(72, 144, Math.toRadians(90)));
+        if (gamepad1.aWasPressed() || gamepad1.crossWasPressed())
         {
             autoPower = false;
             humanPlayer = true;
@@ -297,7 +310,7 @@ public class DriveSTATE extends CommandOpMode
             intakeCmds.hammerActive();
             turretCmds.deactivateLauncher();
         }
-        if (gamepad1.aWasReleased())
+        if (gamepad1.aWasReleased() || gamepad1.crossWasReleased())
         {
             autoPower = true;
             humanPlayer = false;
@@ -306,8 +319,8 @@ public class DriveSTATE extends CommandOpMode
             intakeCmds.intakeOn();
             intakeCmds.hammerPassive();
         }
-        if (gamepad1.bWasPressed()) indexerCmds.prevSlot();
-        if (gamepad1.xWasPressed()) indexerCmds.nextSlot();
+        if (gamepad1.bWasPressed() || gamepad1.circleWasPressed()) indexerCmds.prevSlot();
+        if (gamepad1.xWasPressed() || gamepad1.squareWasPressed()) indexerCmds.nextSlot();
         if (gamepad1.leftBumperWasPressed())
         {
             intakeCmds.intakeReverse();
@@ -329,22 +342,27 @@ public class DriveSTATE extends CommandOpMode
             else if (alliance == AllianceColor.BLUE) alliance = AllianceColor.RED;
         }
         if (gamepad1.rightStickButtonWasPressed()) robotCentric = !robotCentric;
-        if (gamepad1.guideWasPressed()) basing = true;
+        if (gamepad1.guideWasPressed() || gamepad1.psWasPressed()) basing = true;
 
-        if (gamepad2.backWasPressed())
+        if (gamepad2.backWasPressed() || gamepad2.shareWasPressed())
         {
             intakeCmds.intakeReverse();
             intakeCmds.intakeOn();
         }
-        if (gamepad2.backWasReleased())
+        if (gamepad2.backWasReleased() || gamepad2.shareWasReleased())
         {
             intakeCmds.intakeForward();
             intakeCmds.intakeOn();
         }
-        if (gamepad2.aWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.GREEN));
-        if (gamepad2.bWasPressed()) schedule(launchCmds.shootMotif(gamepad2, motifTranslated));
-        if (gamepad2.xWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.PURPLE));
-        if (gamepad2.yWasPressed()) schedule(launchCmds.shootRapid(gamepad2));
+        if (gamepad2.aWasPressed() || gamepad2.crossWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.GREEN));
+        if (gamepad2.bWasPressed() || gamepad2.circleWasPressed()) schedule(launchCmds.shootMotif(gamepad2, motifTranslated));
+        if (gamepad2.xWasPressed() || gamepad2.squareWasPressed()) schedule(launchCmds.shootColor(gamepad2, DetectedColor.PURPLE));
+        if (gamepad2.yWasPressed() || gamepad2.triangleWasPressed())
+        {
+            schedule(launchCmds.shootRapid(gamepad2));
+            telemetry.speak("OoOoOoOooooOOoOoOoOooooOOoOoOoOooooOOoOoOoOooooOOoOoOoOooooO");
+            telemetry.update();
+        }
         if (gamepad2.dpadLeftWasPressed()) offset += 2.5;
         if (gamepad2.dpadRightWasPressed()) offset -= 2.5;
         if (gamepad2.dpadUpWasPressed()) angle += 0.01;

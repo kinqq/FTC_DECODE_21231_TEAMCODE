@@ -40,8 +40,7 @@ public class PTOTest extends CommandOpMode
         if (gamepad1.bWasPressed()) ptoCommands.new ThrottleBack().initialize();
         if (gamepad1.aWasPressed()) ptoCommands.new KillBack().initialize();
 
-        if (gamepad1.backWasPressed()) ptoCommands.new KillFront().initialize();
-        if (gamepad1.startWasPressed()) terminateOpModeNow();
+        if (gamepad1.backWasPressed()) schedule(ptoCommands.new Recover(gamepad1));
 
         if (gamepad2.startWasPressed())
         {

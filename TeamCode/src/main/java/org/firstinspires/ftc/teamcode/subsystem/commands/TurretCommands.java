@@ -134,7 +134,7 @@ public class TurretCommands
         double targetDegree;
         if (autoAim) {
             Pose redPoint = new Pose(140, 140);
-            if (distToGoal > 130) redPoint = new Pose(137.5, 155);
+            if (distToGoal > 130) redPoint = new Pose(139, 160);
             Pose bluePoint = new Pose(5, 140);
             if (distToGoal > 130) bluePoint = new Pose(6.5, 155);
             Pose aimingPoint = alliance == AllianceColor.RED ? redPoint : bluePoint;
