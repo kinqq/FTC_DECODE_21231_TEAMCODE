@@ -90,9 +90,7 @@ public class TurretCommands
     public void start()
     {
         hoodAngleServo.setPosition(0.18);
-        turretMotor.setTargetPosition(180);
-        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turretMotor.setPower(1);
+
     }
 
     public void update(
@@ -258,7 +256,7 @@ public class TurretCommands
 
         double velocity = velocity0 + (velocity1 - velocity0) * t;
         double hoodAngle = hood0 + (hood1 - hood0) * t;
-        return new double[] {velocity - 50, hoodAngle};
+        return new double[] {velocity, hoodAngle};
     }
 
     public double getRealVelocity()

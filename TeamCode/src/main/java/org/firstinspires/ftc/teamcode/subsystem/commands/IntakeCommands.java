@@ -37,12 +37,12 @@ public class IntakeCommands
 
     public void hammerActive()
     {
-        hammerServo.setPosition(0.42);
+        hammerServo.setPosition(0.40);
     }
 
     public void intakeOn()
     {
-        intakeMotor.setPower(1);
+        intakeMotor.setPower(0.7);
     }
 
     public void intakeOff()
@@ -52,8 +52,8 @@ public class IntakeCommands
 
     public void toggleIntake()
     {
-        if (intakeMotor.getPower() > 0.5) intakeMotor.setPower(0);
-        else intakeMotor.setPower(1);
+        if (intakeMotor.getPower() > 0.5) intakeOff();
+        else intakeOn();
     }
 
     public void intakeReverse()

@@ -23,12 +23,15 @@ public class LaunchCommands {
     IndexerCommands indexerCmds;
     TurretCommands turretCmds;
     IntakeCommands intakeCmds;
+    BreakBeamCommands beamCmds;
 
     private boolean shooting;
     private boolean killNow;
 
     public LaunchCommands(HardwareMap hwMap, IndexerCommands indCmds, TurretCommands tCmds, IntakeCommands intCmds)
     {
+        beamCmds = new BreakBeamCommands(hwMap);
+
         light = hwMap.get(Servo.class, "light");
         light.setDirection(Servo.Direction.REVERSE);
 
@@ -61,22 +64,32 @@ public class LaunchCommands {
                                 turretCmds.new SpinUp(),
                                 new SetLight(0.4)
                         ),
-                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
+                        new WaitUntilCommand(gamepad::rightBumperWasPressed),
+                        new WaitCommand(5000)
                 ),
                 new ParallelRaceGroup(
                      new SequentialCommandGroup(
-                             new ParallelRaceGroup(
-                                     new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
-                                     new WaitUntilCommand(gamepad::rightBumperWasPressed)
-                             ),
                              intakeCmds.new HammerActive(),
-                             new WaitCommand(100),
-                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                             new ParallelRaceGroup(
+                                     new ParallelCommandGroup(
+                                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                             new WaitUntilCommand(() -> !beamCmds.isArtifactPresent())
+                                     ),
+                                     new WaitCommand(500)
+                             ),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                             new WaitCommand(100),
-                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                             new ParallelRaceGroup(
+                                     new ParallelCommandGroup(
+                                             new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
+                                             new WaitUntilCommand(() -> !beamCmds.isArtifactPresent())
+                                     ),
+                                     new WaitCommand(500)
+                             ),
                              !moveForward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                             new WaitCommand(500)
+                             new ParallelRaceGroup(
+                                     new WaitUntilCommand(() -> !beamCmds.isArtifactPresent()),
+                                     new WaitCommand(500)
+                             )
                      ),
                     new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
                     new WaitUntilCommand(() -> killNow)
@@ -177,16 +190,15 @@ public class LaunchCommands {
                 ),
                 new ParallelRaceGroup(
                         new SequentialCommandGroup(
-                                new ParallelRaceGroup(
-                                        new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
-                                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
-                                ),
                                 intakeCmds.new HammerActive(),
                                 new WaitCommand(350),
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
                                 new WaitCommand(350),
                                 !forward ? indexerCmds.new PrevSlot() : indexerCmds.new NextSlot(),
-                                new WaitCommand(500)
+                                new ParallelRaceGroup(
+                                        new WaitUntilCommand(() -> !beamCmds.isArtifactPresent()),
+                                        new WaitCommand(500)
+                                )
                         ),
                         new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
                         new WaitUntilCommand(() -> killNow)
@@ -213,18 +225,23 @@ public class LaunchCommands {
         shooting = true;
 
         return new SequentialCommandGroup(
-                new ParallelCommandGroup(
-                        indexerCmds.new SetSlot(slot),
-                        intakeCmds.new HammerPassive(),
-                        intakeCmds.new IntakeOn(),
-                        turretCmds.new SpinUp(),
-                        new SetLight(0.4)
+                new ParallelRaceGroup(
+                        new ParallelCommandGroup(
+                                indexerCmds.new SetSlot(slot),
+                                intakeCmds.new HammerPassive(),
+                                intakeCmds.new IntakeOn(),
+                                turretCmds.new SpinUp(),
+                                new SetLight(0.4)
+                        ),
+                        new WaitUntilCommand(gamepad::rightBumperWasPressed)
                 ),
                 new ParallelRaceGroup(
                         new SequentialCommandGroup(
-                                new WaitUntilCommand(turretCmds::flywheelAtExpectedSpeed),
                                 intakeCmds.new HammerActive(),
-                                new WaitCommand(200)
+                                new ParallelRaceGroup(
+                                        new WaitUntilCommand(() -> !beamCmds.isArtifactPresent()),
+                                        new WaitCommand(200)
+                                )
                         ),
                         new WaitUntilCommand(() -> gamepad.left_trigger > 0.1),
                         new WaitUntilCommand(() -> killNow)

@@ -80,8 +80,6 @@ public class DriveSTATE extends CommandOpMode
         gameTimer = new ElapsedTime();
         gameTimer.reset();
 
-        turretCmds.zero();
-
         if (GlobalState.teleOpStartPose != null)
         {
             follower.setStartingPose(GlobalState.teleOpStartPose);
@@ -189,11 +187,7 @@ public class DriveSTATE extends CommandOpMode
                                     new InstantCommand(() -> intakeCmds.killPower())
                             ),
                             ptoCmds.new EngageClutch(),
-                            new ParallelCommandGroup(
-                                    ptoCmds.new ThrottleFront(),
-                                    ptoCmds.new ThrottleBack()
-                            ),
-                            ptoCmds.new KillFront()
+                            ptoCmds.new VelLift()
                     ),
                     new CommandBase()
                     {
