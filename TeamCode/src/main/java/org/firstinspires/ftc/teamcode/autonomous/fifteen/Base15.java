@@ -6,6 +6,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.PathChain;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
@@ -46,6 +47,10 @@ public abstract class Base15 extends CommandOpMode {
         return new FollowPathCommand(follower, path, true);
     }
 
+    private CommandBase revUp(double power) {
+        return new InstantCommand(() -> turretCmds.activateLauncher(power).initialize());
+    }
+
     @Override
     public void initialize() {
         AllianceColor alliance = getAllianceColor();
@@ -84,14 +89,10 @@ public abstract class Base15 extends CommandOpMode {
         SequentialCommandGroup shootPreload = new SequentialCommandGroup(
             new ParallelCommandGroup(
                 followPath(paths.Path1),
-                turretCmds.setTarget(obeliskTurretTargetDeg),
-                llCmds.waitForAnyMotif(),
-                turretCmds.setLaunchAngle(launchAngleDeg),
-                turretCmds.activateLauncher(launchPower)
-            ),
-            new ParallelCommandGroup(
-                indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
                 turretCmds.setTarget(defaultTurretTargetDeg),
+                turretCmds.setLaunchAngle(launchAngleDeg),
+                revUp(launchPower),
+                indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
                 intakeCmds.intakeOn()
             ),
             launchCmds.shootEachSlot(launchPower)
@@ -101,7 +102,7 @@ public abstract class Base15 extends CommandOpMode {
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     followPath(paths.Path2),
-                    turretCmds.activateLauncher(0.5),
+                    revUp(0.5),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
@@ -120,7 +121,7 @@ public abstract class Base15 extends CommandOpMode {
                 new ParallelCommandGroup(
                     followPath(paths.Path3),
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
+                    revUp(launchPower),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(defaultTurretTargetDeg),
                     new SequentialCommandGroup(
@@ -129,16 +130,18 @@ public abstract class Base15 extends CommandOpMode {
                         intakeCmds.intakeOn()
                     )
                 ),
-                launchCmds.shootMotifFromDetection(launchPower)
+                launchCmds.shootEachSlot(launchPower)
             );
 
         SequentialCommandGroup intakeFirstRamp =
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     followPath(paths.Path4),
-                    turretCmds.activateLauncher(0.5),
+                    revUp(0.5),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
+                    turretCmds.setTarget(obeliskTurretTargetDeg),
+                    llCmds.waitForAnyMotif(),
                     new SequentialCommandGroup(
                         new WaitUntilCommand(() -> follower.getPathCompletion() > 0.6),
                         indexerCmds.waitForAnyArtifact(),
@@ -155,7 +158,7 @@ public abstract class Base15 extends CommandOpMode {
                 new ParallelCommandGroup(
                     followPath(paths.Path5),
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
+                    revUp(launchPower),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(defaultTurretTargetDeg),
                     new SequentialCommandGroup(
@@ -171,7 +174,7 @@ public abstract class Base15 extends CommandOpMode {
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     followPath(paths.Path4),
-                    turretCmds.activateLauncher(0.5),
+                    revUp(0.5),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
@@ -190,7 +193,7 @@ public abstract class Base15 extends CommandOpMode {
                 new ParallelCommandGroup(
                     followPath(paths.Path5),
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.GREEN, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
+                    revUp(launchPower),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(defaultTurretTargetDeg),
                     new SequentialCommandGroup(
@@ -206,7 +209,7 @@ public abstract class Base15 extends CommandOpMode {
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     followPath(paths.Path6),
-                    turretCmds.activateLauncher(0.5),
+                    revUp(0.5),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
@@ -224,7 +227,7 @@ public abstract class Base15 extends CommandOpMode {
                 new ParallelCommandGroup(
                     followPath(paths.Path7),
                     indexerCmds.setSlotColors(DetectedColor.PURPLE, DetectedColor.PURPLE, DetectedColor.GREEN),
-                    turretCmds.activateLauncher(launchPower),
+                    revUp(launchPower),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(defaultTurretTargetDeg),
                     new SequentialCommandGroup(
@@ -240,7 +243,7 @@ public abstract class Base15 extends CommandOpMode {
             new SequentialCommandGroup(
                 new ParallelCommandGroup(
                     followPath(paths.Path8),
-                    turretCmds.activateLauncher(0.5),
+                    revUp(0.5),
                     indexerCmds.setSlot(Slot.FIRST),
                     intakeCmds.intakeOn(),
                     new SequentialCommandGroup(
@@ -259,7 +262,7 @@ public abstract class Base15 extends CommandOpMode {
                 new ParallelCommandGroup(
                     followPath(paths.Path9),
                     indexerCmds.setSlotColors(DetectedColor.GREEN, DetectedColor.PURPLE, DetectedColor.PURPLE),
-                    turretCmds.activateLauncher(launchPower),
+                    revUp(launchPower),
                     turretCmds.setLaunchAngle(launchAngleDeg),
                     turretCmds.setTarget(endTurretTargetDeg),
                     new SequentialCommandGroup(

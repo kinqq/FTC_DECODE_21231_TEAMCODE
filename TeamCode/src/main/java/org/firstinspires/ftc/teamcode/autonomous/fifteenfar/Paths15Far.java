@@ -48,7 +48,7 @@ public class Paths15Far {
 
         Path5 = follower.pathBuilder().addPath(
                 new BezierLine(
-                    T.pose(132.000, 9.000),
+                    T.pose(134.000, 8.000),
                     T.pose(88.000, 20.000)
                 )
             ).setLinearHeadingInterpolation(T.headingDeg(0), T.headingDeg(0))

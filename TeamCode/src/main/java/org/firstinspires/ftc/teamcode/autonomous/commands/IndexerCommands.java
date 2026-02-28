@@ -200,6 +200,7 @@ public class IndexerCommands {
         ElapsedTime timer = new ElapsedTime();
         ElapsedTime periodicTimer = new ElapsedTime();
         boolean nextToReverse;
+        double timeoutSec = MAGAZINE_SET_SLOT_TIMEOUT_SEC;
 
         public SetSlot(Slot slot) {
             this.slot = slot;
@@ -218,25 +219,25 @@ public class IndexerCommands {
 
         @Override
         public void execute() {
-            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
-                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
-                && isBusy()
-                && !stage) {
-                if (nextToReverse) new NextSlot().initialize();
-                else new PrevSlot().initialize();
-                stage = true;
-                periodicTimer.reset();
-            }
-            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
-                activeSlot = slot;
-                stage = false;
-                periodicTimer.reset();
-            }
+//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STALL_CHECK_SEC
+//                && encoder.getVelocity() < MAGAZINE_SET_SLOT_STALL_VEL_THRESHOLD
+//                && isBusy()
+//                && !stage) {
+//                if (nextToReverse) new NextSlot().initialize();
+//                else new PrevSlot().initialize();
+//                stage = true;
+//                periodicTimer.reset();
+//            }
+//            if (periodicTimer.seconds() > MAGAZINE_SET_SLOT_STAGE_HOLD_SEC && stage) {
+//                activeSlot = slot;
+//                stage = false;
+//                periodicTimer.reset();
+//            }
         }
 
         @Override
         public boolean isFinished() {
-            return !isBusy() || (timer.seconds() > MAGAZINE_SET_SLOT_TIMEOUT_SEC);
+            return !isBusy() || (timer.seconds() > timeoutSec);
         }
     }
 
