@@ -297,7 +297,7 @@ public class DriveSTATE extends CommandOpMode
         {
             autoPower = false;
             humanPlayer = true;
-            idlePower = -0.4;
+            idlePower = -0.2;
             angle = 0.19;
             intakeCmds.intakeReverse();
             intakeCmds.intakeOn();

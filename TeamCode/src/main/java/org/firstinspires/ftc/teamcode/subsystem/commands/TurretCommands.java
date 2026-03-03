@@ -132,22 +132,21 @@ public class TurretCommands
         double targetDegree;
         if (autoAim) {
             Pose redPoint = new Pose(140, 140);
-            if (distToGoal > 130) redPoint = new Pose(139, 160);
-            Pose bluePoint = new Pose(5, 140);
-            if (distToGoal > 130) bluePoint = new Pose(6.5, 155);
+            if (distToGoal > 130) redPoint = new Pose(139, 165);
+            Pose bluePoint = redPoint.mirror();
             Pose aimingPoint = alliance == AllianceColor.RED ? redPoint : bluePoint;
             double yPart = aimingPoint.getY() - robotY;
             double xPart = aimingPoint.getX() - robotX;
             targetDegree = Math.toDegrees(Math.atan2(yPart, xPart));
             targetDegree -= Math.toDegrees(robotH);
-            targetDegree += offset - 4;
+            targetDegree += offset;
             targetDegree = AngleUnit.normalizeDegrees(targetDegree);
             targetDegree = Range.clip(targetDegree, -175, 175);
         } else targetDegree = offset;
 
         turretTargetDeg = targetDegree;
 
-        int targetReal = (int)Math.round((targetDegree - 90.0) * (1088.0 - 550.0) / (180.0 - 90.0) + 550.0);
+        int targetReal = (int) Math.round((targetDegree - 90.0) * (1088.0 - 550.0) / (180.0 - 90.0) + 550.0);
         turretMotor.setTargetPosition(targetReal);
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         turretMotor.setPower(1);

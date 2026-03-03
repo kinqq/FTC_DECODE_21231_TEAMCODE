@@ -198,8 +198,8 @@ public class PTOCommands
         public void initialize()
         {
             //new EngageClutch().initialize();
-            backLeft.setPower(0.5);
-            backRight.setPower(0.5);
+            backLeft.setPower(0.3);
+            backRight.setPower(0.3);
         }
 
         boolean done = false;
